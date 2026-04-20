@@ -20,6 +20,8 @@ import gym4 from "./assets/img/gym4.avif";
 import gym5 from "./assets/img/gym5.avif";
 import gym6 from "./assets/img/gym6.avif";
 import gym7 from "./assets/img/gym7.avif";
+import youtube_cover from "./assets/img/youtube_cover.avif";
+import discuss from "./assets/img/discuss.jpg";
 
 //blog
 import blog1 from "./assets/img/blog1.avif";
@@ -83,26 +85,26 @@ export const personData = [
 
 export const testimonialData = [
   {
-    name: "Michael Field",
-    role: "Software engineer",
+    name: "Aryan Sharma",
+    role: "Athlete",
     comment:
-      "I love how user-friendly the app is. Logging workouts has never been easier!",
+      "The RahulFitzz Blueprint didn't just change my physique; it rewired my discipline. The most structured program I've ever followed.",
     rating: 5,
     imageUrl: people1,
   },
   {
-    name: "Angelia Jolie",
-    role: "Software engineer",
+    name: "Vikram Malhotra",
+    role: "Professional",
     comment:
-      "GymFluencer has transformed the way I work out. The rep counting feature is a game-changer!",
+      "Rahul's focus on mobility changed the game for me. I'm lifting heavier than ever without the nagging pains I used to have.",
     rating: 5,
     imageUrl: people2,
   },
   {
-    name: "Angelina Jolie",
-    role: "Software engineer",
+    name: "Rohan Gupta",
+    role: "Fitness Enthusiast",
     comment:
-      "GymFluencer has transformed the way I work out. The rep counting feature is a game-changer!",
+      "The community support and Rahul's direct approach are unmatched. This isn't just a gym app; it's an elite performance hub.",
     rating: 5,
     imageUrl: people3,
   },
@@ -110,92 +112,59 @@ export const testimonialData = [
 
 export const faqs = [
   {
-    question: "How do I log my workouts?",
+    question: "Who is the 'RahulFitzz' Blueprint designed for?",
     answer:
-      "You can easily log your workouts by selecting the exercise, entering the duration, and tracking your reps.",
+      "The Blueprint is engineered for the high-performance athlete. Whether you are starting from zero or a seasoned pro, my system provides the scientific hierarchy required for absolute physical evolution.",
   },
   {
-    question: "Can I track my calories burned?",
+    question: "How do the Official Pro-Training Hubs operate?",
     answer:
-      "Yes, our app provides detailed calorie tracking for all your workouts.",
+      "These are vetted, elite-tier facilities equipped with the specific hardware required to execute my high-intensity hypertrophy and mobility protocols. They are currently expanding globally.",
   },
   {
-    question: "Is this application suitable for beginners?",
+    question: "Is nutrition precision-engineered for every plan?",
     answer:
-      "Absolutely! We have specially designed programs for all fitness levels.",
+      "Absolutely. No more guessing. Every Blueprint program includes comprehensive nutritional frameworks calibrated to your specific metabolic engine, ensuring every calorie fuels your peak condition.",
   },
   {
-    question: "What features does the application offer?",
+    question: "What defines the 'Iron Mindset' in the programs?",
     answer:
-      "We offer comprehensive workout tracking, nutrition planning, and progress monitoring.",
+      "Discipline is our core currency. The Iron Mindset isn't just about weight; it's about the psychological framework required to maintain peak focus when the initial motivation fades.",
+  },
+  {
+    question: "Can I access the digital vault from any device?",
+    answer:
+      "Yes. The Blueprint digital vault is built for the modern athlete, providing 24/7 access to your training splits, metrics, and technical coaching tutorials from any mobile interface.",
   },
 ];
 
 export const gyms = [
   {
     id: "1",
-    name: "Physc Gym Nerul 24/7",
+    name: "RahulFitzz Performance HQ",
     image: gym1,
-    phone: "+91 1234567890",
-    address: " Nerul, Navi Mumbai, Maharashtra, 400706",
+    phone: "+91 88888 88888",
+    address: "Nerul Elite Sector, Navi Mumbai",
     mapUrl:
       "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d15086.84530312852!2d73.016683!3d19.032438!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTnCsDAxJzU2LjgiTiA3M8KwMDEnMDAuMSJF!5e0!3m2!1sen!2sus!4v1734459176276!5m2!1sen!2sus",
   },
   {
     id: "2",
-    name: "Iron Fitness",
+    name: "Titan Elite Training Zone",
     image: gym2,
-    phone: "+91 1234567890",
-    address: "2801 14th St NW, Washington, DC 20009",
+    phone: "+91 77777 77777",
+    address: "Seawoods Iron District, Navi Mumbai",
     mapUrl:
       "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d15084.925421058208!2d73.065921!3d19.053563!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTnCsDAzJzEyLjgiTiA3M8KwMDMnNTcuMyJF!5e0!3m2!1sen!2sus!4v1734459256729!5m2!1sen!2sus",
   },
   {
     id: "3",
-    name: "Hydropower Fitness & Gym",
+    name: "The Iron Sanctum",
     image: gym3,
-    phone: "+91-22-0001-0211",
-    address: "28345 Industrial Blvd, Hayward, CA 94545",
+    phone: "+91-22-9999-1111",
+    address: "Belapur Powerhouse, Navi Mumbai",
     mapUrl:
       "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d15955.44999535032!2d36.693236!3d-1.254175!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMcKwMTUnMTUuMCJTIDM2wrA0MSczNS43IkU!5e0!3m2!1sen!2sus!4v1734459317198!5m2!1sen!2sus",
-  },
-  {
-    id: "4",
-    name: "Yuva Fitness",
-    image: gym4,
-    phone: "+91 1234567890",
-    address: "Nerul, Navi Mumbai",
-    mapUrl:
-      "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d124137.24721244365!2d80.06740051873598!3d13.517849258284897!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTPCsDMxJzQ0LjkiTiA4MMKwMDcnMDkuNyJF!5e0!3m2!1sen!2sus!4v1734459410022!5m2!1sen!2sus",
-  },
-
-  {
-    id: "5",
-    name: "Ozone The Gym",
-    image: gym5,
-    phone: "+91 1234567890",
-    address: "Nerul, Navi Mumbai",
-    mapUrl:
-      "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d13319.186377973685!2d-112.07816!3d33.428547!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzPCsDI1JzQyLjgiTiAxMTLCsDA0JzQxLjQiVw!5e0!3m2!1sen!2sus!4v1734459472983!5m2!1sen!2sus",
-  },
-  {
-    id: "6",
-    name: "The Square Gym",
-    image: gym6,
-    phone: "+91 1234567890",
-    address: "Nerul, Navi Mumbai",
-    mapUrl:
-      "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d13061.893070556383!2d-107.525709!3d35.069906!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzXCsDA0JzExLjciTiAxMDfCsDMxJzMyLjYiVw!5e0!3m2!1sen!2sus!4v1734459529834!5m2!1sen!2sus",
-  },
-
-  {
-    id: "7",
-    name: "Arnolds Total Fitness",
-    image: gym7,
-    phone: "+91 1234567890",
-    address: "Nerul, Navi Mumbai",
-    mapUrl:
-      "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d12287.862883495052!2d-104.999573!3d39.650486!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMznCsDM5JzAxLjgiTiAxMDTCsDU5JzU4LjUiVw!5e0!3m2!1sen!2sus!4v1734459584984!5m2!1sen!2sus",
   },
 ];
 
@@ -203,104 +172,107 @@ export const blogData = [
   {
     id: 1,
     isLarge: true,
-    title: "Conquering Consistency: How to Make Exercise a Habit You Love",
+    title: "The RahulFitzz Blueprint: Complete 12-Week Transformation Guide",
     date: "Jun 28, 2024",
-    author: "Benjamin",
-    category: "Exercise",
-    btnColor: "bg-[#e02d2e]",
+    author: "RahulFitzz",
+    category: "Transformation",
+    btnColor: "bg-[#eb0000]",
     imageUrl: blog1,
     b_user: b_user1,
+    content: "Transforming your physique requires more than just sweat; it requires a calculated blueprint. In this guide, I break down the exact hypertrophy protocols and metabolic conditioning sessions that took me from standard to standout. Learn how to structure your training blocks, optimize your nutrient timing, and why consistency in the 'boring' basics is your greatest weapon for an elite body."
   },
   {
     id: 2,
-    title: "Weight Loss: A Sustainable Approach for a Healthier You",
+    title: "Scientific Fasting: Peak Performance Year-Round",
     date: "Jun 28, 2024",
-    author: "Jessica",
-    btnColor: "bg-[#e4660a]",
-    category: "Weight Loss",
+    author: "RahulFitzz",
+    btnColor: "bg-[#eb0000]",
+    category: "Nutrition",
     imageUrl: blog2,
     b_user: b_user2,
+    content: "Maintaining a shredded physique while building strength is the ultimate puzzle. Discover how I use intermittent fasting not just for fat loss, but for heightened mental clarity and growth hormone optimization. We dive into the science of autophagy, insulin sensitivity, and how to fuel your high-intensity sessions without breaking the fast prematurely."
   },
 
   {
     id: 3,
-    title: "Fuel Your Fitness: A Guide to Nutrition for Peak Performance",
+    title: "Iron Mindset: Why Discipline Beats Motivation",
     date: "Jun 23, 2024",
-    author: "David",
-    category: "Nutrition",
-    btnColor: "bg-[#2a990b] ",
+    author: "RahulFitzz",
+    category: "Mindset",
+    btnColor: "bg-[#eb0000] ",
     imageUrl: blog3,
     b_user: b_user3,
+    content: "Motivation is a feeling; discipline is a decision. In this editorial, I share the psychological frameworks I use to stay focused when the initial excitement fades. From building unshakeable habits to mastering delayed gratification, learn how to audit your mindset and cultivate the mental toughness required to join the RahulFitzz elite community."
   },
 ];
 
 export const activities = [
-  { activity: "Rowing", text: "TRACK", imageUrl: track },
+  { activity: "Social Media", text: "MEDIA REACH", imageUrl: youtube_cover },
   {
-    activity: "Weight Lifting",
-    text: "ANALYZE",
-    imageUrl: analyze,
+    activity: "Collaboration",
+    text: "PARTNERSHIPS",
+    imageUrl: discuss,
   },
-  { activity: "Yoga", text: "TRAIN", imageUrl: train },
+  { activity: "Production", text: "CONTENT STRATEGY", imageUrl: blog2 },
   {
-    activity: "Aerobics",
-    text: "CONNECT",
-    imageUrl: connect,
+    activity: "Community",
+    text: "ENGAGEMENT",
+    imageUrl: gym4,
   },
   {
-    activity: "Swimming",
-    text: "CHALLENGE",
-    imageUrl: challenge,
+    activity: "Impact",
+    text: "GLOBAL REACH",
+    imageUrl: gym7,
   },
 ];
 
 export const features = [
   {
-    icon: "https://framerusercontent.com/images/AjjAxBc5v6SZHOkJzG2bwrSMk.svg",
-    title: "Effortless Workout Logging",
-    description:
-      "Easily log your workouts and monitor your progress over time with our intuitive logging feature.",
-  },
-  {
-    icon: "https://framerusercontent.com/images/pvxqwt0ZG86WIRPPnHxDCgV7rkQ.svg",
-    title: "Personalized Workout Plans",
-    description:
-      "AI-powered workout plans tailored to your fitness level, goals, and progress.",
-  },
-  {
     icon: "https://framerusercontent.com/images/rxSlFR0RyaC3WCayigHX4RPQZs.svg",
-    title: "Accurate Rep Counting",
+    title: "METABOLIC PRECISION",
     description:
-      "Count your reps accurately with our app, ensuring consistency and improved performance.",
+      "Stop guessing. Every rep, every set, every calorie is aligned with your body. This is data-driven training designed to maximize muscle growth and performance—no fluff, no shortcuts.",
   },
   {
     icon: "https://framerusercontent.com/images/u8fjSIAgWQzhagulXkIoN7PzI.svg",
-    title: "Calorie Calculation & Personalized Diet Plans",
+    title: "UNSHAKEABLE DISCIPLINE",
     description:
-      "Calculate calories burned during workouts and AI-customized meal plans for optimal nutrition and wellness",
+      "Motivation fades. Systems don’t. Build habits that create consistency, and consistency that builds results. This is where average ends and elite begins.",
+  },
+  {
+    icon: "https://framerusercontent.com/images/AjjAxBc5v6SZHOkJzG2bwrSMk.svg",
+    title: "THE BLUEPRINT VAULT",
+    description:
+      "Access the exact training frameworks, hypertrophy techniques, and recovery protocols used to build a powerful, aesthetic physique.",
+  },
+  {
+    icon: "https://framerusercontent.com/images/pvxqwt0ZG86WIRPPnHxDCgV7rkQ.svg",
+    title: "ELITE MACRO ENGINEERING",
+    description:
+      "Your nutrition is your edge. Dialed-in macros, performance fueling, and recovery-focused eating—structured to match your training and accelerate results.",
   },
 ];
 
 export const levels_list = [
   {
-    title: "BEGINNER",
+    title: "THE RECRUIT",
     description:
-      "Start your fitness journey with simple and effective exercises.",
+      "Build the foundation of strength and discipline with entry-level Blueprint routines.",
     image: wp1,
   },
   {
-    title: "INTERMEDIATE",
-    description: "Start your fitness routine with more challenging exercises.",
+    title: "THE WARRIOR",
+    description: "Escalate the intensity with advanced volume and targeted hypertrophy splits.",
     image: wp2,
   },
   {
-    title: "ADVANCED",
-    description: "Push your limits with high-intensity and complex movements.",
+    title: "THE ELITE",
+    description: "Push beyond human limits with high-frequency, professional-grade training protocols.",
     image: wp3,
   },
   {
-    title: "Personalized Workout Plan",
-    description: "Create your own workout plan.",
+    title: "CUSTOM BLUEPRINT",
+    description: "Direct elite coaching integration for your specific competition or lifestyle goals.",
     image: wp4,
   },
 ];
