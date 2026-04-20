@@ -1,6 +1,6 @@
 import React from "react";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import "@splidejs/splide/css"; // Splide's default CSS
+import "@splidejs/splide/dist/css/splide.min.css"; // Splide's default CSS
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle } from "@fortawesome/free-solid-svg-icons";
 
@@ -17,7 +17,7 @@ const Marquee = () => {
   return (
     <div
       className="overflow-hidden bg-[#f33] p-4"
-      style={{ border: "2px solid red;" }}
+      style={{ border: "2px solid red" }}
     >
       <Splide
         options={{

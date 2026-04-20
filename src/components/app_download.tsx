@@ -1,6 +1,7 @@
 import React from "react";
 import other from "../assets/img/icon2.svg";
 import playstore from "../assets/img/icon3.svg";
+import info from "../assets/img/info.svg";
 export default function app_download() {
   return (
     <div className="flex justify-center mt-14 items-center gap-2">

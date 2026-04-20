@@ -9,9 +9,11 @@ const Vertical_Slider = () => {
   const splideRef = useRef(null);
 
   useEffect(() => {
+    if (!splideRef.current) return;
+
     const splide = new Splide(splideRef.current, {
       type: "loop",
-      drag: "false",
+      drag: false,
       focus: "center",
       direction: "ttb",
       height: "500px",
@@ -23,7 +25,6 @@ const Vertical_Slider = () => {
       autoplay: true,
       speed: 2000,
       interval: 3000,
-
       pauseOnHover: false,
       breakpoints: {
         400: { height: "400px" },
@@ -32,7 +33,9 @@ const Vertical_Slider = () => {
 
     splide.mount();
 
-    return () => splide.destroy();
+    return () => {
+      splide.destroy();
+    };
   }, []);
 
   const img = [app4, app6, app3];
