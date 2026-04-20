@@ -1,5 +1,4 @@
-"use client";
-
+import { Metadata } from 'next';
 import "../index.css";
 import "../App.scss";
 import "../variables.scss";
@@ -7,6 +6,33 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import ScrollToHash from "../components/scroll";
 import Cursor from "../components/Cursor";
+
+export const metadata: Metadata = {
+    title: 'RahulFitzz | Elite Fitness Influencer & Brand Partner',
+    description: 'Transform your brand and physique with RahulFitzz. 165K+ combined reach, high-impact content strategy, and world-class fitness coaching.',
+    keywords: 'RahulFitzz, Fitness Influencer, Brand Collaborations, Muscle Growth, Discipline, Gym Influencer Portfolio',
+    openGraph: {
+        title: 'RahulFitzz | Elite Fitness Portfolio',
+        description: 'Engineered for those who refuse average. Discover the evolution edge.',
+        url: 'https://rahulfitzz.com',
+        siteName: 'RahulFitzz',
+        images: [
+            {
+                url: 'https://rahulfitzz.com/icon.png',
+                width: 512,
+                height: 512,
+            },
+        ],
+        locale: 'en_US',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'RahulFitzz | Fitness Performance',
+        description: 'Transform your brand and physique with 165K+ elite reach.',
+        images: ['https://rahulfitzz.com/icon.png'],
+    },
+};
 
 export default function RootLayout({
     children,
