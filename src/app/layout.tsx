@@ -5,7 +5,7 @@ import "../variables.scss";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import ScrollToHash from "../components/scroll";
-import Cursor from "../components/Cursor";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
     title: 'RahulFitzz | Elite Fitness Influencer & Brand Partner',
@@ -53,6 +53,7 @@ export default function RootLayout({
                     {children}
                     <Footer />
                 </div>
+                <Analytics />
             </body>
         </html>
     );
