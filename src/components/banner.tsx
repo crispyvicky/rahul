@@ -127,12 +127,12 @@ export default function Banner() {
           transition={{ delay: 1.6, duration: 1 }}
           className="flex flex-col sm:flex-row items-stretch sm:items-center gap-8 w-full sm:w-auto"
         >
-          <button className="group relative px-14 py-7 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)]">
+          <a href="/workout-plans" className="group relative px-14 py-7 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center">
             <span className="relative z-10 flex items-center gap-4">
               EXPLORE JOURNEY <ArrowRight className="w-4 h-4" />
             </span>
             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-          </button>
+          </a>
 
           <a href="#contact" className="group px-14 py-7 border border-white/5 bg-white/5 backdrop-blur-3xl text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] transition-all duration-500 hover:bg-white hover:text-black flex items-center justify-center">
             COLLAB WITH ME

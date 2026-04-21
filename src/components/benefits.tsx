@@ -33,7 +33,7 @@ function Benefits() {
   };
 
   return (
-    <div className=" bg-black text-white p-6 md:px-12 xl:px-12">
+    <div id="benefits" className=" bg-black text-white p-6 md:px-12 xl:px-12">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}

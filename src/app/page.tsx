@@ -8,11 +8,11 @@ import VideoCard from "@/components/videoCard";
 import Services from "@/components/ourServices";
 import WorkoutLibrary from "@/components/WorkoutLibrary";
 import Benefits from "@/components/benefits";
-import Personalized_Hub from "@/components/personalized_hub";
 import Transformation from "@/components/Transformation";
 import What_People_Say from "@/components/what_people";
 import Gym from "@/components/gym";
 import Blog from "@/components/blog";
+import Contact from "@/components/contact";
 import { FAQ } from "@/components/FAQ";
 import Marquee from "@/components/marquee";
 
@@ -27,12 +27,12 @@ export default function Home() {
             <Services />
             <WorkoutLibrary />
             <Benefits />
-            <Personalized_Hub />
             <Marquee />
             <Transformation />
             <What_People_Say />
             <Gym />
             <Blog />
+            <Contact />
             <FAQ />
         </>
     );

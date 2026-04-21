@@ -27,19 +27,23 @@ export default function Header() {
     },
     {
       name: "About",
-      href: "#services",
+      href: "/#about",
     },
     {
       name: "Services",
       href: "/workout-plans",
     },
     {
-      name: "Blogs",
-      href: "#blogs",
+      name: "Diet Plan",
+      href: "/coming-soon",
     },
     {
-      name: "Contact",
-      href: "#contact",
+      name: "Benefits",
+      href: "/#benefits",
+    },
+    {
+      name: "Blogs",
+      href: "/#blogs",
     },
   ];
 
@@ -84,14 +88,9 @@ export default function Header() {
                 </RouterLink>
               </li>
               <li className="hover:text-red-500 cursor-pointer">
-                <Link
-                  to="services"
-                  smooth={true}
-                  duration={500}
-                  className="no-underline"
-                >
+                <RouterLink href="/#about" className="no-underline">
                   About
-                </Link>
+                </RouterLink>
               </li>
               <li className="relative" ref={dropdownRef}>
                 <span
@@ -117,8 +116,10 @@ export default function Header() {
                         </RouterLink>
                       </li>
                       <li className="hover:text-red-500 cursor-pointer">
-                        Diet Plan
-                        <RouterLink href={"/"} className="no-underline">
+                        <RouterLink
+                          href="/coming-soon"
+                          className="no-underline"
+                        >
                           {" "}
                           Diet Plan
                         </RouterLink>
@@ -128,41 +129,23 @@ export default function Header() {
                 )}
               </li>
               <li className="hover:text-red-500 cursor-pointer">
-                <Link
-                  to="benefits"
-                  smooth={true}
-                  duration={500}
-                  className="no-underline"
-                >
+                <RouterLink href="/#benefits" className="no-underline">
                   Benefits
-                </Link>
+                </RouterLink>
               </li>
               <li className="hover:text-red-500 cursor-pointer">
-                <Link
-                  to="blogs"
-                  smooth={true}
-                  duration={500}
-                  className="no-underline"
-                >
+                <RouterLink href="/#blogs" className="no-underline">
                   Blogs
-                </Link>
-              </li>
-              <li className="hover:text-red-500 cursor-pointer">
-                <Link
-                  to="contact"
-                  smooth={true}
-                  duration={500}
-                  className="no-underline"
-                >
-                  Contact
-                </Link>
+                </RouterLink>
               </li>
             </ul>
 
             <div className="flex items-center gap-4">
-              <button className="hidden md:block bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full font-bold">
-                Join us now
-              </button>
+              <RouterLink href="/coming-soon">
+                <button className="hidden md:block bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full font-bold">
+                  Join us now
+                </button>
+              </RouterLink>
 
               {/* Mobile Menu Button */}
               <button

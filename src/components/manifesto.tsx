@@ -20,7 +20,7 @@ const lineVariant = {
 
 export default function Manifesto() {
     return (
-        <section className="relative bg-[#050505] w-full py-40 md:py-64 overflow-hidden border-b border-white/5">
+        <section id="about" className="relative bg-[#050505] w-full py-40 md:py-64 overflow-hidden border-b border-white/5">
             {/* Ambient Background Detail */}
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,_rgba(235,0,0,0.03)_0%,_transparent_50%)] pointer-events-none" />
 

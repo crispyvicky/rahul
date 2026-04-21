@@ -2,6 +2,7 @@ import React from "react";
 import { levels_list } from "../rawData";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const Work_Out_Plan = () => {
   return (
@@ -52,10 +53,10 @@ const Work_Out_Plan = () => {
                   {level.description}
                 </p>
 
-                <button className="flex items-center gap-3 text-white font-black text-xs uppercase tracking-widest group/btn">
+                <Link href="/coming-soon" className="flex items-center gap-3 text-white font-black text-xs uppercase tracking-widest group/btn">
                   Start Program
                   <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-2" />
-                </button>
+                </Link>
               </div>
 
               {/* Branded Label */}
