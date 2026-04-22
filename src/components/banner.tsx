@@ -110,7 +110,7 @@ export default function Banner() {
           className="flex flex-wrap items-center gap-10 mb-16 border-l border-white/5 pl-8"
         >
           <div className="flex flex-col gap-1">
-            <div className="text-white font-black text-3xl tracking-tighter uppercase whitespace-nowrap">100K+ IG</div>
+            <div className="text-white font-black text-3xl tracking-tighter uppercase whitespace-nowrap">110K+ IG</div>
             <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Reach</div>
           </div>
           <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />

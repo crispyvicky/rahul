@@ -14,19 +14,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
             url: `${baseUrl}/workout-plans`,
             lastModified: new Date(),
             changeFrequency: 'weekly',
-            priority: 0.8,
+            priority: 0.9,
         },
         {
-            url: `${baseUrl}#services`,
+            url: `${baseUrl}/coming-soon`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.7,
-        },
-        {
-            url: `${baseUrl}#blogs`,
-            lastModified: new Date(),
-            changeFrequency: 'weekly',
-            priority: 0.6,
         },
     ];
 }
