@@ -107,17 +107,22 @@ export default function Banner() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 1 }}
-          className="flex flex-wrap items-center gap-10 mb-16 border-l border-white/5 pl-8"
+          className="flex flex-wrap items-center gap-6 sm:gap-10 mb-16 border-l border-white/5 pl-6 sm:pl-8"
         >
-          <div className="flex flex-col gap-1">
-            <div className="text-white font-black text-3xl tracking-tighter uppercase whitespace-nowrap">110K+ IG</div>
+          <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
+            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">110K+ IG</div>
             <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Reach</div>
-          </div>
+          </a>
           <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />
-          <div className="flex flex-col gap-1">
-            <div className="text-white font-black text-3xl tracking-tighter uppercase whitespace-nowrap">65K+ YT</div>
+          <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
+            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">65K+ YT</div>
             <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Subs</div>
-          </div>
+          </a>
+          <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />
+          <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
+            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">30K+ FB</div>
+            <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Forces</div>
+          </a>
         </motion.div>
 
         {/* Action Zone */}

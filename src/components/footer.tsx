@@ -5,9 +5,10 @@ import {
   faInstagram,
   faLinkedin,
   faTwitter,
+  faYoutube,
+  faFacebook,
 } from "@fortawesome/free-brands-svg-icons";
 import logo from "../assets/img/RF.png";
-import { faYoutube } from "@fortawesome/free-brands-svg-icons";
 
 export default function Footer() {
   return (
@@ -50,6 +51,7 @@ const SocialLinks = () => {
   const socialLinks = [
     { Icon: faInstagram, href: "https://www.instagram.com/rahulfitzz", label: "instagram" },
     { Icon: faYoutube, href: "https://www.youtube.com/@rahulfitzz", label: "youtube" },
+    { Icon: faFacebook, href: "https://www.facebook.com/profile.php?id=61586274037649", label: "facebook" },
   ];
 
   return (
