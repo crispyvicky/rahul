@@ -138,7 +138,7 @@ export default function Sidebar() {
           onClick={async () => {
             logout();
             setMobileOpen(false);
-            await signOut({ callbackUrl: "/" });
+            await signOut({ callbackUrl: window.location.origin });
           }}
           className="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-text-secondary hover:text-red-400 hover:bg-red-500/5 w-full"
         >

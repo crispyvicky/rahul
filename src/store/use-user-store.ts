@@ -67,7 +67,13 @@ export const useUserStore = create<UserState>()(
 
       login: (user) => set({ user, isAuthenticated: true }),
 
-      logout: () => set({ user: null, isAuthenticated: false }),
+      logout: () => {
+        set({ user: null, isAuthenticated: false });
+        // Clear persisted storage so stale profile doesn't re-appear on reload
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("rahulfitzz-user");
+        }
+      },
 
       updateProfile: (data) =>
         set((state) => ({

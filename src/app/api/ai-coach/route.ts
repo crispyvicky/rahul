@@ -21,10 +21,15 @@ export async function POST(req: Request) {
     const model = genAI.getGenerativeModel({ model: modelName });
 
     if (type === "workout") {
+      const locationPrompt = userData.workoutLocation === "home" 
+        ? "They are working out at HOME with minimal equipment (bodyweight, dumbbells, bands)."
+        : "They are working out at a FULL GYM with machines, barbells, and cables.";
+
       const prompt = `You are an elite, no-nonsense fitness coach like David Goggins or Chris Bumstead.
       The user is ${userData.age} years old, weighs ${userData.weight}kg, and is ${userData.height}cm tall.
-      Their goal is: ${userData.goal}. Their current fitness level is: ${userData.fitnessLevel}.
+      Their primary goal is: ${userData.goal}. Their current fitness level is: ${userData.fitnessLevel}.
       They can workout ${userData.workoutDays} days a week.
+      ${locationPrompt}
 
       Generate a highly personalized ${userData.workoutDays}-day workout split for them.
       Return the response in JSON format. The response must EXACTLY match this structure (no markdown tags, just the raw JSON object):
