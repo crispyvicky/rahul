@@ -7,7 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         {
             url: baseUrl,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
+            changeFrequency: 'weekly',
             priority: 1,
         },
         {
@@ -17,10 +17,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         },
         {
-            url: `${baseUrl}/coming-soon`,
+            url: `${baseUrl}/giveaways`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.9,
+        },
+        {
+            url: `${baseUrl}/challenges`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/premium`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
-            priority: 0.7,
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/login`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.5,
+        },
+        {
+            url: `${baseUrl}/signup`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.5,
         },
     ];
 }

@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: '/private/',
+            disallow: ['/dashboard', '/settings', '/onboarding', '/admin'],
         },
         sitemap: 'https://rahulfitzz.com/sitemap.xml',
     };

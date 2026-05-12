@@ -110,17 +110,17 @@ export default function Banner() {
           className="flex flex-wrap items-center gap-6 sm:gap-10 mb-16 border-l border-white/5 pl-6 sm:pl-8"
         >
           <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
-            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">110K+ IG</div>
+            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">130K+ IG</div>
             <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Reach</div>
           </a>
           <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />
           <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
-            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">65K+ YT</div>
+            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">90K+ YT</div>
             <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Subs</div>
           </a>
           <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />
           <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
-            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">30K+ FB</div>
+            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">60K+ FB</div>
             <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Forces</div>
           </a>
         </motion.div>
