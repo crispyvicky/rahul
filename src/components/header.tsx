@@ -141,9 +141,14 @@ export default function Header() {
             </ul>
 
             <div className="flex items-center gap-4">
-              <RouterLink href="/coming-soon">
+              <RouterLink href="/dashboard">
+                <button className="hidden md:block bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-full font-bold text-sm border border-white/10">
+                  Launch App
+                </button>
+              </RouterLink>
+              <RouterLink href="/login">
                 <button className="hidden md:block bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full font-bold">
-                  Join us now
+                  Join Now
                 </button>
               </RouterLink>
 

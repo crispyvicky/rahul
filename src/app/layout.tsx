@@ -2,10 +2,9 @@ import { Metadata } from 'next';
 import "../index.css";
 import "../App.scss";
 import "../variables.scss";
-import Header from "../components/header";
-import Footer from "../components/footer";
-import ScrollToHash from "../components/scroll";
 import { Analytics } from "@vercel/analytics/react";
+import LayoutRouter from "../components/layout-router";
+import AuthProvider from "../components/auth-provider";
 
 export const metadata: Metadata = {
     title: 'RahulFitzz | Elite Fitness Influencer & Brand Partner',
@@ -47,12 +46,11 @@ export default function RootLayout({
                 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
             </head>
             <body suppressHydrationWarning>
-                <div className="main-container">
-                    <ScrollToHash />
-                    <Header />
-                    {children}
-                    <Footer />
-                </div>
+                <AuthProvider>
+                    <LayoutRouter>
+                        {children}
+                    </LayoutRouter>
+                </AuthProvider>
                 <Analytics />
             </body>
         </html>
