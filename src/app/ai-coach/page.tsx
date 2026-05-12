@@ -152,10 +152,8 @@ export default function AICoachPage() {
   const [generateError, setGenerateError] = useState<string | null>(null);
   const aiRequestLock = useRef(false);
 
-  // Premium branded print / PDF (matches RahulFitzz dark + red vibe)
-  const downloadPlanAsPDF = (opts: PrintDocOptions) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+  // Premium branded PDF download (RahulFitzz dark + red — direct .pdf file, no print dialog)
+  const downloadPlanAsPDF = async (opts: PrintDocOptions) => {
     const gradId = `rfG${Date.now()}`;
     const genDate = new Date().toLocaleString(undefined, {
       dateStyle: "medium",
@@ -196,7 +194,7 @@ export default function AICoachPage() {
 
     const markSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff2a2a"/><stop offset="1" stop-color="#9a0000"/></linearGradient></defs><rect width="56" height="56" rx="16" fill="url(#${gradId})"/><text x="28" y="37" text-anchor="middle" fill="#fff" font-family="Segoe UI,Arial Black,sans-serif" font-size="19" font-weight="900">RF</text></svg>`;
 
-    printWindow.document.write(`<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"/><title>${escapeHtml(opts.docTitle)} — RahulFitzz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -441,11 +439,54 @@ export default function AICoachPage() {
   ${tipsHtml}
   <footer class="footer">RahulFitzz AI Coach · <a href="https://rahulfitzz.com">rahulfitzz.com</a> · Train like it’s personal.</footer>
 </div>
-</body></html>`);
-    printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 450);
+</body></html>`;
+
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText =
+      "position:fixed;width:900px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0;border:0;";
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument;
+    if (!doc) {
+      document.body.removeChild(iframe);
+      return;
+    }
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    try {
+      await doc.fonts.ready.catch(() => {});
+      await new Promise((r) => setTimeout(r, 400));
+      /* html2pdf.js — no bundled types */
+      const html2pdf = (await import("html2pdf.js")).default as () => {
+        set: (o: object) => { from: (el: HTMLElement) => { save: () => Promise<void> } };
+      };
+      const slug =
+        opts.docTitle
+          .replace(/[^\w\s-]+/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .slice(0, 44)
+          .toLowerCase() || "plan";
+      const filename = `rahulfitzz-${opts.variant}-${slug}.pdf`;
+      await html2pdf()
+        .set({
+          margin: [12, 10, 14, 10],
+          filename,
+          image: { type: "jpeg", quality: 0.93 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+        })
+        .from(doc.body)
+        .save();
+    } catch (e) {
+      console.error("PDF export failed", e);
+      window.alert("Could not generate the PDF. Try again, or use a desktop browser if this keeps failing.");
+    } finally {
+      iframe.remove();
+    }
   };
 
   // Load History on Mount

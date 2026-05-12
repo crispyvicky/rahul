@@ -140,30 +140,31 @@ export default function Header() {
               </li>
             </ul>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <RouterLink href="/dashboard">
-                <button className="hidden md:block bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-full font-bold text-sm border border-white/10">
+                <button
+                  type="button"
+                  className="hidden md:inline-flex min-h-10 items-center bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-full font-bold text-sm border border-white/10 touch-manipulation"
+                >
                   Launch App
-                </button>
-              </RouterLink>
-              <RouterLink href="/login">
-                <button className="hidden md:block bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full font-bold">
-                  Join Now
                 </button>
               </RouterLink>
 
               {/* Mobile Menu Button */}
               <button
+                type="button"
                 onClick={toggleMobileMenu}
-                className="md:hidden text-white"
+                className="md:hidden text-white min-h-11 min-w-11 flex items-center justify-center touch-manipulation rounded-full"
+                aria-expanded={isMobileMenuOpen}
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               >
                 {isMobileMenuOpen ? (
                   <>
                     <div className=" p-3 rounded-full bg-[#18181a]">
                       <img
                         className="h-6 w-6 object-cover"
-                        src="https://framerusercontent.com/images/tIEQjQ5QDx1TzUHLSEdkAOUig.svg
-"
+                        src="https://framerusercontent.com/images/tIEQjQ5QDx1TzUHLSEdkAOUig.svg"
+                        alt=""
                       />
                     </div>
                   </>
@@ -172,8 +173,8 @@ export default function Header() {
                     <div className=" p-3 rounded-full bg-[#18181a]">
                       <img
                         className="h-6 w-6 object-cover"
-                        src="https://framerusercontent.com/images/tIEQjQ5QDx1TzUHLSEdkAOUig.svg
-"
+                        src="https://framerusercontent.com/images/tIEQjQ5QDx1TzUHLSEdkAOUig.svg"
+                        alt=""
                       />
                     </div>
                   </>
@@ -188,23 +189,43 @@ export default function Header() {
       {isMobileMenuOpen && (
         <div
           ref={mobileDropDown}
-          className="fixed top-32 right-8 z-50 min-w-[200px] bg-[#141414] text-lightGray rounded-lg mt-2 shadow-lg"
+          className="fixed z-50 top-[max(7.5rem,env(safe-area-inset-top)+5.5rem)] right-[max(1rem,env(safe-area-inset-right))] w-[min(20rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] bg-[#141414] text-lightGray rounded-xl shadow-lg border border-white/10 overflow-hidden"
         >
-          <ul className="flex flex-col space-y-2 p-4">
+          <ul className="flex flex-col p-2 sm:p-3">
             {mNav.map((item, index) => (
               <li
                 key={index}
-                className="hover:text-red-500 text-[#96979c] cursor-pointer text-base second"
+                className="hover:text-red-500 text-[#96979c] cursor-pointer text-base second rounded-lg"
               >
                 <RouterLink
                   href={item.href}
-                  className="no-underline"
+                  className="no-underline block min-h-11 px-3 py-2.5 flex items-center touch-manipulation"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </RouterLink>
               </li>
             ))}
+            <li className="mt-2 pt-2 border-t border-white/10 flex flex-col gap-2 px-1 pb-1">
+              <RouterLink
+                href="/dashboard"
+                className="no-underline"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className="flex min-h-11 w-full items-center justify-center rounded-lg bg-white/10 text-white font-bold text-sm border border-white/10 touch-manipulation">
+                  Launch App
+                </span>
+              </RouterLink>
+              <RouterLink
+                href="/login"
+                className="no-underline"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className="flex min-h-11 w-full items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm touch-manipulation">
+                  Join now
+                </span>
+              </RouterLink>
+            </li>
           </ul>
         </div>
       )}

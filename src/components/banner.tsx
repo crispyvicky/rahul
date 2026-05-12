@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 // Cinematic Text Reveal Variants
 const textVariant = {
@@ -38,7 +39,7 @@ export default function Banner() {
       id="home"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="relative min-h-[100vh] w-full bg-[#050505] overflow-hidden flex flex-col justify-center py-24"
+      className="relative min-h-[100dvh] w-full max-w-[100vw] bg-[#050505] overflow-x-hidden flex flex-col justify-center py-20 sm:py-24"
     >
       {/* 1. LAYER: GRAIN & NOISE TEXTURE */}
       <div className="absolute inset-0 z-[1] opacity-30 pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
@@ -66,7 +67,7 @@ export default function Banner() {
       {/* 4. LAYER: CONTENT */}
       <motion.div
         style={{ opacity: contentFade, y: contentY }}
-        className="relative z-20 flex flex-col items-start justify-center w-full max-w-7xl mx-auto px-6 md:px-12 pt-20"
+        className="relative z-20 flex flex-col items-start justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-24 sm:pt-20 pb-8"
       >
         {/* Pre-Heading Accent - Refined */}
         <motion.div
@@ -130,17 +131,23 @@ export default function Banner() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.6, duration: 1 }}
-          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-8 w-full sm:w-auto"
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-8 w-full sm:w-auto"
         >
-          <a href="/workout-plans" className="group relative px-14 py-7 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center">
-            <span className="relative z-10 flex items-center gap-4">
-              EXPLORE JOURNEY <ArrowRight className="w-4 h-4" />
+          <Link
+            href="/login"
+            className="group relative min-h-[52px] w-full sm:w-auto px-8 py-4 sm:px-14 sm:py-7 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.35em] sm:tracking-[0.4em] overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center touch-manipulation no-underline active:scale-[0.99]"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3 sm:gap-4">
+              Join now <ArrowRight className="w-4 h-4 shrink-0" aria-hidden />
             </span>
             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-          </a>
+          </Link>
 
-          <a href="#contact" className="group px-14 py-7 border border-white/5 bg-white/5 backdrop-blur-3xl text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] transition-all duration-500 hover:bg-white hover:text-black flex items-center justify-center">
-            COLLAB WITH ME
+          <a
+            href="#contact"
+            className="group min-h-[52px] w-full sm:w-auto px-8 py-4 sm:px-14 sm:py-7 border border-white/5 bg-white/5 backdrop-blur-3xl text-white font-black text-[10px] md:text-xs uppercase tracking-[0.35em] sm:tracking-[0.4em] transition-all duration-500 hover:bg-white hover:text-black flex items-center justify-center touch-manipulation text-center no-underline active:scale-[0.99]"
+          >
+            Collab with me
           </a>
         </motion.div>
 
