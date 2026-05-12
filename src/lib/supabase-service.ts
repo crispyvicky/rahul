@@ -1,6 +1,23 @@
 import { supabase } from "./supabase";
 import type { DbUserProfile } from "./supabase";
 
+/** `user_profiles.id` is UUID; demo / local ids like "demo-001" must skip DB calls. */
+function isUuidUserId(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
+function formatSupabaseError(err: unknown): string {
+  if (err == null) return "unknown";
+  if (typeof err !== "object") return String(err);
+  const e = err as {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+  };
+  return [e.message, e.code && `code=${e.code}`, e.details, e.hint].filter(Boolean).join(" | ");
+}
+
 // ─── USER PROFILE ────────────────────────────────────────
 
 export async function upsertUserProfile(userData: {
@@ -9,28 +26,50 @@ export async function upsertUserProfile(userData: {
   email: string;
   avatar_url: string;
 }) {
-  // Generate a unique referral code
+  const now = new Date().toISOString();
+  const baseRow = {
+    google_id: userData.google_id,
+    name: userData.name,
+    email: userData.email,
+    avatar_url: userData.avatar_url,
+    last_login: now,
+    updated_at: now,
+  };
+
+  const existing = await getUserProfile(userData.email);
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .update(baseRow)
+      .eq("email", userData.email)
+      .select()
+      .single();
+
+    if (error) {
+      console.warn(
+        "[upsertUserProfile update]",
+        formatSupabaseError(error),
+        "— if this mentions RLS or policy, run supabase/fix_user_profiles_rls.sql in the SQL editor."
+      );
+      return null;
+    }
+    return data as DbUserProfile;
+  }
+
   const referralCode = `RF-${userData.name.toUpperCase().replace(/\s+/g, "").slice(0, 4)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
   const { data, error } = await supabase
     .from("user_profiles")
-    .upsert(
-      {
-        google_id: userData.google_id,
-        name: userData.name,
-        email: userData.email,
-        avatar_url: userData.avatar_url,
-        referral_code: referralCode,
-        last_login: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "email" }
-    )
+    .insert({
+      ...baseRow,
+      referral_code: referralCode,
+    })
     .select()
     .single();
 
   if (error) {
-    console.error("Upsert user error:", error);
+    console.warn("[upsertUserProfile insert]", formatSupabaseError(error));
     return null;
   }
   return data as DbUserProfile;
@@ -208,6 +247,54 @@ export async function getUserWorkouts(userId: string, limit = 30) {
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  return data || [];
+}
+
+// ─── AI PLANS ────────────────────────────────────────────
+
+export async function saveAiPlan(
+  userId: string,
+  planType: "workout" | "diet" | "physique",
+  planData: any
+) {
+  if (!isUuidUserId(userId)) return null;
+
+  const { data, error } = await supabase
+    .from("ai_plans")
+    .insert({
+      user_id: userId,
+      plan_type: planType,
+      plan_data: planData,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.warn(
+      "[saveAiPlan]",
+      error.message,
+      error.code ?? "",
+      "— if RLS/JWT: run supabase/fix_ai_plans_rls.sql in Supabase SQL Editor. If FK: ensure user_profiles has this user id (Google login from app)."
+    );
+    return null;
+  }
+  return data;
+}
+
+export async function getUserAiPlans(userId: string, limit = 20) {
+  if (!isUuidUserId(userId)) return [];
+
+  const { data, error } = await supabase
+    .from("ai_plans")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.warn("[getUserAiPlans]", error.message, error.code ?? "", "— run supabase/fix_ai_plans_rls.sql if using anon key without Supabase Auth.");
+    return [];
+  }
   return data || [];
 }
 

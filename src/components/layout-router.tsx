@@ -36,11 +36,11 @@ export default function LayoutRouter({
   // Platform layout — sidebar + topbar
   if (isPlatform) {
     return (
-      <div className="flex h-screen bg-surface overflow-hidden">
+      <div className="flex h-[100dvh] max-h-[100dvh] min-h-0 bg-surface overflow-hidden">
         <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <Topbar />
-          <main className="flex-1 overflow-y-auto scrollbar-hide">
+          <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[max(0px,env(safe-area-inset-bottom))]">
             {children}
           </main>
         </div>
@@ -51,7 +51,7 @@ export default function LayoutRouter({
   // Auth layout — clean centered
   if (isAuth) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-surface flex items-center justify-center px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
         {children}
       </div>
     );
@@ -60,7 +60,9 @@ export default function LayoutRouter({
   // Onboarding — full screen
   if (isOnboarding) {
     return (
-      <div className="min-h-screen bg-surface">{children}</div>
+      <div className="min-h-[100dvh] bg-surface pb-[max(0px,env(safe-area-inset-bottom))]">
+        {children}
+      </div>
     );
   }
 

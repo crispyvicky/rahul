@@ -65,17 +65,28 @@ export default function Topbar() {
   const levelInfo = calculateLevel(currentUser.xpPoints);
 
   return (
-    <header className="h-16 border-b border-white/5 bg-surface-card/80 backdrop-blur-xl flex items-center justify-between px-4 lg:px-8 shrink-0">
+    <header className="min-h-16 border-b border-white/5 bg-surface-card/80 backdrop-blur-xl flex items-center justify-between gap-2 px-4 lg:px-8 shrink-0 pt-[max(0px,env(safe-area-inset-top))]">
       {/* Left */}
-      <div className="pl-12 lg:pl-0">
+      <div className="pl-12 lg:pl-0 min-w-0 flex-1">
         <p className="text-text-secondary text-xs font-medium uppercase tracking-widest">
           Welcome back
         </p>
-        <p className="text-white text-sm font-bold -mt-0.5">{displayName}</p>
+        <p className="text-white text-sm font-bold -mt-0.5 truncate">{displayName}</p>
+        <div className="flex sm:hidden items-center gap-2 mt-1.5 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand/10 border border-brand/20 rounded-full text-brand text-[11px] font-bold">
+            <Flame className="w-3 h-3 shrink-0" />
+            {currentUser.currentStreak}d
+            <span aria-hidden>{getStreakEmoji(currentUser.currentStreak)}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-400 text-[11px] font-bold">
+            <Zap className="w-3 h-3 shrink-0" />
+            Lv.{levelInfo.level}
+          </span>
+        </div>
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Streak */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-full">
           <Flame className="w-3.5 h-3.5 text-brand" />
@@ -92,7 +103,10 @@ export default function Topbar() {
         </div>
 
         {/* Notifications */}
-        <button className="relative w-9 h-9 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-text-secondary hover:text-white hover:bg-white/10 transition-all">
+        <button
+          type="button"
+          className="relative min-h-11 min-w-11 h-11 w-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-text-secondary hover:text-white hover:bg-white/10 transition-all touch-manipulation"
+        >
           <Bell className="w-4 h-4" />
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand rounded-full text-[9px] text-white font-bold flex items-center justify-center">
             3
@@ -104,11 +118,11 @@ export default function Topbar() {
           <img
             src={avatarUrl}
             alt={displayName}
-            className="w-9 h-9 rounded-xl border-2 border-brand/30 hover:border-brand transition-colors object-cover"
+            className="h-11 w-11 min-h-11 min-w-11 rounded-xl border-2 border-brand/30 hover:border-brand transition-colors object-cover"
             referrerPolicy="no-referrer"
           />
         ) : (
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xs font-bold border-2 border-brand/30">
+          <div className="h-11 w-11 min-h-11 min-w-11 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xs font-bold border-2 border-brand/30">
             {displayName.charAt(0).toUpperCase()}
           </div>
         )}

@@ -131,7 +131,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/ai-coach"
-          className="flex items-center gap-2 px-5 py-2.5 bg-brand/10 border border-brand/20 rounded-xl text-brand text-xs font-bold uppercase tracking-widest hover:bg-brand/20 transition-all no-underline"
+          className="flex items-center justify-center gap-2 px-5 py-3 min-h-11 w-full sm:w-auto sm:py-2.5 bg-brand/10 border border-brand/20 rounded-xl text-brand text-xs font-bold uppercase tracking-widest hover:bg-brand/20 transition-all no-underline touch-manipulation shrink-0"
         >
           <Zap className="w-3.5 h-3.5" /> Generate Plan
         </Link>
@@ -143,12 +143,12 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-gradient-to-r from-brand/10 via-surface-card to-surface-card border border-brand/10 rounded-2xl p-4 sm:p-6"
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-brand/20 flex items-center justify-center">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-brand/20 flex items-center justify-center shrink-0">
               <span className="text-2xl">{getStreakEmoji(currentUser.currentStreak)}</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-white font-bold text-sm">
                 Level {levelInfo.level} — {currentUser.currentStreak} Day Streak
               </p>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <div className="text-right hidden sm:block">
+          <div className="text-right shrink-0 ml-auto sm:ml-0">
             <p className="text-brand font-bold text-lg font-heading">{currentUser.xpPoints} XP</p>
             <p className="text-text-muted text-[10px] uppercase tracking-widest">Total Points</p>
           </div>

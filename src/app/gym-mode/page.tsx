@@ -110,7 +110,7 @@ export default function GymModePage() {
         {timerRunning && (
           <motion.div
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-4 lg:right-8 z-40 bg-surface-card border border-brand/30 rounded-2xl p-4 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center gap-4"
+            className="fixed z-40 bg-surface-card border border-brand/30 rounded-2xl p-4 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center gap-4 right-[max(1rem,env(safe-area-inset-right))] top-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] lg:right-8"
           >
             <Timer className="w-5 h-5 text-brand animate-pulse" />
             <span className="text-white text-2xl font-black font-heading tabular-nums">
@@ -128,7 +128,7 @@ export default function GymModePage() {
               key={group.id}
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
               onClick={() => setSelectedGroup(group.id)}
-              className="flex items-center gap-3 p-5 bg-surface-card border border-white/5 rounded-2xl hover:border-brand/30 hover:bg-brand/5 transition-all group text-left"
+              className="flex items-center gap-3 min-h-[52px] p-4 sm:p-5 bg-surface-card border border-white/5 rounded-2xl hover:border-brand/30 hover:bg-brand/5 transition-all group text-left touch-manipulation"
             >
               <span className="text-2xl">{group.emoji}</span>
               <div>
@@ -144,16 +144,16 @@ export default function GymModePage() {
       {/* Exercise tracking */}
       {selectedGroup && (
         <>
-          <button onClick={() => { setSelectedGroup(null); setActiveExercise(null); }}
-            className="text-text-secondary text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+          <button type="button" onClick={() => { setSelectedGroup(null); setActiveExercise(null); }}
+            className="min-h-11 px-1 py-2 text-text-secondary text-xs font-bold uppercase tracking-widest hover:text-white transition-colors touch-manipulation text-left">
             ← Back to Groups
           </button>
 
           <div className="space-y-3">
             {exercises.map((ex, exIdx) => (
               <div key={exIdx} className="bg-surface-card border border-white/5 rounded-2xl overflow-hidden">
-                <button onClick={() => setActiveExercise(activeExercise === exIdx ? null : exIdx)}
-                  className="w-full flex items-center gap-3 p-4 sm:p-5">
+                <button type="button" onClick={() => setActiveExercise(activeExercise === exIdx ? null : exIdx)}
+                  className="w-full min-h-[52px] flex items-center gap-3 p-4 sm:p-5 touch-manipulation">
                   <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
                     <Dumbbell className="w-5 h-5 text-brand" />
                   </div>
@@ -179,60 +179,60 @@ export default function GymModePage() {
                         </div>
 
                         {/* Sets */}
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-3 px-2 text-text-muted text-[10px] font-bold uppercase tracking-widest">
+                        <div className="space-y-2 overflow-x-auto pb-1 -mx-1 px-1 touch-pan-x">
+                          <div className="flex items-center gap-3 px-2 text-text-muted text-[10px] font-bold uppercase tracking-widest min-w-[280px]">
                             <span className="w-6">Set</span>
                             <span className="flex-1 text-center">Weight (kg)</span>
                             <span className="flex-1 text-center">Reps</span>
                             <span className="w-8 text-center">Done</span>
                           </div>
                           {getSetLogs(exIdx).map((set, sIdx) => (
-                            <div key={sIdx} className="flex items-center gap-2 sm:gap-3">
+                            <div key={sIdx} className="flex items-center gap-2 sm:gap-3 min-w-[280px]">
                               <span className="w-6 text-text-muted text-xs font-mono text-center">{sIdx + 1}</span>
                               <div className="flex-1 flex items-center gap-1">
-                                <button onClick={() => updateSet(exIdx, sIdx, "weight", Math.max(0, set.weight - 2.5))}
-                                  className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0">
-                                  <Minus className="w-3 h-3" />
+                                <button type="button" onClick={() => updateSet(exIdx, sIdx, "weight", Math.max(0, set.weight - 2.5))}
+                                  className="min-h-10 min-w-10 h-10 w-10 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0 touch-manipulation">
+                                  <Minus className="w-4 h-4" />
                                 </button>
                                 <input type="number" value={set.weight}
                                   onChange={(e) => updateSet(exIdx, sIdx, "weight", Number(e.target.value))}
-                                  className="w-full bg-white/5 border border-white/10 rounded-lg px-1 py-1.5 text-white text-center text-sm focus:outline-none focus:border-brand" />
-                                <button onClick={() => updateSet(exIdx, sIdx, "weight", set.weight + 2.5)}
-                                  className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0">
-                                  <Plus className="w-3 h-3" />
+                                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-center text-base sm:text-sm focus:outline-none focus:border-brand" />
+                                <button type="button" onClick={() => updateSet(exIdx, sIdx, "weight", set.weight + 2.5)}
+                                  className="min-h-10 min-w-10 h-10 w-10 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0 touch-manipulation">
+                                  <Plus className="w-4 h-4" />
                                 </button>
                               </div>
                               <div className="flex-1 flex items-center gap-1">
-                                <button onClick={() => updateSet(exIdx, sIdx, "reps", Math.max(0, set.reps - 1))}
-                                  className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0">
-                                  <Minus className="w-3 h-3" />
+                                <button type="button" onClick={() => updateSet(exIdx, sIdx, "reps", Math.max(0, set.reps - 1))}
+                                  className="min-h-10 min-w-10 h-10 w-10 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0 touch-manipulation">
+                                  <Minus className="w-4 h-4" />
                                 </button>
                                 <input type="number" value={set.reps}
                                   onChange={(e) => updateSet(exIdx, sIdx, "reps", Number(e.target.value))}
-                                  className="w-full bg-white/5 border border-white/10 rounded-lg px-1 py-1.5 text-white text-center text-sm focus:outline-none focus:border-brand" />
-                                <button onClick={() => updateSet(exIdx, sIdx, "reps", set.reps + 1)}
-                                  className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0">
-                                  <Plus className="w-3 h-3" />
+                                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-center text-base sm:text-sm focus:outline-none focus:border-brand" />
+                                <button type="button" onClick={() => updateSet(exIdx, sIdx, "reps", set.reps + 1)}
+                                  className="min-h-10 min-w-10 h-10 w-10 bg-white/5 rounded-lg flex items-center justify-center text-text-muted hover:text-white shrink-0 touch-manipulation">
+                                  <Plus className="w-4 h-4" />
                                 </button>
                               </div>
-                              <button onClick={() => { updateSet(exIdx, sIdx, "completed", !set.completed); if (!set.completed) startTimer(90); }}
-                                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0",
+                              <button type="button" onClick={() => { updateSet(exIdx, sIdx, "completed", !set.completed); if (!set.completed) startTimer(90); }}
+                                className={cn("min-h-10 min-w-10 h-10 w-10 rounded-lg flex items-center justify-center transition-all shrink-0 touch-manipulation",
                                   set.completed ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-text-muted hover:text-white")}>
-                                <CheckCircle className="w-4 h-4" />
+                                <CheckCircle className="w-5 h-5" />
                               </button>
                             </div>
                           ))}
                         </div>
 
-                        <button onClick={() => addSet(exIdx)}
-                          className="w-full py-2.5 bg-white/5 border border-dashed border-white/10 text-text-secondary font-bold text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 hover:text-white transition-all">
+                        <button type="button" onClick={() => addSet(exIdx)}
+                          className="w-full min-h-11 py-3 bg-white/5 border border-dashed border-white/10 text-text-secondary font-bold text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 hover:text-white transition-all touch-manipulation">
                           <Plus className="w-3.5 h-3.5" /> Add Set
                         </button>
 
                         <div className="flex gap-2">
                           {[60, 90, 120].map((s) => (
-                            <button key={s} onClick={() => startTimer(s)}
-                              className="flex-1 py-2 bg-brand/10 border border-brand/20 text-brand font-bold text-xs rounded-lg hover:bg-brand/20 transition-all">
+                            <button type="button" key={s} onClick={() => startTimer(s)}
+                              className="flex-1 min-h-11 py-3 bg-brand/10 border border-brand/20 text-brand font-bold text-xs rounded-lg hover:bg-brand/20 transition-all touch-manipulation">
                               {s}s Rest
                             </button>
                           ))}

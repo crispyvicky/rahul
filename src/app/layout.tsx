@@ -1,10 +1,18 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 import "../index.css";
 import "../App.scss";
 import "../variables.scss";
 import { Analytics } from "@vercel/analytics/react";
 import LayoutRouter from "../components/layout-router";
 import AuthProvider from "../components/auth-provider";
+
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: 'cover',
+    themeColor: '#0a0a0a',
+};
 
 export const metadata: Metadata = {
     title: 'RahulFitzz | Elite Fitness Influencer & Brand Partner',

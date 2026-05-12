@@ -71,7 +71,7 @@ export default function Sidebar() {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative no-underline",
+                "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 group relative no-underline touch-manipulation",
                 isActive
                   ? "bg-brand/10 text-white"
                   : "text-text-secondary hover:text-white hover:bg-white/5"
@@ -120,7 +120,7 @@ export default function Sidebar() {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 no-underline",
+                "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 no-underline touch-manipulation",
                 isActive
                   ? "bg-brand/10 text-white"
                   : "text-text-secondary hover:text-white hover:bg-white/5"
@@ -140,7 +140,7 @@ export default function Sidebar() {
             setMobileOpen(false);
             await signOut({ callbackUrl: window.location.origin });
           }}
-          className="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-text-secondary hover:text-red-400 hover:bg-red-500/5 w-full"
+          className="flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 text-text-secondary hover:text-red-400 hover:bg-red-500/5 w-full touch-manipulation"
         >
           <LogOut className="w-5 h-5 shrink-0" />
           {!collapsed && (
@@ -175,8 +175,9 @@ export default function Sidebar() {
 
       {/* Mobile hamburger */}
       <button
+        type="button"
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-surface-card border border-white/10 rounded-xl flex items-center justify-center text-white"
+        className="lg:hidden fixed z-50 min-h-11 min-w-11 h-11 w-11 left-[max(1rem,env(safe-area-inset-left))] top-[max(1rem,env(safe-area-inset-top))] bg-surface-card border border-white/10 rounded-xl flex items-center justify-center text-white touch-manipulation"
       >
         <Menu className="w-5 h-5" />
       </button>
@@ -197,11 +198,12 @@ export default function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-[280px] bg-surface-card border-r border-white/5 z-50 flex flex-col"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-[min(280px,85vw)] max-w-[100vw] bg-surface-card border-r border-white/5 z-50 flex flex-col pb-[env(safe-area-inset-bottom)]"
             >
               <button
+                type="button"
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center text-text-secondary hover:text-white"
+                className="absolute top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] min-h-11 min-w-11 h-11 w-11 bg-white/5 rounded-xl flex items-center justify-center text-text-secondary hover:text-white touch-manipulation"
               >
                 <X className="w-4 h-4" />
               </button>

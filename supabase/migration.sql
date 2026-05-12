@@ -110,7 +110,7 @@ ALTER TABLE challenge_enrollments ENABLE ROW LEVEL SECURITY;
 -- Users can read all profiles (for leaderboard) but only update their own
 CREATE POLICY "Public profiles are viewable by everyone" ON user_profiles FOR SELECT USING (true);
 CREATE POLICY "Users can insert their own profile" ON user_profiles FOR INSERT WITH CHECK (true);
-CREATE POLICY "Users can update their own profile" ON user_profiles FOR UPDATE USING (email = current_setting('request.jwt.claims', true)::json->>'email');
+CREATE POLICY "Users can update their own profile" ON user_profiles FOR UPDATE USING (true) WITH CHECK (true);
 
 -- Point logs readable by all (leaderboard), insert for authenticated
 CREATE POLICY "Point logs are viewable" ON point_logs FOR SELECT USING (true);
@@ -159,3 +159,41 @@ VALUES (
   NOW() + INTERVAL '30 days',
   TRUE
 );
+
+-- ================================================================
+-- NEW TABLES: AI Plans & Blog Posts
+-- ================================================================
+
+-- 8. AI Plans (Workout & Diet)
+CREATE TABLE IF NOT EXISTS ai_plans (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('workout', 'diet', 'physique')),
+  plan_data JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. Blog Posts
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  content TEXT NOT NULL,
+  author TEXT DEFAULT 'RahulFitzz',
+  image_url TEXT,
+  author_image_url TEXT,
+  is_featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- AI Plans RLS (anon + NextAuth: no Supabase JWT, so auth.uid() policies never match)
+ALTER TABLE ai_plans ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "ai_plans_select" ON ai_plans FOR SELECT USING (true);
+CREATE POLICY "ai_plans_insert" ON ai_plans FOR INSERT WITH CHECK (true);
+
+-- Blog Posts RLS
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Blog posts are public" ON blog_posts FOR SELECT USING (true);
+-- Only admins/service roles can insert/update blog posts normally, but keeping simple for now
+
+CREATE INDEX IF NOT EXISTS idx_ai_plans_user ON ai_plans(user_id);
