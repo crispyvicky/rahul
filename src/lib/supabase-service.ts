@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { hasSupabase, supabase } from "./supabase";
 import type { DbUserProfile } from "./supabase";
 import { isUuidUserId } from "./api-guards";
 import { startOfTodayUtc } from "./points-service";
@@ -423,7 +423,7 @@ export async function getUserAiPlans(userId: string, limit = 20) {
 // ─── COMMUNITY ───────────────────────────────────────────
 
 export async function getCommunityPosts(limit = 20) {
-  if (!supabase) return [];
+  if (!hasSupabase()) return [];
 
   const { data } = await supabase
     .from("community_posts")
@@ -485,7 +485,7 @@ async function bumpCommentCount(postId: string, delta: 1 | -1) {
 }
 
 export async function getPostComments(postId: string, limit = 50) {
-  if (!supabase || !postId) return [];
+  if (!hasSupabase() || !postId) return [];
 
   const { data, error } = await supabase
     .from("post_comments")
