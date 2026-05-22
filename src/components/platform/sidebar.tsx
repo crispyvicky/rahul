@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
+  CalendarCheck,
   Brain,
   Swords,
   Users,
@@ -22,9 +23,22 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/store/use-user-store";
 import { cn } from "@/lib/utils";
+import { TOUR_OPEN_MENU_EVENT } from "@/lib/app-tour";
+
+const tourAttr: Record<string, string> = {
+  "/dashboard": "nav-dashboard",
+  "/book-gym": "nav-book-gym",
+  "/ai-coach": "nav-ai-coach",
+  "/challenges": "nav-challenges",
+  "/community": "nav-community",
+  "/gym-mode": "nav-gym-mode",
+  "/giveaways": "nav-giveaways",
+  "/premium": "nav-premium",
+};
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/book-gym", icon: CalendarCheck, label: "Gym Booking", badge: "NEW" as const },
   { href: "/ai-coach", icon: Brain, label: "AI Coach" },
   { href: "/challenges", icon: Swords, label: "Challenges" },
   { href: "/community", icon: Users, label: "Community" },
@@ -42,6 +56,12 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout } = useUserStore();
+
+  useEffect(() => {
+    const open = () => setMobileOpen(true);
+    window.addEventListener(TOUR_OPEN_MENU_EVENT, open);
+    return () => window.removeEventListener(TOUR_OPEN_MENU_EVENT, open);
+  }, []);
 
   const SidebarContent = () => (
     <>
@@ -69,6 +89,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              data-tour={tourAttr[item.href]}
               onClick={() => setMobileOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 group relative no-underline touch-manipulation",
@@ -98,6 +119,11 @@ export default function Sidebar() {
               {item.href === "/premium" && !collapsed && (
                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-brand/20 text-brand px-2 py-0.5 rounded-full">
                   Pro
+                </span>
+              )}
+              {"badge" in item && item.badge === "NEW" && !collapsed && (
+                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+                  NEW
                 </span>
               )}
               {item.href === "/giveaways" && !collapsed && (
@@ -176,8 +202,10 @@ export default function Sidebar() {
       {/* Mobile hamburger */}
       <button
         type="button"
+        data-tour="mobile-menu"
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed z-50 min-h-11 min-w-11 h-11 w-11 left-[max(1rem,env(safe-area-inset-left))] top-[max(1rem,env(safe-area-inset-top))] bg-surface-card border border-white/10 rounded-xl flex items-center justify-center text-white touch-manipulation"
+        aria-label="Open menu"
       >
         <Menu className="w-5 h-5" />
       </button>

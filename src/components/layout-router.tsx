@@ -6,8 +6,10 @@ import Footer from "./footer";
 import ScrollToHash from "./scroll";
 import Sidebar from "@/components/platform/sidebar";
 import Topbar from "@/components/platform/topbar";
+import PlatformTourHost from "@/components/app-tour/platform-tour-host";
 
 const platformRoutes = [
+  "/book-gym",
   "/dashboard",
   "/ai-coach",
   "/challenges",
@@ -16,8 +18,9 @@ const platformRoutes = [
   "/giveaways",
   "/premium",
   "/settings",
-  "/admin",
 ];
+
+const adminRoutes = ["/admin"];
 
 const authRoutes = ["/login", "/signup"];
 const onboardingRoutes = ["/onboarding"];
@@ -29,9 +32,14 @@ export default function LayoutRouter({
 }) {
   const pathname = usePathname();
 
+  const isAdmin = adminRoutes.some((r) => pathname.startsWith(r));
   const isPlatform = platformRoutes.some((r) => pathname.startsWith(r));
   const isAuth = authRoutes.some((r) => pathname === r);
   const isOnboarding = onboardingRoutes.some((r) => pathname.startsWith(r));
+
+  if (isAdmin) {
+    return <>{children}</>;
+  }
 
   // Platform layout — sidebar + topbar
   if (isPlatform) {
@@ -44,6 +52,7 @@ export default function LayoutRouter({
             {children}
           </main>
         </div>
+        <PlatformTourHost />
       </div>
     );
   }

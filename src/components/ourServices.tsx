@@ -52,6 +52,8 @@ const FitnessPanel = ({ activity, text, imageUrl, index }: any) => (
     <img
       src={(imageUrl as any)?.src || imageUrl}
       alt={activity}
+      loading="lazy"
+      decoding="async"
       className="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out group-hover:scale-110 opacity-40 group-hover:opacity-80 sepia-[0.3]"
     />
 

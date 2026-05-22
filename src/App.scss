@@ -46,36 +46,12 @@ $redText: #eb0000;
 .header {
   backdrop-filter: blur(100px);
   background-color: rgba(15, 15, 15, 0.65);
-  border-radius: 50px;
+  border-radius: 0px;
   opacity: 1;
   position: fixed;
   top: 0;
   width: 100%;
 }
-.banner {
-  background: url(./assets/img/banner.jpg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  height: 100vh;
-  position: relative;
-}
-
-.banner::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.75);
-  z-index: 1;
-}
-.banner * {
-  position: relative;
-  z-index: 2;
-}
-
 .black-opacity {
   background-color: #000;
   flex: none;
@@ -109,27 +85,7 @@ $redText: #eb0000;
 }
 
 .personalized_hub {
-  background: url(./assets/img/personalized.avif);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-repeat: no-repeat;
-  height: 70vh;
   position: relative;
-}
-
-.personalized_hub::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 1;
-}
-.personalized_hub * {
-  position: relative;
-  z-index: 2;
 }
 
 .tranformation-left {
@@ -157,26 +113,7 @@ $redText: #eb0000;
 }
 
 .testimonials {
-  background: url(./assets/img/what_people.avif);
-  background-repeat: no-repeat;
   position: relative;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-}
-.testimonials::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 1;
-}
-.testimonials * {
-  position: relative;
-  z-index: 2;
 }
 
 .faq {

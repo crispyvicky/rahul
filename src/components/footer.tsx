@@ -77,7 +77,7 @@ const F_bottom = () => {
     <footer className="mt-auto py-6 border-t border-[#18181a] md:w-[90%] ">
       <div className="container mx-auto px-4 flex flex-col-reverse md:flex-row justify-between items-center">
         <p className="text-[#bdbdbd] text-sm md:text-base text-center md:text-left mt-4 md:mt-0">
-          © 2024 RAHULFITZZ. All rights reserved.
+          © 2025 RAHULFITZZ. All rights reserved.
         </p>
         <SocialLinks />
       </div>
@@ -99,7 +99,7 @@ const Navigation = () => {
   const links = [
     { href: "/", label: "Home" },
     { href: "/workout-plans", label: "Workout Plan" },
-    { href: "/workout-plans#programs", label: "Diet Plan" },
+    { href: "/coming-soon", label: "Diet Plan" },
     { href: "/#faq", label: "FAQ's" },
   ];
 

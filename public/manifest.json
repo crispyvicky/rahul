@@ -1,0 +1,24 @@
+{
+  "name": "RahulFitzz — Gym Mode",
+  "short_name": "RahulFitzz",
+  "description": "Elite fitness coaching from Hyderabad, India — gym plans, giveaways, and AI workout guidance.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#eb0000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/LOGO.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/LOGO.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

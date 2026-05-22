@@ -72,3 +72,79 @@ export interface DbCommunityPost {
   is_featured: boolean;
   created_at: string;
 }
+
+export interface DbPostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  user_profiles?:
+    | { name: string; avatar_url: string | null }
+    | { name: string; avatar_url: string | null }[];
+}
+
+export interface DbGymWeeklyPlan {
+  id: string;
+  user_id: string;
+  week_start_date: string;
+  schedule: Record<string, string[]>;
+  plan_data: unknown[];
+  is_active: boolean;
+  source: "manual" | "ai";
+  ai_plan_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbExerciseLibrary {
+  id: string;
+  name: string;
+  muscle_group: string;
+  category: "workout" | "warmup" | "cooldown";
+  target_sets: number;
+  target_reps: string;
+  tip: string;
+  steps: string[];
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DbExerciseSwap {
+  id: string;
+  user_id: string;
+  weekly_plan_id: string | null;
+  day_name: string;
+  exercise_index: number;
+  section: string;
+  from_exercise: unknown;
+  to_exercise: unknown;
+  swap_type: string;
+  created_at: string;
+}
+
+export interface DbDailyProgress {
+  id: string;
+  user_id: string;
+  progress_date: string;
+  day_name: string | null;
+  completion_pct: number;
+  exercises_completed: number;
+  exercises_total: number;
+  set_logs: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbNotificationQueue {
+  id: string;
+  user_id: string;
+  notification_type: string;
+  title: string;
+  body: string | null;
+  payload: Record<string, unknown>;
+  status: "pending" | "sent" | "failed" | "cancelled";
+  scheduled_for: string;
+  sent_at: string | null;
+  created_at: string;
+}

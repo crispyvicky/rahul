@@ -1,9 +1,16 @@
+import type { StaticImageData } from "next/image";
 import { FeatureCard } from "./benefit-card";
 import mobileCover from "../assets/img/mobile1.png";
-import mimg from "../assets/img/phone.jpg";
 import { motion } from "framer-motion";
 
+function imgSrc(img: string | StaticImageData): string {
+  return typeof img === "string" ? img : img.src;
+}
+
 export function Features({ features, childVariants }: any) {
+  const screenSrc = "/phone.jpg";
+  const frameSrc = imgSrc(mobileCover);
+
   return (
     <>
       {/* left */}
@@ -15,17 +22,22 @@ export function Features({ features, childVariants }: any) {
         <FeatureCard {...features[2]} />
       </motion.div>
 
-      {/* center */}
+      {/* center — your photo (phone.jpg) must sit ON TOP of mobile1.png frame */}
       <motion.div
         variants={childVariants}
         className="w-full md:w-auto xl:w-auto order-first md:order-none xl:order-none"
       >
         <div className="relative w-[260px] h-[500px] mx-auto">
-          <img src={(mobileCover as any).src || mobileCover} alt="mobileCover" className="w-full h-full object-contain" />
           <img
-            className="absolute top-0 left-0 w-full h-full p-3 !py-[7px] object-cover rounded-[2.2rem]"
-            alt="mobileImage"
-            src={(mimg as any).src || mimg}
+            src={frameSrc}
+            alt=""
+            aria-hidden
+            className="w-full h-full object-contain"
+          />
+          <img
+            src={screenSrc}
+            alt="RahulFitzz app preview"
+            className="absolute top-0 left-0 w-full h-full p-3 py-[7px] object-cover object-[center_30%] rounded-[2.2rem] z-[1]"
           />
         </div>
       </motion.div>

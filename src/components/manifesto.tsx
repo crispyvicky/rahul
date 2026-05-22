@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 import bannerImg from "../assets/img/bike.jpg";
@@ -53,12 +54,15 @@ export default function Manifesto() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.5, duration: 1 }}
-                                className="relative mt-12 aspect-square md:aspect-[4/5] rounded-[3rem] overflow-hidden border border-white/10 group shadow-2xl"
+                                className="relative mt-12 aspect-square md:aspect-[4/5] rounded-none overflow-hidden border border-white/10 group shadow-2xl"
                             >
-                                <img
-                                    src={(bannerImg as any)?.src || bannerImg}
+                                <Image
+                                    src={bannerImg}
                                     alt="Rahul Performance"
-                                    className="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-1000"
+                                    fill
+                                    sizes="(max-width: 1024px) 100vw, 40vw"
+                                    quality={70}
+                                    className="object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-1000"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-60" />
                                 <div className="absolute bottom-10 left-10 text-white/50 text-[10px] tracking-[0.5em] font-bold uppercase">

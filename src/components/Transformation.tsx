@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import beforeImg from "../assets/before.jpeg";
 import afterImg from "../assets/after.jpg";
@@ -38,19 +39,21 @@ export default function Transformation() {
         viewport={{ once: true }}
         className="text-center mb-20 z-20"
       >
-        <span className="text-[#eb0000] text-sm tracking-[0.5em] font-bold uppercase mb-4 block">Proven Results</span>
-        <h2
-          className="text-white text-5xl md:text-8xl font-black uppercase tracking-tighter"
+        <span className="text-[#eb0000] text-sm tracking-[0.5em] font-bold uppercase mb-6 block">
+          Proven Results
+        </span>
+        <h2 
+          className="text-white text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter"
           style={{ fontFamily: '"Orbitron", sans-serif' }}
         >
-          THE <span className="text-[#eb0000]">EVOLUTION</span>
+          THE EVOLUTION
         </h2>
       </motion.div>
 
       {/* Interactive Slider Container */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-2xl aspect-[3/4] rounded-[3rem] overflow-hidden border border-white/10 select-none cursor-ew-resize mx-6 shadow-2xl"
+        className="relative w-full max-w-2xl aspect-[4/3] rounded-none overflow-hidden border border-white/10 select-none cursor-ew-resize mx-6 shadow-2xl"
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
         onMouseLeave={() => setIsDragging(false)}
@@ -61,13 +64,16 @@ export default function Transformation() {
       >
         {/* After Image (Full Background) */}
         <div className="absolute inset-0 w-full h-full">
-          <img
-            src={(afterImg as any)?.src || afterImg}
+          <Image
+            src={afterImg}
             alt="After"
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 672px"
+            quality={70}
+            className="object-cover"
           />
           <div className="absolute bottom-10 right-10 z-20">
-            <span className="text-white bg-[#eb0000] px-6 py-2 rounded-full font-black uppercase tracking-widest text-xs shadow-xl">The Result</span>
+            <span className="text-white bg-[#eb0000] px-6 py-2 rounded-none font-black uppercase tracking-widest text-xs shadow-xl border border-[#eb0000]">The Result</span>
           </div>
         </div>
 
@@ -76,13 +82,16 @@ export default function Transformation() {
           className="absolute inset-0 w-full h-full z-10"
           style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
         >
-          <img
-            src={(beforeImg as any)?.src || beforeImg}
+          <Image
+            src={beforeImg}
             alt="Before"
-            className="w-full h-full object-cover grayscale brightness-75"
+            fill
+            sizes="(max-width: 768px) 100vw, 672px"
+            quality={70}
+            className="object-cover grayscale brightness-75"
           />
           <div className="absolute bottom-10 left-10 z-20">
-            <span className="text-white bg-black/50 backdrop-blur-md px-6 py-2 rounded-full font-black uppercase tracking-widest text-xs border border-white/20 shadow-xl">The Start</span>
+            <span className="text-white bg-black/50 backdrop-blur-md px-6 py-2 rounded-none font-black uppercase tracking-widest text-xs border border-white/20 shadow-xl">The Start</span>
           </div>
         </div>
 
@@ -91,11 +100,11 @@ export default function Transformation() {
           className="absolute inset-y-0 z-30 w-1 bg-white flex items-center justify-center transition-shadow"
           style={{ left: `${sliderPosition}%` }}
         >
-          <div className="w-12 h-12 rounded-full bg-white border-4 border-[#eb0000] flex items-center justify-center shadow-[0_0_40px_rgba(235,0,0,0.5)] transform -translate-x-1/2 group">
+          <div className="w-12 h-12 rounded-none bg-white border-4 border-[#eb0000] flex items-center justify-center shadow-[0_0_40px_rgba(235,0,0,0.5)] transform -translate-x-1/2 group">
             <div className="flex gap-1 items-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#eb0000]" />
-              <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
+              <div className="w-1.5 h-1.5 rounded-none bg-black/20" />
+              <div className="w-1.5 h-1.5 rounded-none bg-[#eb0000]" />
+              <div className="w-1.5 h-1.5 rounded-none bg-black/20" />
             </div>
           </div>
 
@@ -104,7 +113,7 @@ export default function Transformation() {
         </div>
 
         {/* Mobile Instruction */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 z-40 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 opacity-60 md:opacity-0 transition-opacity">
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 z-40 bg-black/60 backdrop-blur-md px-4 py-2 rounded-none border border-white/10 opacity-60 md:opacity-0 transition-opacity">
           <span className="text-white text-[10px] uppercase font-bold tracking-widest">Slide to verify evolution</span>
         </div>
       </div>

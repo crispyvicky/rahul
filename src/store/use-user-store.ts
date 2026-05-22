@@ -10,6 +10,8 @@ export interface UserProfile {
   isPremium: boolean;
   premiumTier: "free" | "warrior" | "elite" | "custom";
   xpPoints: number;
+  giveawayPoints: number;
+  referralCode: string;
   currentStreak: number;
   longestStreak: number;
   onboardingData: {
@@ -30,33 +32,33 @@ interface UserState {
   login: (user: UserProfile) => void;
   logout: () => void;
   updateProfile: (data: Partial<UserProfile>) => void;
+  syncFromServer: (data: Partial<UserProfile>) => void;
   addXP: (amount: number) => void;
+  addGiveawayPoints: (amount: number) => void;
   incrementStreak: () => void;
   completeOnboarding: (data: UserProfile["onboardingData"]) => void;
 }
 
-// Demo user for development
-export const DEMO_USER: UserProfile = {
-  id: "demo-001",
-  name: "Rahul",
-  email: "demo@rahulfitzz.com",
+/** Empty guest — no fake XP/streak; used only when UI needs a shape before login. */
+export const GUEST_USER: UserProfile = {
+  id: "",
+  name: "Athlete",
+  email: "",
   avatarUrl: "",
-  instagramHandle: "@rahulfitzz",
+  instagramHandle: "",
   isPremium: false,
   premiumTier: "free",
-  xpPoints: 2450,
-  currentStreak: 12,
-  longestStreak: 28,
-  onboardingData: {
-    age: 24,
-    weight: 75,
-    height: 178,
-    goal: "muscle_gain",
-    fitnessLevel: "intermediate",
-    workoutDays: 5,
-  },
-  onboardingCompleted: true,
+  xpPoints: 0,
+  giveawayPoints: 0,
+  referralCode: "",
+  currentStreak: 0,
+  longestStreak: 0,
+  onboardingData: null,
+  onboardingCompleted: false,
 };
+
+/** @deprecated Use GUEST_USER */
+export const DEMO_USER = GUEST_USER;
 
 export const useUserStore = create<UserState>()(
   persist(
@@ -69,7 +71,6 @@ export const useUserStore = create<UserState>()(
 
       logout: () => {
         set({ user: null, isAuthenticated: false });
-        // Clear persisted storage so stale profile doesn't re-appear on reload
         if (typeof window !== "undefined") {
           localStorage.removeItem("rahulfitzz-user");
         }
@@ -80,10 +81,22 @@ export const useUserStore = create<UserState>()(
           user: state.user ? { ...state.user, ...data } : null,
         })),
 
+      syncFromServer: (data) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...data } : null,
+        })),
+
       addXP: (amount) =>
         set((state) => ({
           user: state.user
             ? { ...state.user, xpPoints: state.user.xpPoints + amount }
+            : null,
+        })),
+
+      addGiveawayPoints: (amount) =>
+        set((state) => ({
+          user: state.user
+            ? { ...state.user, giveawayPoints: state.user.giveawayPoints + amount }
             : null,
         })),
 

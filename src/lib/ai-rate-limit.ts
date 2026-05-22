@@ -12,7 +12,7 @@
  *   AI_RATE_LIMIT_VISION_WINDOW_SEC=900
  */
 
-export type AiRateBucket = "text" | "vision";
+export type AiRateBucket = "text" | "vision" | "gym";
 
 const textMax = Math.max(1, parseInt(process.env.AI_RATE_LIMIT_TEXT_MAX || "12", 10) || 12);
 const textWindowMs =
@@ -22,6 +22,10 @@ const visionMax = Math.max(1, parseInt(process.env.AI_RATE_LIMIT_VISION_MAX || "
 const visionWindowMs =
   Math.max(60_000, (parseInt(process.env.AI_RATE_LIMIT_VISION_WINDOW_SEC || "900", 10) || 900) * 1000);
 
+const gymMax = Math.max(1, parseInt(process.env.AI_RATE_LIMIT_GYM_MAX || "20", 10) || 20);
+const gymWindowMs =
+  Math.max(60_000, (parseInt(process.env.AI_RATE_LIMIT_GYM_WINDOW_SEC || "600", 10) || 600) * 1000);
+
 const hits = new Map<string, number[]>();
 
 function prune(ts: number[], windowMs: number, now: number) {
@@ -30,9 +34,9 @@ function prune(ts: number[], windowMs: number, now: number) {
 }
 
 function config(bucket: AiRateBucket) {
-  return bucket === "vision"
-    ? { max: visionMax, windowMs: visionWindowMs }
-    : { max: textMax, windowMs: textWindowMs };
+  if (bucket === "vision") return { max: visionMax, windowMs: visionWindowMs };
+  if (bucket === "gym") return { max: gymMax, windowMs: gymWindowMs };
+  return { max: textMax, windowMs: textWindowMs };
 }
 
 export function getAiClientIp(req: Request): string {
@@ -63,7 +67,12 @@ export function consumeAiRateLimit(
     const oldest = ts[0] ?? now;
     const retryAfterMs = Math.max(1000, oldest + windowMs - now);
     const retryAfterSec = Math.ceil(retryAfterMs / 1000);
-    const label = bucket === "vision" ? "photo analysis" : "plan generation";
+    const label =
+      bucket === "vision"
+        ? "photo analysis"
+        : bucket === "gym"
+          ? "gym AI suggestions"
+          : "plan generation";
     return {
       ok: false,
       retryAfterSec,

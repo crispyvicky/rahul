@@ -1,66 +1,81 @@
-import { Metadata, Viewport } from 'next';
+import { Metadata, Viewport } from "next";
 import "../index.css";
 import "../App.scss";
 import "../variables.scss";
-import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "react-hot-toast";
 import LayoutRouter from "../components/layout-router";
 import AuthProvider from "../components/auth-provider";
+import VercelAnalytics from "@/components/vercel-analytics";
+import { buildPageMetadata, OG_IMAGE, SITE, SITE_URL } from "@/lib/seo";
 
 export const viewport: Viewport = {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    viewportFit: 'cover',
-    themeColor: '#0a0a0a',
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#0a0a0a",
 };
 
 export const metadata: Metadata = {
-    title: 'RahulFitzz | Elite Fitness Influencer & Brand Partner',
-    description: 'Transform your brand and physique with RahulFitzz. 165K+ combined reach, high-impact content strategy, and world-class fitness coaching.',
-    keywords: 'RahulFitzz, Fitness Influencer, Brand Collaborations, Muscle Growth, Discipline, Gym Influencer Portfolio',
-    openGraph: {
-        title: 'RahulFitzz | Elite Fitness Portfolio',
-        description: 'Engineered for those who refuse average. Discover the evolution edge.',
-        url: 'https://rahulfitzz.com',
-        siteName: 'RahulFitzz',
-        images: [
-            {
-                url: 'https://rahulfitzz.com/icon.png',
-                width: 512,
-                height: 512,
-            },
-        ],
-        locale: 'en_US',
-        type: 'website',
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: 'RahulFitzz | Fitness Performance',
-        description: 'Transform your brand and physique with 165K+ elite reach.',
-        images: ['https://rahulfitzz.com/icon.png'],
-    },
+  metadataBase: new URL(SITE_URL),
+  ...buildPageMetadata({
+    title: SITE.tagline,
+    description: SITE.description,
+    path: "/",
+  }),
+  manifest: "/manifest.json",
+  authors: [{ name: SITE.name, url: SITE_URL }],
+  creator: SITE.name,
+  publisher: SITE.name,
+  category: "fitness",
+  formatDetection: { email: false, address: false, telephone: false },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: SITE.name,
+  },
+  other: {
+    "geo.region": "IN-TG",
+    "geo.placename": SITE.city,
+    "geo.position": `${SITE.geo.latitude};${SITE.geo.longitude}`,
+    ICBM: `${SITE.geo.latitude}, ${SITE.geo.longitude}`,
+  },
+  openGraph: {
+    ...buildPageMetadata({
+      title: SITE.tagline,
+      description: SITE.description,
+      path: "/",
+    }).openGraph,
+    images: [{ url: OG_IMAGE, width: 512, height: 512, alt: `${SITE.name} — ${SITE.city}, India` }],
+  },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-        <html lang="en">
-            <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
-            </head>
-            <body suppressHydrationWarning>
-                <AuthProvider>
-                    <LayoutRouter>
-                        {children}
-                    </LayoutRouter>
-                </AuthProvider>
-                <Analytics />
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en-IN">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/LOGO.png" />
+        <link rel="icon" href="/LOGO.png" type="image/png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body suppressHydrationWarning>
+        <AuthProvider>
+          <LayoutRouter>{children}</LayoutRouter>
+        </AuthProvider>
+        <VercelAnalytics />
+        <Toaster position="top-center" toastOptions={{ className: "text-sm" }} />
+      </body>
+    </html>
+  );
 }

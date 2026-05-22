@@ -1,11 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Flame,
-  TrendingUp,
-  Footprints,
-  Droplets,
   Dumbbell,
   Target,
   Trophy,
@@ -14,35 +12,19 @@ import {
   Calendar,
   ChevronRight,
   Gift,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useUserStore, DEMO_USER } from "@/store/use-user-store";
 import { calculateLevel, getStreakEmoji } from "@/lib/utils";
+import type { DashboardGymData } from "@/lib/gym-plan-types";
+import PrizeSheetCard from "@/components/dashboard/prize-sheet-card";
 
-// Mock data for the dashboard
-const todayStats = {
-  calories: { value: 1850, target: 2200, unit: "kcal" },
-  steps: { value: 8420, target: 10000, unit: "steps" },
-  water: { value: 2.1, target: 3, unit: "L" },
-  workouts: { value: 1, target: 1, unit: "done" },
-};
+const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAY_ABBREVS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const weeklyData = [
-  { day: "Mon", value: 85 },
-  { day: "Tue", value: 92 },
-  { day: "Wed", value: 78 },
-  { day: "Thu", value: 95 },
-  { day: "Fri", value: 88 },
-  { day: "Sat", value: 70 },
-  { day: "Sun", value: 0 },
-];
-
-const recentAchievements = [
-  { name: "7-Day Warrior", icon: "🔥", desc: "7 day streak completed", time: "2 days ago" },
-  { name: "First Challenge", icon: "⚔️", desc: "Joined your first challenge", time: "5 days ago" },
-  { name: "Iron Recruit", icon: "🏋️", desc: "Logged 10 workouts", time: "1 week ago" },
-];
+type Achievement = { name: string; icon: string; desc: string; time: string };
 
 const quickActions = [
   { label: "AI Coach", href: "/ai-coach", icon: Zap, color: "from-brand to-red-700" },
@@ -106,6 +88,152 @@ export default function DashboardPage() {
   const avatarUrl = session?.user?.image || currentUser.avatarUrl || "";
   const levelInfo = calculateLevel(currentUser.xpPoints);
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  
+  // Real active Gym Mode state connected live!
+  const [todayExercises, setTodayExercises] = useState<{ name: string; sets: string; muscle: string }[]>([]);
+  const [weeklyCompleted, setWeeklyCompleted] = useState<{ day: string; value: number }[]>(
+    DAY_ABBREVS.map(d => ({ day: d, value: 0 }))
+  );
+  const [stats, setStats] = useState({
+    workouts: { value: 0, target: 1, unit: "done" },
+  });
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [gymLoading, setGymLoading] = useState(true);
+  const [gymError, setGymError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userId = currentUser.id;
+    const controller = new AbortController();
+
+    const applyGymData = (data: Pick<
+      DashboardGymData,
+      "weeklyCompletion" | "todayExercises" | "workoutsCompleted" | "workoutsTotal"
+    >) => {
+      setWeeklyCompleted(data.weeklyCompletion);
+      setTodayExercises(data.todayExercises);
+      setStats((prev) => ({
+        ...prev,
+        workouts: {
+          value: data.workoutsCompleted,
+          target: data.workoutsTotal || 1,
+          unit:
+            data.workoutsCompleted >= data.workoutsTotal && data.workoutsTotal > 0
+              ? "completed"
+              : "done",
+        },
+      }));
+    };
+
+    const loadLocal = () => {
+      const savedPlan = localStorage.getItem("rahulfitzz_gym_mode_weekly_plan");
+      const savedLogs = localStorage.getItem("rahulfitzz_gym_mode_logs");
+      let activePlan: any[] = [];
+      let activeLogs: Record<string, any[]> = {};
+      if (savedPlan) {
+        try {
+          activePlan = JSON.parse(savedPlan);
+        } catch {
+          /* ignore */
+        }
+      }
+      if (savedLogs) {
+        try {
+          activeLogs = JSON.parse(savedLogs);
+        } catch {
+          /* ignore */
+        }
+      }
+      const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+      const todayPlan = activePlan.find((dp) => dp.day === todayName);
+      const todayEx =
+        todayPlan?.exercises?.map((ex: any) => ({
+          name: ex.name,
+          sets: `${ex.targetSets || ex.sets || 3} sets`,
+          muscle: ex.group ? ex.group.toUpperCase() : "WORKOUT",
+        })) ?? [];
+      let completed = 0;
+      const total = todayPlan?.exercises?.length || 0;
+      todayPlan?.exercises?.forEach((_: any, idx: number) => {
+        const key = `workout-${todayName}-${idx}`;
+        const logged = activeLogs[key] || [];
+        if (logged.length > 0 && logged.every((s: any) => s.completed)) completed++;
+      });
+      const weeklyCompletion = DAYS_OF_WEEK.map((dayName, idx) => {
+        const dayPlan = activePlan.find((dp) => dp.day === dayName);
+        if (!dayPlan?.exercises?.length) return { day: DAY_ABBREVS[idx], value: 0 };
+        let done = 0;
+        dayPlan.exercises.forEach((_: any, exIdx: number) => {
+          const key = `workout-${dayName}-${exIdx}`;
+          const logged = activeLogs[key] || [];
+          if (logged.length > 0 && logged.every((s: any) => s.completed)) done++;
+        });
+        return {
+          day: DAY_ABBREVS[idx],
+          value: Math.round((done / dayPlan.exercises.length) * 100),
+        };
+      });
+      applyGymData({
+        weeklyCompletion,
+        todayExercises: todayEx,
+        workoutsCompleted: completed,
+        workoutsTotal: total,
+      });
+    };
+
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+
+    const finish = () => {
+      if (!controller.signal.aborted) setGymLoading(false);
+    };
+
+    setGymLoading(true);
+    setGymError(null);
+
+    if (isUuid) {
+      fetch(`/api/gym-plan/dashboard?userId=${encodeURIComponent(userId)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => {
+          if (res.status === 404) return null;
+          if (!res.ok) throw new Error("Could not load gym progress");
+          return res.json() as Promise<DashboardGymData>;
+        })
+        .then((data) => {
+          if (controller.signal.aborted) return;
+          if (data) {
+            applyGymData(data);
+          } else {
+            loadLocal();
+          }
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) return;
+          if (err instanceof Error && err.name === "AbortError") return;
+          setGymError("Using saved plan — sync unavailable.");
+          loadLocal();
+        })
+        .finally(finish);
+    } else {
+      loadLocal();
+      finish();
+    }
+
+    return () => controller.abort();
+  }, [currentUser.id]);
+
+  useEffect(() => {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id);
+    if (!isUuid) {
+      setAchievements([]);
+      return;
+    }
+    fetch(`/api/profile/achievements?userId=${encodeURIComponent(currentUser.id)}`)
+      .then((r) => r.json())
+      .then((d) => setAchievements(d.achievements || []))
+      .catch(() => setAchievements([]));
+  }, [currentUser.id]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 pb-20">
@@ -131,6 +259,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/ai-coach"
+          data-tour="dash-generate-plan"
           className="flex items-center justify-center gap-2 px-5 py-3 min-h-11 w-full sm:w-auto sm:py-2.5 bg-brand/10 border border-brand/20 rounded-xl text-brand text-xs font-bold uppercase tracking-widest hover:bg-brand/20 transition-all no-underline touch-manipulation shrink-0"
         >
           <Zap className="w-3.5 h-3.5" /> Generate Plan
@@ -139,6 +268,7 @@ export default function DashboardPage() {
 
       {/* Level Progress */}
       <motion.div
+        data-tour="dash-streak"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-gradient-to-r from-brand/10 via-surface-card to-surface-card border border-brand/10 rounded-2xl p-4 sm:p-6"
@@ -159,7 +289,7 @@ export default function DashboardPage() {
           </div>
           <div className="text-right shrink-0 ml-auto sm:ml-0">
             <p className="text-brand font-bold text-lg font-heading">{currentUser.xpPoints} XP</p>
-            <p className="text-text-muted text-[10px] uppercase tracking-widest">Total Points</p>
+            <p className="text-text-muted text-[10px] uppercase tracking-widest">Level XP</p>
           </div>
         </div>
         <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -173,7 +303,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Quick Actions — mobile grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-tour="dash-quick-actions">
         {quickActions.map((action, i) => (
           <motion.div
             key={action.label}
@@ -195,14 +325,24 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      <PrizeSheetCard
+        giveawayPoints={currentUser.giveawayPoints}
+        xpPoints={currentUser.xpPoints}
+      />
+
+      {gymError && (
+        <p className="text-amber-400/90 text-xs font-medium px-1" role="status">
+          {gymError}
+        </p>
+      )}
+
       {/* Today's Stats */}
       <div>
         <h2 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Today&apos;s Progress</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon={Flame} label="Calories" value={todayStats.calories.value} target={todayStats.calories.target} unit={todayStats.calories.unit} color="bg-brand" />
-          <StatCard icon={Footprints} label="Steps" value={todayStats.steps.value} target={todayStats.steps.target} unit={todayStats.steps.unit} color="bg-blue-600" />
-          <StatCard icon={Droplets} label="Water" value={todayStats.water.value} target={todayStats.water.target} unit={todayStats.water.unit} color="bg-cyan-600" />
-          <StatCard icon={Dumbbell} label="Workouts" value={todayStats.workouts.value} target={todayStats.workouts.target} unit={todayStats.workouts.unit} color="bg-emerald-600" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <StatCard icon={Dumbbell} label="Workouts Completed" value={stats.workouts.value} target={stats.workouts.target} unit={stats.workouts.unit} color="bg-emerald-600" />
+          <StatCard icon={Flame} label="Day Streak" value={currentUser.currentStreak} target={Math.max(currentUser.longestStreak, 7) || 7} unit="days" color="bg-brand" />
+          <StatCard icon={Zap} label="Total XP" value={currentUser.xpPoints} target={levelInfo.nextLevelXp} unit="xp" color="bg-yellow-600" />
         </div>
       </div>
 
@@ -215,24 +355,28 @@ export default function DashboardPage() {
             <span className="text-text-muted text-xs">Completion %</span>
           </div>
           <div className="flex items-end gap-2 sm:gap-4 h-40">
-            {weeklyData.map((d, i) => (
-              <div key={d.day} className="flex-1 flex flex-col items-center gap-2">
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(d.value, 5)}%` }}
-                  transition={{ duration: 0.5, delay: i * 0.08 }}
-                  className={`w-full rounded-xl transition-colors ${
-                    d.value === 0
-                      ? "bg-white/5"
-                      : d.value >= 90
-                      ? "bg-brand"
-                      : d.value >= 70
-                      ? "bg-brand/60"
-                      : "bg-brand/30"
-                  }`}
-                />
+            {weeklyCompleted.map((d, i) => (
+              <motion.div key={d.day} className="flex-1 flex flex-col items-center gap-2">
+                {gymLoading ? (
+                  <div className="w-full h-24 rounded-xl bg-white/10 animate-pulse" />
+                ) : (
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${Math.max(d.value, 5)}%` }}
+                    transition={{ duration: 0.5, delay: i * 0.08 }}
+                    className={`w-full rounded-xl transition-colors ${
+                      d.value === 0
+                        ? "bg-white/5"
+                        : d.value >= 90
+                        ? "bg-brand"
+                        : d.value >= 70
+                        ? "bg-brand/60"
+                        : "bg-brand/30"
+                    }`}
+                  />
+                )}
                 <span className="text-text-muted text-[10px] font-medium">{d.day}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -244,18 +388,23 @@ export default function DashboardPage() {
             <Trophy className="w-4 h-4 text-yellow-400" />
           </div>
           <div className="space-y-4">
-            {recentAchievements.map((ach) => (
-              <div key={ach.name} className="flex items-start gap-3 group">
-                <span className="text-xl shrink-0">{ach.icon}</span>
-                <div className="min-w-0">
-                  <p className="text-white text-sm font-bold truncate">{ach.name}</p>
-                  <p className="text-text-muted text-xs">{ach.time}</p>
+            {achievements.length === 0 ? (
+              <p className="text-text-muted text-xs">Earn giveaway points to see recent activity here.</p>
+            ) : (
+              achievements.map((ach, i) => (
+                <div key={`${ach.name}-${i}`} className="flex items-start gap-3 group">
+                  <span className="text-xl shrink-0">{ach.icon}</span>
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-bold truncate">{ach.name}</p>
+                    <p className="text-text-muted text-xs truncate">{ach.desc}</p>
+                    <p className="text-text-muted text-[10px]">{ach.time}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <Link
-            href="/challenges"
+            href="/giveaways"
             className="mt-4 flex items-center gap-2 text-brand text-xs font-bold uppercase tracking-widest hover:text-brand-light transition-colors no-underline"
           >
             View All <ChevronRight className="w-3 h-3" />
@@ -275,29 +424,40 @@ export default function DashboardPage() {
             href="/gym-mode"
             className="text-brand text-xs font-bold uppercase tracking-widest flex items-center gap-1 no-underline hover:text-brand-light transition-colors"
           >
-            Start <ArrowUpRight className="w-3 h-3" />
+            {todayExercises.length > 0 ? "Start" : "Set Up Plan"} <ArrowUpRight className="w-3 h-3" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            { name: "Bench Press", sets: "4×8", muscle: "Chest" },
-            { name: "Incline DB Press", sets: "3×12", muscle: "Upper Chest" },
-            { name: "Cable Flyes", sets: "3×15", muscle: "Chest" },
-          ].map((ex) => (
-            <div
-              key={ex.name}
-              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5"
-            >
-              <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
-                <Dumbbell className="w-4 h-4 text-brand" />
+        <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {gymLoading ? (
+            [0, 1, 2].map((n) => (
+              <div
+                key={n}
+                className="h-16 rounded-xl bg-white/10 animate-pulse border border-white/5"
+              />
+            ))
+          ) : todayExercises.length > 0 ? (
+            todayExercises.map((ex) => (
+              <div
+                key={ex.name}
+                className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+                  <Dumbbell className="w-4 h-4 text-brand" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-bold truncate">{ex.name}</p>
+                  <p className="text-text-muted text-xs">{ex.sets} · {ex.muscle}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-white text-sm font-bold truncate">{ex.name}</p>
-                <p className="text-text-muted text-xs">{ex.sets} · {ex.muscle}</p>
-              </div>
+            ))
+          ) : (
+            <div className="col-span-full py-6 flex flex-col items-center justify-center text-center bg-white/5 rounded-xl border border-dashed border-white/10">
+              <Heart className="w-8 h-8 text-brand/60 mb-2 animate-pulse" />
+              <p className="text-white text-sm font-bold">Active Recovery & Rest Day</p>
+              <p className="text-text-muted text-xs mt-1">No muscle split scheduled for today. Keep recovering strong!</p>
             </div>
-          ))}
-        </div>
+          )}
+        </motion.div>
       </motion.div>
     </div>
   );

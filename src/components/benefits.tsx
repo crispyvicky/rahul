@@ -2,39 +2,28 @@ import React from "react";
 import { Features } from "./benefits-cards";
 import { features } from "../rawData";
 import { motion } from "framer-motion";
+
 function Benefits() {
   const containerVariants = {
-    hidden: {
-      opacity: 0,
-      y: 30,
-    },
+    hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        delay: 0.5,
-        staggerChildren: 0.5,
-      },
+      transition: { delay: 0.5, staggerChildren: 0.5 },
     },
   };
 
   const childVariants = {
-    hidden: {
-      opacity: 0,
-      y: 20,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: 2,
-      },
-    },
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { delay: 2 } },
   };
 
   return (
-    <div id="benefits" className=" bg-black text-white p-6 md:px-12 xl:px-12">
-      <div className="max-w-7xl mx-auto">
+    <section id="benefits-overview" className="bg-black text-white p-6 md:px-12 xl:px-12 scroll-mt-28">
+      <motion.div className="max-w-7xl mx-auto">
+        <p className="text-[#eb0000] text-center text-xs font-black uppercase tracking-[0.5em] mb-4">
+          Benefits overview
+        </p>
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -67,8 +56,8 @@ function Benefits() {
         >
           <Features features={features} childVariants={childVariants} />
         </motion.div>
-      </div>
-    </div>
+      </motion.div>
+    </section>
   );
 }
 

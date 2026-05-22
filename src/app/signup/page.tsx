@@ -1,42 +1,94 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Flame, ArrowRight, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useUserStore, DEMO_USER } from "@/store/use-user-store";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useUserStore } from "@/store/use-user-store";
+import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
 
-export default function SignupPage() {
+const REF_KEY = "rahulfitzz_ref";
+
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const refFromUrl = searchParams.get("ref")?.trim() || "";
+
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState(refFromUrl);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { login } = useUserStore();
+
+  useEffect(() => {
+    if (refFromUrl) {
+      sessionStorage.setItem(REF_KEY, refFromUrl.toUpperCase());
+      setReferralCode(refFromUrl.toUpperCase());
+    }
+  }, [refFromUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      login({
-        ...DEMO_USER,
-        name,
-        email,
-        onboardingCompleted: false,
-        onboardingData: null,
-        xpPoints: 0,
-        currentStreak: 0,
-        longestStreak: 0,
+    setError(null);
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          referralCode: referralCode.trim() || undefined,
+        }),
       });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || "Signup failed");
+        return;
+      }
+
+      if (json.profile) {
+        login(
+          mapDbProfileToStore({
+            id: json.profile.id,
+            name: json.profile.name,
+            email: json.profile.email,
+            avatar_url: "",
+            instagram_handle: "",
+            is_premium: false,
+            premium_tier: "free",
+            xp_points: 0,
+            giveaway_points: 0,
+            referral_code: json.profile.referralCode,
+            current_streak: 0,
+            longest_streak: 0,
+            onboarding_completed: false,
+            onboarding_data: null,
+            google_id: "",
+            referred_by: referralCode || null,
+            is_following_ig: false,
+            last_login: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+        );
+      }
       router.push("/onboarding");
-    }, 800);
+    } catch {
+      setError("Signup failed. Try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="w-full min-h-screen flex flex-col lg:flex-row">
-      {/* Left — Branding (desktop) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-surface items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-transparent to-transparent" />
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-brand/10 blur-[180px] rounded-full" />
@@ -55,25 +107,12 @@ export default function SignupPage() {
             <span className="text-brand">Starts Now.</span>
           </h1>
           <p className="text-text-secondary text-lg font-light leading-relaxed">
-            Get a personalized AI coach, track every rep, compete in challenges, 
-            and join the most elite fitness community.
+            Get a personalized AI coach, track every rep, compete in challenges, and join the most elite
+            fitness community.
           </p>
-
-          {/* Feature pills */}
-          <div className="flex flex-wrap gap-3 mt-10">
-            {["AI Coach", "Live Tracking", "Challenges", "Community", "Gym Mode"].map((f) => (
-              <span
-                key={f}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-text-secondary text-xs font-medium"
-              >
-                {f}
-              </span>
-            ))}
-          </div>
         </motion.div>
       </div>
 
-      {/* Right — Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-surface-card p-6 sm:p-8 min-h-screen lg:min-h-0">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -82,9 +121,9 @@ export default function SignupPage() {
           className="w-full max-w-md"
         >
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center">
+            <motion.div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center">
               <Flame className="w-5 h-5 text-white" />
-            </div>
+            </motion.div>
             <span className="text-white font-heading font-bold text-xl">RahulFitzz</span>
           </div>
 
@@ -96,7 +135,7 @@ export default function SignupPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
+            <motion.div className="space-y-2">
               <label className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em]">
                 Full Name
               </label>
@@ -111,9 +150,9 @@ export default function SignupPage() {
                   className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 transition-all"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div className="space-y-2">
               <label className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em]">
                 Email
               </label>
@@ -128,9 +167,9 @@ export default function SignupPage() {
                   className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 transition-all"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div className="space-y-2">
               <label className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em]">
                 Password
               </label>
@@ -139,6 +178,7 @@ export default function SignupPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Min 8 characters"
@@ -152,7 +192,25 @@ export default function SignupPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
+            </motion.div>
+
+            <motion.div className="space-y-2">
+              <label className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em]">
+                Referral code (optional)
+              </label>
+              <input
+                type="text"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="RF-XXXX-XXXX"
+                className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-brand transition-all uppercase"
+              />
+              {refFromUrl && (
+                <p className="text-emerald-400/90 text-xs">Referrer gets +150 pts when you join.</p>
+              )}
+            </motion.div>
+
+            {error && <p className="text-brand text-sm">{error}</p>}
 
             <button
               type="submit"
@@ -168,10 +226,6 @@ export default function SignupPage() {
               )}
             </button>
           </form>
-
-          <p className="text-text-muted text-[10px] text-center mt-6 leading-relaxed">
-            By creating an account, you agree to our Terms of Service and Privacy Policy
-          </p>
 
           <p className="text-text-secondary text-sm text-center mt-6">
             Already have an account?{" "}
@@ -189,5 +243,13 @@ export default function SignupPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface flex items-center justify-center text-white">Loading…</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }

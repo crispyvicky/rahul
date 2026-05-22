@@ -42,11 +42,6 @@ export default function LoginPage() {
     await signIn("google", { callbackUrl: "/dashboard" });
   };
 
-  const handleDemoLogin = () => {
-    login(DEMO_USER);
-    router.push("/dashboard");
-  };
-
   return (
     <div className="w-full min-h-screen flex flex-col lg:flex-row">
       {/* Left — Branding (desktop only) */}
@@ -130,15 +125,6 @@ export default function LoginPage() {
                 Continue with Google
               </>
             )}
-          </button>
-
-          {/* Demo Login */}
-          <button
-            onClick={handleDemoLogin}
-            className="w-full py-3.5 bg-brand/10 border border-brand/20 text-brand font-bold text-xs uppercase tracking-[0.2em] rounded-xl transition-all hover:bg-brand/20 flex items-center justify-center gap-3 mb-6"
-          >
-            <Flame className="w-4 h-4" />
-            Try Demo (No Account Needed)
           </button>
 
           {/* Divider */}

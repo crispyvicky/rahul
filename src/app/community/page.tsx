@@ -9,70 +9,26 @@ import {
   ImagePlus,
   Send,
   Star,
-  Filter,
   X,
-  Loader2
+  Loader2,
+  Trash2,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/use-user-store";
 import { getCommunityPosts, createCommunityPost, togglePostLike } from "@/lib/supabase-service";
-
-const mockPosts = [
-  {
-    id: 1,
-    user: { name: "Arjun Sharma", avatar: "A", level: 15 },
-    type: "transformation",
-    content:
-      "12 weeks of discipline with the RahulFitzz Blueprint. Lost 14kg, gained confidence. The AI coach adapted my plan every week. This community kept me accountable. 🔥",
-    beforeImage: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&h=500&fit=crop",
-    afterImage: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=500&fit=crop",
-    likes: 342,
-    comments: 28,
-    isFeatured: true,
-    timeAgo: "2h ago",
-  },
-  {
-    id: 2,
-    user: { name: "Priya Menon", avatar: "P", level: 8 },
-    type: "progress",
-    content:
-      "Day 21 of the 30-Day Iron Warrior Challenge. Deadlifted 100kg today — a new PR! 💪 Never thought I'd get here. The Gym Mode rep tracking is addictive.",
-    likes: 189,
-    comments: 15,
-    isFeatured: false,
-    timeAgo: "4h ago",
-  },
-  {
-    id: 3,
-    user: { name: "Vikram Raj", avatar: "V", level: 22 },
-    type: "tip",
-    content:
-      "Pro tip: If you're stalling on bench press, try paused reps at 70% of your max. 3 sets of 5 with a 2-second pause at the bottom. Changed my pressing game completely. Credit to the AI Coach for this programming insight.",
-    likes: 256,
-    comments: 41,
-    isFeatured: false,
-    timeAgo: "6h ago",
-  },
-  {
-    id: 4,
-    user: { name: "Neha Kapoor", avatar: "N", level: 11 },
-    type: "transformation",
-    content:
-      "8-week transformation. From not being able to do a single pull-up to doing 8 strict reps. The progressive overload tracking in Gym Mode made all the difference. 🙌",
-    beforeImage: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=500&fit=crop",
-    afterImage: "https://images.unsplash.com/photo-1550345332-09e3ac987658?w=400&h=500&fit=crop",
-    likes: 421,
-    comments: 52,
-    isFeatured: true,
-    timeAgo: "1d ago",
-  },
-];
+import { useIsAdmin } from "@/hooks/use-is-admin";
+import PostComments from "@/components/community/post-comments";
+import { isUuidUserId } from "@/lib/api-guards";
+import toast from "react-hot-toast";
 
 const filters = ["All", "Transformations", "Progress", "Tips"];
 
 export default function CommunityPage() {
   const { user: currentUser } = useUserStore();
+  const { isAdmin } = useIsAdmin();
   const [activeFilter, setActiveFilter] = useState("All");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,6 +62,22 @@ export default function CommunityPage() {
     const result = await togglePostLike(currentUser.id, id);
     // Real load to update numbers
     if (result !== null) loadPosts();
+  };
+
+  const handleAdminDelete = async (postId: string) => {
+    if (!confirm("Delete this post for everyone? This cannot be undone.")) return;
+    setDeletingId(postId);
+    try {
+      const res = await fetch(`/api/admin/community/${postId}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Delete failed");
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      toast.success("Post removed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete post");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleCreatePost = async () => {
@@ -149,6 +121,11 @@ export default function CommunityPage() {
           <p className="text-text-secondary text-sm mt-1">
             Share progress, inspire others, get featured
           </p>
+          {isAdmin && (
+            <p className="text-yellow-400/90 text-[10px] font-bold uppercase tracking-widest mt-2 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" /> Admin — you can delete posts
+            </p>
+          )}
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -218,16 +195,34 @@ export default function CommunityPage() {
                   </p>
                 </div>
               </div>
-              <span
-                className={cn(
-                  "text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full hidden sm:inline-block",
-                  post.post_type === "transformation" && "bg-brand/10 text-brand",
-                  post.post_type === "progress" && "bg-blue-500/10 text-blue-400",
-                  post.post_type === "tip" && "bg-emerald-500/10 text-emerald-400"
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full hidden sm:inline-block",
+                    post.post_type === "transformation" && "bg-brand/10 text-brand",
+                    post.post_type === "progress" && "bg-blue-500/10 text-blue-400",
+                    post.post_type === "tip" && "bg-emerald-500/10 text-emerald-400"
+                  )}
+                >
+                  {post.post_type}
+                </span>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => handleAdminDelete(post.id)}
+                    disabled={deletingId === post.id}
+                    className="min-h-10 min-w-10 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 disabled:opacity-50 touch-manipulation"
+                    aria-label="Delete post (admin)"
+                    title="Delete post (admin)"
+                  >
+                    {deletingId === post.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
                 )}
-              >
-                {post.post_type}
-              </span>
+              </div>
             </div>
 
             {/* Content */}
@@ -256,9 +251,10 @@ export default function CommunityPage() {
             {/* Actions */}
             <div className="px-4 sm:px-5 py-3 border-t border-white/5 flex items-center gap-6">
               <button
+                type="button"
                 onClick={() => handleToggleLike(post.id)}
                 className={cn(
-                  "flex items-center gap-2 text-sm transition-colors",
+                  "flex items-center gap-2 text-sm transition-colors touch-manipulation min-h-10",
                   likedPosts.includes(post.id)
                     ? "text-brand"
                     : "text-text-secondary hover:text-white"
@@ -274,14 +270,30 @@ export default function CommunityPage() {
                   {post.likes_count + (likedPosts.includes(post.id) ? 1 : 0)}
                 </span>
               </button>
-              <button className="flex items-center gap-2 text-text-secondary hover:text-white text-sm transition-colors">
+              <div className="flex items-center gap-2 text-text-secondary text-sm min-h-10">
                 <MessageCircle className="w-4 h-4" />
-                <span className="text-xs font-bold">{post.comments_count}</span>
-              </button>
-              <button className="flex items-center gap-2 text-text-secondary hover:text-white text-sm transition-colors ml-auto">
+                <span className="text-xs font-bold">{post.comments_count ?? 0}</span>
+              </div>
+              <button
+                type="button"
+                className="flex items-center gap-2 text-text-secondary hover:text-white text-sm transition-colors ml-auto touch-manipulation min-h-10"
+                aria-label="Share post"
+              >
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
+
+            <PostComments
+              postId={post.id}
+              commentsCount={post.comments_count ?? 0}
+              currentUserId={isUuidUserId(currentUser?.id) ? currentUser!.id : ""}
+              isAdmin={isAdmin}
+              onCountChange={(n) =>
+                setPosts((prev) =>
+                  prev.map((p) => (p.id === post.id ? { ...p, comments_count: n } : p))
+                )
+              }
+            />
           </motion.div>
         ))}
       </div>

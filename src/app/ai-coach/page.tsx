@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useUserStore, DEMO_USER } from "@/store/use-user-store";
+import { useAiCoachStore } from "@/store/use-ai-coach-store";
 import { cn } from "@/lib/utils";
 import { saveAiPlan, getUserAiPlans } from "@/lib/supabase-service";
 
@@ -109,6 +110,20 @@ const mockWorkoutPlan = {
   ],
 };
 
+/** Rotating copy while AI generates a plan */
+const AI_LOADING_TIPS = [
+  "Technique: 2–3 reps in reserve on compounds — train hard, not to failure every set.",
+  "Bodybuilding: mind-muscle connection beats ego weight — feel the target muscle work.",
+  "Diet: protein every meal anchors recovery — aim for consistency, not perfection.",
+  "Stretch: 5 min hip flexor + thoracic opener before legs — better depth, safer spine.",
+  "Tip: progressive overload — add reps, load, or sets when form stays crisp.",
+  "Recovery: 7–9 hours sleep is when muscle actually grows — protect your nights.",
+  "Warm-up: 1 light set + 1 working ramp set before heavy bench or squat.",
+  "Nutrition: meal prep 2 days ahead beats guessing calories mid-week.",
+  "Mobility: band pull-aparts and face pulls keep shoulders healthy on push days.",
+  "Hypertrophy: time under tension — control the negative for 2–3 seconds.",
+];
+
 const mockDietPlan = {
   calories: 2400,
   protein: 180,
@@ -133,6 +148,9 @@ export default function AICoachPage() {
   const { user } = useUserStore();
   const currentUser = user || DEMO_USER;
 
+  // Global AI Coach Store — survives navigation
+  const aiStore = useAiCoachStore();
+
   // Form State
   const [customData, setCustomData] = useState({
     weight: currentUser.onboardingData?.weight || 75,
@@ -150,7 +168,69 @@ export default function AICoachPage() {
   const [historyPlans, setHistoryPlans] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [loadingTipIndex, setLoadingTipIndex] = useState(0);
   const aiRequestLock = useRef(false);
+
+  useEffect(() => {
+    if (!isGenerating) return;
+    setLoadingTipIndex(0);
+    const id = window.setInterval(() => {
+      setLoadingTipIndex((i) => (i + 1) % AI_LOADING_TIPS.length);
+    }, 2800);
+    return () => window.clearInterval(id);
+  }, [isGenerating]);
+
+  // On mount: Restore any cached results from global store (survives navigation)
+  useEffect(() => {
+    let mounted = true;
+
+    if (aiStore.lastWorkoutPlan && !workoutPlan) {
+      setWorkoutPlan(aiStore.lastWorkoutPlan);
+      setPlanGenerated(true);
+      setActiveTab("workout");
+    }
+    if (aiStore.lastDietPlan && !dietPlan) {
+      setDietPlan(aiStore.lastDietPlan);
+      if (!aiStore.lastWorkoutPlan) {
+        setPlanGenerated(true);
+        setActiveTab("diet");
+      }
+    }
+    if (aiStore.lastPhysiqueAnalysis && !physiqueAnalysis) {
+      setPhysiqueAnalysis(aiStore.lastPhysiqueAnalysis);
+      if (!aiStore.lastWorkoutPlan && !aiStore.lastDietPlan) {
+        setPlanGenerated(true);
+        setActiveTab("analyze");
+      }
+    }
+    if (aiStore.lastError) {
+      setGenerateError(aiStore.lastError);
+    }
+    // If a generation was in progress when user left, restore the loading state
+    if (aiStore.isGenerating && aiStore.generationPromise) {
+      setIsGenerating(true);
+      // Await the still-running promise (no duplicate API call)
+      aiStore.generationPromise
+        .then(() => {
+          if (!mounted) return;
+          const store = useAiCoachStore.getState();
+          if (store.lastWorkoutPlan) { setWorkoutPlan(store.lastWorkoutPlan); setActiveTab("workout"); }
+          if (store.lastDietPlan) { setDietPlan(store.lastDietPlan); setActiveTab("diet"); }
+          if (store.lastPhysiqueAnalysis) { setPhysiqueAnalysis(store.lastPhysiqueAnalysis); setActiveTab("analyze"); }
+          if (store.lastError) setGenerateError(store.lastError);
+          setPlanGenerated(!store.lastError);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (mounted) setIsGenerating(false);
+        });
+    }
+
+    return () => {
+      mounted = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Premium branded PDF download (RahulFitzz dark + red — direct .pdf file, no print dialog)
   const downloadPlanAsPDF = async (opts: PrintDocOptions) => {
@@ -443,8 +523,9 @@ export default function AICoachPage() {
 
     const iframe = document.createElement("iframe");
     iframe.setAttribute("aria-hidden", "true");
+    /* Full height required — 1px iframe only captured the dark header (black PDF with RF logo). */
     iframe.style.cssText =
-      "position:fixed;width:900px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0;border:0;";
+      "position:fixed;left:0;top:0;width:820px;border:0;z-index:-9999;opacity:0;pointer-events:none;visibility:hidden;";
     document.body.appendChild(iframe);
     const doc = iframe.contentDocument;
     if (!doc) {
@@ -455,9 +536,35 @@ export default function AICoachPage() {
     doc.write(html);
     doc.close();
 
+    const openPrintFallback = () => {
+      const w = window.open("", "_blank", "noopener,noreferrer");
+      if (!w) {
+        window.alert("Allow pop-ups to print this plan, or try again.");
+        return;
+      }
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      setTimeout(() => {
+        w.print();
+      }, 500);
+    };
+
     try {
       await doc.fonts.ready.catch(() => {});
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 500));
+
+      const body = doc.body;
+      const contentHeight = Math.max(
+        body.scrollHeight,
+        body.offsetHeight,
+        doc.documentElement.scrollHeight,
+        1200
+      );
+      iframe.style.height = `${contentHeight}px`;
+
+      await new Promise((r) => setTimeout(r, 300));
+
       /* html2pdf.js — no bundled types */
       const html2pdf = (await import("html2pdf.js")).default as () => {
         set: (o: object) => { from: (el: HTMLElement) => { save: () => Promise<void> } };
@@ -472,18 +579,27 @@ export default function AICoachPage() {
       const filename = `rahulfitzz-${opts.variant}-${slug}.pdf`;
       await html2pdf()
         .set({
-          margin: [12, 10, 14, 10],
+          margin: [10, 10, 12, 10],
           filename,
-          image: { type: "jpeg", quality: 0.93 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
+          image: { type: "jpeg", quality: 0.92 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: "#ffffff",
+            height: contentHeight,
+            windowHeight: contentHeight,
+            scrollY: 0,
+            scrollX: 0,
+          },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+          pagebreak: { mode: ["css", "legacy"] },
         })
-        .from(doc.body)
+        .from(body)
         .save();
     } catch (e) {
       console.error("PDF export failed", e);
-      window.alert("Could not generate the PDF. Try again, or use a desktop browser if this keeps failing.");
+      openPrintFallback();
     } finally {
       iframe.remove();
     }
@@ -644,85 +760,104 @@ export default function AICoachPage() {
     setIsGenerating(true);
     setPlanGenerated(false);
     setGenerateError(null);
+    aiStore.setGenerating(true, activeTab);
+    aiStore.setError(null);
 
-    try {
-      const res = await fetch("/api/ai-coach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: activeTab,
-          userData: {
-            ...currentUser.onboardingData,
-            weight: customData.weight,
-            goal: customData.goal,
-            fitnessLevel: customData.fitnessLevel,
-            workoutLocation: customData.workoutLocation,
-            gender: customData.gender,
-            customInstructions: customData.customInstructions,
-            age: currentUser.onboardingData?.age || 25,
-            height: currentUser.onboardingData?.height || 175,
-            workoutDays: currentUser.onboardingData?.workoutDays || 4
-          }
-        })
-      });
-
-      const raw = await res.text();
-      let data: any;
+    // Fire-and-forget promise stored globally so it survives navigation
+    const generationWork = (async () => {
       try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch {
-        setGenerateError(res.ok ? "Invalid response from server." : `Server error (${res.status}).`);
-        return;
-      }
+        const res = await fetch("/api/ai-coach", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: activeTab,
+            userData: {
+              ...currentUser.onboardingData,
+              weight: customData.weight,
+              goal: customData.goal,
+              fitnessLevel: customData.fitnessLevel,
+              workoutLocation: customData.workoutLocation,
+              gender: customData.gender,
+              customInstructions: customData.customInstructions,
+              age: currentUser.onboardingData?.age || 25,
+              height: currentUser.onboardingData?.height || 175,
+              workoutDays: currentUser.onboardingData?.workoutDays || 4
+            }
+          })
+        });
 
-      if (res.status === 429) {
-        const retry =
-          typeof data?.retryAfterSec === "number"
-            ? ` Try again in about ${data.retryAfterSec}s.`
-            : "";
-        setGenerateError(
-          (typeof data?.error === "string" ? data.error : "Too many requests.") + retry
-        );
-        return;
-      }
-
-      if (res.status === 413) {
-        setGenerateError(typeof data?.error === "string" ? data.error : "Request payload too large.");
-        return;
-      }
-
-      if (!res.ok || data?.error) {
-        setGenerateError(typeof data?.error === "string" ? data.error : `Request failed (${res.status}).`);
-        return;
-      }
-
-      if (activeTab === "workout") {
-        setWorkoutPlan(data);
-        if (currentUser?.id) {
-          const savedPlan = await saveAiPlan(currentUser.id, "workout", data);
-          if (savedPlan) setHistoryPlans(prev => [savedPlan, ...prev]);
+        const raw = await res.text();
+        let data: any;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          const errMsg = res.ok ? "Invalid response from server." : `Server error (${res.status}).`;
+          setGenerateError(errMsg);
+          aiStore.setError(errMsg);
+          return;
         }
-      } else if (activeTab === "diet") {
-        setDietPlan(data);
-        if (currentUser?.id) {
-          const savedPlan = await saveAiPlan(currentUser.id, "diet", data);
-          if (savedPlan) setHistoryPlans(prev => [savedPlan, ...prev]);
+
+        if (res.status === 429) {
+          const retry =
+            typeof data?.retryAfterSec === "number"
+              ? ` Try again in about ${data.retryAfterSec}s.`
+              : "";
+          const errMsg = (typeof data?.error === "string" ? data.error : "Too many requests.") + retry;
+          setGenerateError(errMsg);
+          aiStore.setError(errMsg);
+          return;
         }
+
+        if (res.status === 413) {
+          const errMsg = typeof data?.error === "string" ? data.error : "Request payload too large.";
+          setGenerateError(errMsg);
+          aiStore.setError(errMsg);
+          return;
+        }
+
+        if (!res.ok || data?.error) {
+          const errMsg = typeof data?.error === "string" ? data.error : `Request failed (${res.status}).`;
+          setGenerateError(errMsg);
+          aiStore.setError(errMsg);
+          return;
+        }
+
+        if (activeTab === "workout") {
+          setWorkoutPlan(data);
+          aiStore.setWorkoutPlan(data);
+          if (currentUser?.id) {
+            const savedPlan = await saveAiPlan(currentUser.id, "workout", data);
+            if (savedPlan) setHistoryPlans(prev => [savedPlan, ...prev]);
+          }
+        } else if (activeTab === "diet") {
+          setDietPlan(data);
+          aiStore.setDietPlan(data);
+          if (currentUser?.id) {
+            const savedPlan = await saveAiPlan(currentUser.id, "diet", data);
+            if (savedPlan) setHistoryPlans(prev => [savedPlan, ...prev]);
+          }
+        }
+        setPlanGenerated(true);
+      } catch (err) {
+        const msg =
+          err instanceof TypeError && err.message === "Failed to fetch"
+            ? "Could not reach the server. Confirm `npm run dev` is running and open the app at http://localhost:3000 (not a file preview)."
+            : err instanceof Error
+              ? err.message
+              : "Something went wrong.";
+        setGenerateError(msg);
+        aiStore.setError(msg);
+        console.error("AI Generation Error", err);
+      } finally {
+        aiRequestLock.current = false;
+        setIsGenerating(false);
+        aiStore.setGenerating(false);
+        aiStore.setGenerationPromise(null);
       }
-      setPlanGenerated(true);
-    } catch (err) {
-      const msg =
-        err instanceof TypeError && err.message === "Failed to fetch"
-          ? "Could not reach the server. Confirm `npm run dev` is running and open the app at http://localhost:3000 (not a file preview)."
-          : err instanceof Error
-            ? err.message
-            : "Something went wrong.";
-      setGenerateError(msg);
-      console.error("AI Generation Error", err);
-    } finally {
-      aiRequestLock.current = false;
-      setIsGenerating(false);
-    }
+    })();
+
+    // Store the promise globally so it can be awaited if user navigates back
+    aiStore.setGenerationPromise(generationWork);
   };
 
   const handleAnalyze = async () => {
@@ -940,10 +1075,25 @@ export default function AICoachPage() {
             <div className="w-16 h-16 rounded-2xl bg-brand/20 flex items-center justify-center mx-auto mb-6">
               <Loader2 className="w-8 h-8 text-brand animate-spin" />
             </div>
-            <h3 className="text-white text-lg font-bold mb-2">AI is crafting your plan...</h3>
-            <p className="text-text-secondary text-sm">
-              Analyzing your profile and optimizing for {currentUser.onboardingData?.goal?.replace("_", " ")}
-            </p>
+            <h3 className="text-white text-lg font-bold mb-2">
+              {activeTab === "diet"
+                ? "Building your nutrition blueprint…"
+                : activeTab === "analyze"
+                  ? "Scanning physique & weak points…"
+                  : "Forging your training split…"}
+            </h3>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={loadingTipIndex}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                className="text-text-secondary text-sm min-h-[2.75rem] flex items-center justify-center px-2"
+              >
+                {AI_LOADING_TIPS[loadingTipIndex]}
+              </motion.p>
+            </AnimatePresence>
             <div className="mt-6 h-1 bg-white/5 rounded-full overflow-hidden max-w-xs mx-auto">
               <motion.div
                 initial={{ width: "0%" }}

@@ -4,6 +4,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/use-user-store";
+import { getAppEntryHref } from "@/lib/app-entry";
 
 // Cinematic Text Reveal Variants
 const textVariant = {
@@ -21,11 +24,15 @@ const textVariant = {
 };
 
 export default function Banner() {
-  const ref = useRef(null);
+  const ref = useRef<HTMLElement>(null);
+  const { data: session } = useSession();
+  const { user } = useUserStore();
+  const appHref = getAppEntryHref(!!session || !!user);
 
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
+    layoutEffect: false,
   });
 
   // Master Cinematic Physics
@@ -34,23 +41,35 @@ export default function Banner() {
   const glowOpacity = useTransform(scrollYProgress, [0, 0.5], [0.15, 0]);
 
   return (
-    <motion.div
+    <section
       ref={ref}
       id="home"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
       className="relative min-h-[100dvh] w-full max-w-[100vw] bg-[#050505] overflow-x-hidden flex flex-col justify-center py-20 sm:py-24"
     >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative w-full h-full flex flex-col justify-center"
+      >
       {/* 1. LAYER: GRAIN & NOISE TEXTURE */}
       <div className="absolute inset-0 z-[1] opacity-30 pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-      {/* 2. LAYER: ATMOSPHERIC GRADIENTS (Replacing the image) */}
+      {/* 2. LAYER: ATMOSPHERIC GRADIENTS & MOODY GYM TEXTURE */}
       <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* Cinematic Low-Opacity Background Image (Visible on mobile/desktop as high-end texture) */}
+        <div className="absolute inset-0 opacity-[0.08] lg:opacity-[0.04] pointer-events-none z-0">
+          <img 
+            src="/gym-hero.png" 
+            alt="Gym Background Texture" 
+            className="w-full h-full object-cover filter contrast-125 saturate-50"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]" />
+        </div>
         <motion.div
           style={{ opacity: glowOpacity }}
-          className="absolute top-1/4 left-1/4 w-[60vw] h-[60vw] bg-[#eb0000]/10 blur-[180px] rounded-full animate-pulse"
+          className="absolute top-1/4 left-1/4 w-[60vw] h-[60vw] bg-[#eb0000]/10 blur-[180px] rounded-full animate-pulse z-10"
         />
-        <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-t from-[#050505] via-transparent to-transparent z-20" />
       </div>
 
       {/* 3. LAYER: BACKGROUND WATERMARK */}
@@ -58,115 +77,256 @@ export default function Banner() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.05 }}
         transition={{ duration: 3 }}
-        className="absolute bottom-10 right-[-5%] text-[35vw] font-black pointer-events-none select-none uppercase tracking-tighter leading-none italic text-white z-[5]"
+        className="absolute bottom-10 right-[-5%] text-[35vw] font-black pointer-events-none select-none uppercase tracking-tighter leading-none italic text-white z-[5] hidden lg:block"
         style={{ fontFamily: '"Orbitron", sans-serif', WebkitTextStroke: "1px rgba(255,255,255,0.1)", color: "transparent" }}
       >
         RF.
       </motion.div>
 
-      {/* 4. LAYER: CONTENT */}
+      {/* Mobile Red Outline Watermark centered behind athlete */}
+      <div 
+        className="absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden opacity-25"
+        style={{ 
+          fontFamily: '"Orbitron", sans-serif', 
+          WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)", 
+        }}
+      >
+        DISCIPLINE
+      </div>
+
+      {/* Mobile Cutout Athlete (Centered, behind text, hidden on desktop) with Breathing Opacity Loop */}
+      <motion.div 
+        initial={{ opacity: 0.15 }}
+        animate={{ opacity: [0.15, 0.45, 0.15] }}
+        transition={{
+          duration: 5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="absolute top-[13%] sm:top-[12%] left-1/2 -translate-x-1/2 w-full max-w-[340px] aspect-[4/5] pointer-events-none z-[2] block lg:hidden mix-blend-screen"
+      >
+        <img 
+          src="/gym-hero.png" 
+          alt="Rahul Performance Mobile Cutout" 
+          className="w-full h-full object-contain filter contrast-125 brightness-[1.05]" 
+        />
+      </motion.div>
+
+      {/* 4. LAYER: CONTENT (2 Column Layout) */}
       <motion.div
         style={{ opacity: contentFade, y: contentY }}
-        className="relative z-20 flex flex-col items-start justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-24 sm:pt-20 pb-8"
+        className="relative z-20 flex flex-col lg:flex-row items-center justify-between w-full max-w-[1400px] mx-auto px-6 sm:px-6 md:px-12 pt-24 sm:pt-20 pb-8 gap-12 lg:gap-8 h-full min-h-[85vh] lg:min-h-[80vh]"
       >
-        {/* Pre-Heading Accent - Refined */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
-          className="flex items-center gap-6 mb-8 group"
-        >
-          <div className="h-[1px] w-16 bg-[#eb0000]/50 group-hover:w-24 transition-all duration-700" />
-          <span className="text-[#eb0000] text-[10px] tracking-[0.8em] font-black uppercase">
-            Code of Discipline
-          </span>
-        </motion.div>
-
-        {/* Main Heading */}
-        <div className="relative mb-12">
-          <h1
-            className="text-white text-[12vw] md:text-[9vw] xl:text-[110px] leading-[0.85] font-black uppercase tracking-tighter"
-            style={{ fontFamily: '"Orbitron", sans-serif' }}
+        {/* LEFT COLUMN: TEXT (Centered on mobile, left-aligned on desktop) */}
+        <div className="flex flex-col items-center lg:items-start justify-center w-full lg:w-[52%] text-center lg:text-left">
+          
+          {/* Pre-Heading Accent - Refined */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            className="flex items-center gap-6 mb-8 group"
           >
-            {"RAHULFITZZ".split("").map((letter, i) => (
-              <motion.span
-                key={i}
-                custom={i}
-                variants={textVariant}
-                initial="hidden"
-                animate="visible"
-                className="inline-block transform-gpu"
-              >
-                {letter}
-              </motion.span>
-            ))}
-          </h1>
+            <div className="h-[1px] w-16 bg-[#eb0000]/50 group-hover:w-24 transition-all duration-700 hidden lg:block" />
+            <span className="text-[#eb0000] text-[10px] tracking-[0.8em] font-black uppercase mx-auto lg:mx-0">
+              Code of Discipline
+            </span>
+          </motion.div>
+
+          {/* Main Heading */}
+          <div className="relative mb-8 w-full">
+            {/* Desktop Heading (single line) */}
+            <h1
+              className="hidden lg:block text-white text-[11.5vw] md:text-[10vw] lg:text-[7.5vw] xl:text-[90px] leading-[0.85] font-black uppercase tracking-tighter whitespace-nowrap text-left"
+              style={{ fontFamily: '"Orbitron", sans-serif' }}
+            >
+              {"RAHULFITZZ".split("").map((letter, i) => (
+                <motion.span
+                  key={i}
+                  custom={i}
+                  variants={textVariant}
+                  initial="hidden"
+                  animate="visible"
+                  className="inline-block transform-gpu"
+                >
+                  {letter}
+                </motion.span>
+              ))}
+            </h1>
+
+            {/* Mobile Heading (split on two lines, centered) */}
+            <h1
+              className="block lg:hidden text-white text-[15vw] sm:text-[13vw] leading-[0.9] font-black uppercase tracking-tight text-center whitespace-normal"
+              style={{ fontFamily: '"Orbitron", sans-serif' }}
+            >
+              <div className="block">
+                {"RAHUL".split("").map((letter, i) => (
+                  <motion.span
+                    key={i}
+                    custom={i}
+                    variants={textVariant}
+                    initial="hidden"
+                    animate="visible"
+                    className="inline-block transform-gpu"
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+              </div>
+              <div className="block mt-1">
+                {"FITZZ".split("").map((letter, i) => (
+                  <motion.span
+                    key={i}
+                    custom={i + 5}
+                    variants={textVariant}
+                    initial="hidden"
+                    animate="visible"
+                    className="inline-block transform-gpu"
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+              </div>
+            </h1>
+          </div>
+
+          {/* Subheadline and Description */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 1 }}
+            className="mb-8 w-full text-center lg:text-left"
+          >
+            <p className="text-white text-xs md:text-sm lg:text-base font-black tracking-[0.25em] uppercase mb-3" style={{ fontFamily: '"Orbitron", sans-serif' }}>
+              Discipline. Consistency. <span className="text-[#eb0000]">Dominate.</span>
+            </p>
+            <p className="text-[#96979c] text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto lg:mx-0 second">
+              Helping you build a stronger body, sharper mind, and unstoppable discipline.
+            </p>
+          </motion.div>
+
+          {/* Community Proof - Modern Rectangular Style */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 1 }}
+            className="w-full lg:w-auto mb-10 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-none p-4 sm:p-5 shadow-2xl"
+          >
+            {/* Desktop Layout (Standard flex row) */}
+            <div className="hidden sm:flex flex-row items-center justify-start gap-10 px-4">
+              <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
+                <div className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors" style={{ fontFamily: '"Orbitron", sans-serif' }}>130K+ IG</div>
+                <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Reach</div>
+              </a>
+              <div className="w-[1px] h-10 bg-white/10" />
+              <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
+                <div className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors" style={{ fontFamily: '"Orbitron", sans-serif' }}>90K+ YT</div>
+                <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Subs</div>
+              </a>
+              <div className="w-[1px] h-10 bg-white/10" />
+              <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
+                <div className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors" style={{ fontFamily: '"Orbitron", sans-serif' }}>60K+ FB</div>
+                <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Forces</div>
+              </a>
+            </div>
+
+            {/* Mobile Layout (3 Columns with Red Icons & dividers exactly like screenshot) */}
+            <div className="grid grid-cols-3 divide-x divide-white/10 w-full text-center sm:hidden">
+              {/* Instagram Stat */}
+              <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center px-1 group">
+                <svg className="w-5 h-5 text-[#eb0000]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+                <span className="text-white font-black text-sm tracking-tighter mt-2" style={{ fontFamily: '"Orbitron", sans-serif' }}>130K+</span>
+                <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">IG</span>
+                <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Reach</span>
+              </a>
+
+              {/* YouTube Stat */}
+              <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center px-1 group">
+                <svg className="w-5 h-5 text-[#eb0000]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+                  <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
+                </svg>
+                <span className="text-white font-black text-sm tracking-tighter mt-2" style={{ fontFamily: '"Orbitron", sans-serif' }}>90K+</span>
+                <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">YT</span>
+                <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Subs</span>
+              </a>
+
+              {/* Facebook Stat */}
+              <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center px-1 group">
+                <svg className="w-5 h-5 text-[#eb0000]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
+                <span className="text-white font-black text-sm tracking-tighter mt-2" style={{ fontFamily: '"Orbitron", sans-serif' }}>60K+</span>
+                <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">FB</span>
+                <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Forces</span>
+              </a>
+            </div>
+          </motion.div>
+
+          {/* Action Zone - Rectangular & Premium */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.6, duration: 1 }}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
+          >
+            <Link
+              href={appHref}
+              className="group relative min-h-[56px] w-full sm:w-auto px-10 py-5 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden rounded-none transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center touch-manipulation no-underline active:scale-[0.98]"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-3">
+                {session || user ? "Launch App" : "Join now"}{" "}
+                <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden />
+              </span>
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+            </Link>
+
+            <a
+              href="#contact"
+              className="group min-h-[56px] w-full sm:w-auto px-10 py-5 border border-white/10 bg-transparent text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] rounded-none transition-all duration-500 hover:bg-white hover:text-black flex items-center justify-center touch-manipulation text-center no-underline active:scale-[0.98]"
+            >
+              Collab with me
+            </a>
+          </motion.div>
         </div>
 
-        {/* Community Proof - Influencer Portfolio Style */}
+        {/* RIGHT COLUMN: CUTOUT IMAGE (Visible and LARGER on desktop) */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 1 }}
-          className="flex flex-wrap items-center gap-6 sm:gap-10 mb-16 border-l border-white/5 pl-6 sm:pl-8"
+          initial={{ opacity: 0, filter: "blur(20px)", scale: 0.95 }}
+          animate={{ opacity: 1, filter: "blur(0px)", scale: 1.12 }}
+          transition={{ duration: 1.5, delay: 0.8, ease: "easeOut" }}
+          className="hidden lg:flex w-full lg:w-[48%] justify-center items-center mt-12 lg:mt-0 relative h-[600px] z-10"
         >
-          <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
-            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">130K+ IG</div>
-            <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Reach</div>
-          </a>
-          <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />
-          <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
-            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">90K+ YT</div>
-            <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Subs</div>
-          </a>
-          <div className="w-[1px] h-10 bg-white/10 hidden sm:block" />
-          <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1 hover:scale-105 transition-transform group">
-            <div className="text-white font-black text-2xl sm:text-3xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">60K+ FB</div>
-            <div className="text-[#eb0000] text-[9px] uppercase tracking-[0.4em] font-black">Elite Forces</div>
-          </a>
-        </motion.div>
-
-        {/* Action Zone */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.6, duration: 1 }}
-          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-8 w-full sm:w-auto"
-        >
-          <Link
-            href="/login"
-            className="group relative min-h-[52px] w-full sm:w-auto px-8 py-4 sm:px-14 sm:py-7 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.35em] sm:tracking-[0.4em] overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center touch-manipulation no-underline active:scale-[0.99]"
-          >
-            <span className="relative z-10 flex items-center justify-center gap-3 sm:gap-4">
-              Join now <ArrowRight className="w-4 h-4 shrink-0" aria-hidden />
-            </span>
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-          </Link>
-
-          <a
-            href="#contact"
-            className="group min-h-[52px] w-full sm:w-auto px-8 py-4 sm:px-14 sm:py-7 border border-white/5 bg-white/5 backdrop-blur-3xl text-white font-black text-[10px] md:text-xs uppercase tracking-[0.35em] sm:tracking-[0.4em] transition-all duration-500 hover:bg-white hover:text-black flex items-center justify-center touch-manipulation text-center no-underline active:scale-[0.99]"
-          >
-            Collab with me
-          </a>
-        </motion.div>
-
-        {/* Gym-Themed Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.3 }}
-          transition={{ delay: 2.5, duration: 1 }}
-          className="absolute bottom-12 left-12 hidden lg:flex items-center gap-6 text-white uppercase text-[9px] tracking-[0.6em] font-black rotate-[-90deg] origin-left"
-        >
-          <div className="flex items-center">
-            <div className="w-12 h-[2px] bg-[#eb0000]" />
-            <div className="w-3 h-6 border-2 border-[#eb0000] mx-[-1px] rounded-sm" />
-            <div className="w-4 h-8 border-2 border-[#eb0000] mx-[-1px] rounded-sm bg-[#eb0000]" />
-            <div className="w-3 h-6 border-2 border-[#eb0000] mx-[-1px] rounded-sm" />
-          </div>
-          SCROLL TO BREACH
+          {/* Athlete Cutout Image using Screen Mix Blend Mode */}
+          <img 
+            src="/gym-hero.png" 
+            alt="Rahul Performance Cutout" 
+            className="relative z-10 w-full max-w-[550px] object-contain select-none pointer-events-none mix-blend-screen filter contrast-125 brightness-110" 
+          />
         </motion.div>
       </motion.div>
-    </motion.div>
+
+      {/* Gym-Themed Scroll Indicator (Moved outside flex layout for perfect centering) */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        transition={{ delay: 2.5, duration: 1 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center flex-col gap-3 text-white uppercase text-[9px] tracking-[0.5em] font-black z-30 pointer-events-none"
+      >
+        Scroll to Explore
+        <div className="w-5 h-9 border-2 border-[#eb0000] rounded-full flex justify-center pt-1.5">
+          <motion.div 
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-1.5 h-1.5 bg-[#eb0000] rounded-full"
+          />
+        </div>
+      </motion.div>
+      </motion.div>
+    </section>
   );
 }

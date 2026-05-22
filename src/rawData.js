@@ -1,28 +1,9 @@
-import person1_before from "./assets/img/people1_before.avif";
-import person1_after from "./assets/img/people1_after.avif";
-
-import person2_before from "./assets/img/person2_before.avif";
-import person2_after from "./assets/img/person2_after.avif";
-
-import person3_before from "./assets/img/person3_before.avif";
-import person3_after from "./assets/img/person3_after.avif";
-
-//testiminial
 import people1 from "./assets/img/what_people1.avif";
 import people2 from "./assets/img/what_people2.avif";
 import people3 from "./assets/img/what_people3.avif";
 
 //gym img
-import gym1 from "./assets/img/gym1.avif";
-import gym2 from "./assets/img/gym2.avif";
-import gym3 from "./assets/img/gym3.avif";
-import gym4 from "./assets/img/gym4.avif";
-import gym5 from "./assets/img/gym5.avif";
-import gym6 from "./assets/img/gym6.avif";
-import gym7 from "./assets/img/gym7.avif";
-import youtube_cover from "./assets/img/youtube_cover.avif";
-import discuss from "./assets/img/discuss.jpg";
-
+// imports removed
 //blog
 import blog1 from "./assets/img/blog1.avif";
 import blog2 from "./assets/img/blog2.avif";
@@ -33,55 +14,7 @@ import b_user1 from "./assets/img/b_user1.avif";
 import b_user2 from "./assets/img/b_user2.avif";
 import b_user3 from "./assets/img/b_user3.avif";
 
-import track from "./assets/img/track.avif";
-import train from "./assets/img/train.avif";
-import challenge from "./assets/img/challenge.avif";
-import analyze from "./assets/img/analyzie.avif";
-import connect from "./assets/img/connect.avif";
-
-import wp1 from "./assets/img/wp1.avif";
-import wp2 from "./assets/img/wp2.avif";
-import wp3 from "./assets/img/wp3.avif";
-import wp4 from "./assets/img/wp4.avif";
-
-export const personData = [
-  {
-    id: 1,
-    name: "Raj",
-    age: 25,
-    before_weight: 80,
-    after_weight: 70,
-    b_fast_before: 35,
-    b_fast_after: 15,
-    before_url: person1_before,
-    after_url: person1_after,
-    weeks: 30,
-  },
-  {
-    id: 2,
-    name: "Kamal",
-    age: "30",
-    before_weight: 90,
-    after_weight: 69,
-    b_fast_before: 39,
-    b_fast_after: 19,
-    before_url: person2_before,
-    after_url: person2_after,
-    weeks: 12,
-  },
-  {
-    id: 3,
-    name: "Poonannam",
-    age: 21,
-    before_weight: 80,
-    after_weight: 70,
-    b_fast_before: 30,
-    b_fast_after: 15,
-    before_url: person3_before,
-    after_url: person3_after,
-    weeks: 15,
-  },
-];
+import rfLogo from "./assets/img/RF.png";
 
 export const testimonialData = [
   {
@@ -142,7 +75,7 @@ export const gyms = [
   {
     id: "1",
     name: "RahulFitzz Performance HQ",
-    image: gym1,
+    image: "/placeholder.png",
     phone: "+91 88888 88888",
     address: "Nerul Elite Sector, Navi Mumbai",
     mapUrl:
@@ -151,7 +84,7 @@ export const gyms = [
   {
     id: "2",
     name: "Titan Elite Training Zone",
-    image: gym2,
+    image: "/placeholder.png",
     phone: "+91 77777 77777",
     address: "Seawoods Iron District, Navi Mumbai",
     mapUrl:
@@ -160,7 +93,7 @@ export const gyms = [
   {
     id: "3",
     name: "The Iron Sanctum",
-    image: gym3,
+    image: "/placeholder.png",
     phone: "+91-22-9999-1111",
     address: "Belapur Powerhouse, Navi Mumbai",
     mapUrl:
@@ -207,23 +140,11 @@ export const blogData = [
 ];
 
 export const activities = [
-  { activity: "Social Media", text: "MEDIA REACH", imageUrl: youtube_cover },
-  {
-    activity: "Collaboration",
-    text: "PARTNERSHIPS",
-    imageUrl: discuss,
-  },
-  { activity: "Production", text: "CONTENT STRATEGY", imageUrl: blog2 },
-  {
-    activity: "Community",
-    text: "ENGAGEMENT",
-    imageUrl: gym4,
-  },
-  {
-    activity: "Impact",
-    text: "GLOBAL REACH",
-    imageUrl: gym7,
-  },
+  { activity: "Social Media", text: "MEDIA REACH", imageUrl: "/portfolio-bodybuilder.png" },
+  { activity: "Collaboration", text: "PARTNERSHIPS", imageUrl: "/portfolio-deadlift.png" },
+  { activity: "Production", text: "CONTENT STRATEGY", imageUrl: "/portfolio-group.png" },
+  { activity: "Community", text: "ENGAGEMENT", imageUrl: "/portfolio-bike.jpg" },
+  { activity: "Impact", text: "GLOBAL REACH", imageUrl: "/q.png" },
 ];
 
 export const features = [
@@ -258,21 +179,21 @@ export const levels_list = [
     title: "THE RECRUIT",
     description:
       "Build the foundation of strength and discipline with entry-level Blueprint routines.",
-    image: wp1,
+    image: people1,
   },
   {
     title: "THE WARRIOR",
     description: "Escalate the intensity with advanced volume and targeted hypertrophy splits.",
-    image: wp2,
+    image: people2,
   },
   {
     title: "THE ELITE",
     description: "Push beyond human limits with high-frequency, professional-grade training protocols.",
-    image: wp3,
+    image: people3,
   },
   {
     title: "CUSTOM BLUEPRINT",
     description: "Direct elite coaching integration for your specific competition or lifestyle goals.",
-    image: wp4,
+    image: rfLogo,
   },
 ];
