@@ -23,7 +23,11 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/store/use-user-store";
 import { cn } from "@/lib/utils";
-import { TOUR_CLOSE_MENU_EVENT, TOUR_OPEN_MENU_EVENT } from "@/lib/app-tour";
+import {
+  TOUR_CLOSE_MENU_EVENT,
+  TOUR_OPEN_MENU_EVENT,
+  dispatchTourMenuState,
+} from "@/lib/app-tour";
 
 const tourAttr: Record<string, string> = {
   "/dashboard": "nav-dashboard",
@@ -56,6 +60,10 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout } = useUserStore();
+
+  useEffect(() => {
+    dispatchTourMenuState(mobileOpen);
+  }, [mobileOpen]);
 
   useEffect(() => {
     const open = () => setMobileOpen(true);
@@ -209,7 +217,7 @@ export default function Sidebar() {
         type="button"
         data-tour="mobile-menu"
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed z-50 min-h-11 min-w-11 h-11 w-11 left-[max(1rem,env(safe-area-inset-left))] top-[max(1rem,env(safe-area-inset-top))] bg-surface-card border border-white/10 rounded-xl flex items-center justify-center text-white touch-manipulation"
+        className="lg:hidden fixed z-[230] min-h-11 min-w-11 h-11 w-11 left-[max(1rem,env(safe-area-inset-left))] top-[max(1rem,env(safe-area-inset-top))] bg-surface-card border border-white/10 rounded-xl flex items-center justify-center text-white touch-manipulation"
         aria-label="Open menu"
       >
         <Menu className="w-5 h-5" />
@@ -223,7 +231,7 @@ export default function Sidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[205]"
+              className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[225]"
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
@@ -231,7 +239,7 @@ export default function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-[min(280px,85vw)] max-w-[100vw] bg-surface-card border-r border-white/5 z-[210] flex flex-col pb-[env(safe-area-inset-bottom)]"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-[min(280px,85vw)] max-w-[100vw] bg-surface-card border-r border-white/5 z-[230] flex flex-col pb-[env(safe-area-inset-bottom)]"
             >
               <button
                 type="button"

@@ -18,65 +18,11 @@ body {
 $lightGray: rgb(150, 151, 156);
 $redText: #eb0000;
 
-/* Mobile home banner: 2s text focus → 1s image focus (3s loop) */
-@media (max-width: 1023px) {
-  @keyframes rf-banner-text-phase {
-    0%,
-    66.666% {
-      filter: blur(0);
-      opacity: 1;
-    }
-    66.667%,
-    100% {
-      filter: blur(14px);
-      opacity: 0.55;
-    }
-  }
-
-  @keyframes rf-banner-img-phase {
-    0%,
-    66.666% {
-      opacity: 0.14;
-    }
-    66.667%,
-    100% {
-      opacity: 0.52;
-    }
-  }
-
-  @keyframes rf-banner-watermark-phase {
-    0%,
-    66.666% {
-      opacity: 0.12;
-    }
-    66.667%,
-    100% {
-      opacity: 0.32;
-    }
-  }
-
-  .rf-mobile-banner-text {
-    animation: rf-banner-text-phase 3s ease-in-out infinite;
-    will-change: filter, opacity;
-  }
-
-  .rf-mobile-banner-hero-img {
-    animation: rf-banner-img-phase 3s ease-in-out infinite;
-    will-change: opacity;
-  }
-
-  .rf-mobile-banner-watermark {
-    animation: rf-banner-watermark-phase 3s ease-in-out infinite;
-  }
-}
-
-@media (min-width: 1024px) {
-  .rf-mobile-banner-text,
-  .rf-mobile-banner-hero-img,
-  .rf-mobile-banner-watermark {
-    animation: none !important;
-    filter: none !important;
-  }
+/* Mobile hero card — no mix-blend halo */
+.rf-mobile-hero-card {
+  isolation: isolate;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 .border {

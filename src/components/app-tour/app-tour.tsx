@@ -15,6 +15,7 @@ import {
   isTourCompleted,
   markTourCompleted,
   TOUR_REPLAY_FLAG,
+  TOUR_MENU_STATE_EVENT,
 } from "@/lib/app-tour";
 import { cn } from "@/lib/utils";
 
@@ -44,13 +45,18 @@ async function waitForTarget(selector: string, maxMs = 1400): Promise<HTMLElemen
 
 async function ensureMobileMenuForStep(step: TourStep, isMobile: boolean) {
   if (!isMobile) return;
-  if (step.openMobileMenu || step.showOpenMenuAction) {
+  if (step.openMobileMenu) {
     dispatchOpenMobileMenu();
     await new Promise((r) => setTimeout(r, 520));
-  } else {
+  } else if (!step.showOpenMenuAction) {
     dispatchCloseMobileMenu();
     await new Promise((r) => setTimeout(r, 120));
   }
+}
+
+function stepRequiresOpenMenu(step: TourStep | undefined, isMobile: boolean) {
+  if (!isMobile || !step) return false;
+  return Boolean(step.openMobileMenu);
 }
 
 function measureRect(el: HTMLElement | null): Rect | null {
@@ -140,6 +146,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   const [spotlight, setSpotlight] = useState<Rect | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [resolvedPlacement, setResolvedPlacement] = useState<TourPlacement>("center");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   const userKey =
@@ -160,6 +167,15 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    const onMenuState = (e: Event) => {
+      const open = Boolean((e as CustomEvent<{ open?: boolean }>).detail?.open);
+      setMobileMenuOpen(open);
+    };
+    window.addEventListener(TOUR_MENU_STATE_EVENT, onMenuState);
+    return () => window.removeEventListener(TOUR_MENU_STATE_EVENT, onMenuState);
   }, []);
 
   const endTour = useCallback(
@@ -252,14 +268,13 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
     };
   }, [active, layoutStep]);
 
+  const needsMenuToContinue = stepRequiresOpenMenu(step, isMobile) && !mobileMenuOpen;
+
   const goNext = () => {
+    if (needsMenuToContinue) return;
     if (stepIndex >= steps.length - 1) {
       endTour(true);
       return;
-    }
-    const current = steps[stepIndex];
-    if (isMobile && current?.id === "menu") {
-      dispatchOpenMobileMenu();
     }
     setStepIndex((i) => i + 1);
   };
@@ -267,7 +282,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   const handleOpenMenu = () => {
     dispatchOpenMobileMenu();
     if (step.target === '[data-tour="mobile-menu"]') return;
-    void layoutStep();
+    setTimeout(() => void layoutStep(), 550);
   };
 
   if (!active || !step || steps.length === 0) return null;
@@ -276,7 +291,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
 
   return (
     <div
-      className="fixed inset-0 z-[220]"
+      className="fixed inset-0 z-[220] pointer-events-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="app-tour-title"
@@ -329,7 +344,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "fixed z-[223] w-[min(calc(100vw-1.5rem),22rem)]",
+          "fixed z-[223] w-[min(calc(100vw-1.5rem),22rem)] pointer-events-auto",
           "bg-surface-card border border-white/10 rounded-2xl shadow-2xl p-4 sm:p-5",
           "max-h-[min(75dvh,28rem)] overflow-y-auto overscroll-contain"
         )}
@@ -356,6 +371,11 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
           {step.title}
         </h2>
         <p className="text-text-secondary text-sm leading-relaxed">{step.body}</p>
+        {needsMenuToContinue && (
+          <p className="mt-3 text-amber-400/90 text-xs font-medium leading-relaxed">
+            Open the ☰ menu first, then tap Next (or Skip tour).
+          </p>
+        )}
         {isMobile && (step.showOpenMenuAction || step.openMobileMenu) && (
           <button
             type="button"
@@ -376,7 +396,13 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
           <button
             type="button"
             onClick={goNext}
-            className="min-h-11 flex-1 px-4 rounded-xl bg-brand hover:bg-brand-dark text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1 touch-manipulation"
+            disabled={needsMenuToContinue}
+            className={cn(
+              "min-h-11 flex-1 px-4 rounded-xl text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1 touch-manipulation",
+              needsMenuToContinue
+                ? "bg-white/10 text-text-muted cursor-not-allowed"
+                : "bg-brand hover:bg-brand-dark"
+            )}
           >
             {stepIndex >= steps.length - 1 ? "Got it" : "Next"}
             {stepIndex < steps.length - 1 && <ChevronRight className="w-4 h-4" />}

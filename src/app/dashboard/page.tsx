@@ -236,15 +236,15 @@ export default function DashboardPage() {
   }, [currentUser.id]);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 pb-20">
-      {/* Header */}
+    <div className="px-4 pt-3 sm:p-6 lg:p-8 space-y-6 pb-20">
+      {/* Header — avatar only on tablet+ (topbar shows avatar on mobile) */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           {avatarUrl && (
             <img
               src={avatarUrl}
               alt={displayName}
-              className="w-12 h-12 rounded-2xl border-2 border-brand/30 object-cover"
+              className="hidden sm:block w-12 h-12 rounded-2xl border-2 border-brand/30 object-cover shrink-0"
               referrerPolicy="no-referrer"
             />
           )}

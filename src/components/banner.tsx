@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -28,6 +28,30 @@ export default function Banner() {
   const { data: session } = useSession();
   const { user } = useUserStore();
   const appHref = getAppEntryHref(!!session || !!user);
+  const [mobilePhase, setMobilePhase] = useState<"text" | "image">("text");
+  const [isMobileBanner, setIsMobileBanner] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const updateMobile = () => setIsMobileBanner(mq.matches);
+    updateMobile();
+    mq.addEventListener("change", updateMobile);
+
+    let phase: "text" | "image" = "text";
+    let timer: ReturnType<typeof setTimeout>;
+    const cycle = () => {
+      if (!mq.matches) return;
+      phase = phase === "text" ? "image" : "text";
+      setMobilePhase(phase);
+      timer = setTimeout(cycle, phase === "text" ? 2000 : 1000);
+    };
+    timer = setTimeout(cycle, 2000);
+
+    return () => {
+      mq.removeEventListener("change", updateMobile);
+      clearTimeout(timer);
+    };
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -84,24 +108,38 @@ export default function Banner() {
       </motion.div>
 
       {/* Mobile Red Outline Watermark centered behind athlete */}
-      <div 
-        className="rf-mobile-banner-watermark absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden"
-        style={{ 
-          fontFamily: '"Orbitron", sans-serif', 
-          WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)", 
+      <motion.div
+        className="absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden"
+        style={{
+          fontFamily: '"Orbitron", sans-serif',
+          WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)",
         }}
+        animate={{ opacity: isMobileBanner && mobilePhase === "image" ? 0.35 : 0.12 }}
+        transition={{ duration: 0.7, ease: "easeInOut" }}
       >
         DISCIPLINE
-      </div>
+      </motion.div>
 
-      {/* Mobile cutout — 1s image beat (sharp) / 2s text beat (dim) via CSS cycle */}
-      <div className="rf-mobile-banner-hero-img absolute top-[13%] sm:top-[12%] left-1/2 -translate-x-1/2 w-full max-w-[340px] aspect-[4/5] pointer-events-none z-[2] block lg:hidden mix-blend-screen">
-        <img 
-          src="/gym-hero.png" 
-          alt="Rahul Performance Mobile Cutout" 
-          className="w-full h-full object-contain filter contrast-125 brightness-[1.05]" 
-        />
-      </div>
+      {/* Mobile hero card — smooth flip (no mix-blend white halo) */}
+      <motion.div
+        className="absolute top-[12%] sm:top-[11%] left-1/2 -translate-x-1/2 w-[min(92vw,320px)] aspect-[4/5] pointer-events-none z-[2] block lg:hidden"
+        style={{ perspective: 1200 }}
+        animate={{
+          rotateY: mobilePhase === "image" ? 0 : -14,
+          scale: mobilePhase === "image" ? 1 : 0.9,
+          opacity: mobilePhase === "image" ? 1 : 0.35,
+        }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="rf-mobile-hero-card relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-[0_24px_60px_rgba(0,0,0,0.65)]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40" />
+          <img
+            src="/gym-hero.png"
+            alt="Rahul Performance Mobile Cutout"
+            className="relative z-[1] w-full h-full object-contain object-top contrast-[1.08] saturate-[1.05]"
+          />
+        </div>
+      </motion.div>
 
       {/* 4. LAYER: CONTENT (2 Column Layout) */}
       <motion.div
@@ -111,7 +149,14 @@ export default function Banner() {
         {/* LEFT COLUMN: TEXT (Centered on mobile, left-aligned on desktop) */}
         <div className="flex flex-col items-center lg:items-start justify-center w-full lg:w-[52%] text-center lg:text-left">
           {/* Mobile: blur this block during 1s image beat; desktop unchanged */}
-          <div className="rf-mobile-banner-text w-full lg:animate-none">
+          <motion.div
+            className="w-full lg:opacity-100 lg:[filter:none]"
+            animate={{
+              opacity: !isMobileBanner || mobilePhase === "text" ? 1 : 0.25,
+              filter: !isMobileBanner || mobilePhase === "text" ? "blur(0px)" : "blur(10px)",
+            }}
+            transition={{ duration: 0.7, ease: "easeInOut" }}
+          >
           {/* Pre-Heading Accent - Refined */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -196,7 +241,7 @@ export default function Banner() {
               Helping you build a stronger body, sharper mind, and unstoppable discipline.
             </p>
           </motion.div>
-          </div>
+          </motion.div>
 
           {/* Community Proof - Modern Rectangular Style */}
           <motion.div

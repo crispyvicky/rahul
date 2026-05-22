@@ -69,8 +69,8 @@ export default function Topbar() {
   const levelInfo = calculateLevel(currentUser.xpPoints);
 
   return (
-    <header className="min-h-16 border-b border-white/5 bg-surface-card/80 backdrop-blur-xl flex items-center justify-between gap-2 px-4 lg:px-8 shrink-0 pt-[max(0px,env(safe-area-inset-top))]">
-      <div className="pl-12 lg:pl-0 min-w-0 flex-1">
+    <header className="min-h-[4.5rem] sm:min-h-16 border-b border-white/5 bg-surface-card/80 backdrop-blur-xl flex items-center justify-between gap-2 px-4 lg:px-8 shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 lg:pb-0">
+      <div className="pl-14 sm:pl-12 lg:pl-0 min-w-0 flex-1 pt-1 lg:pt-0">
         <p className="text-text-secondary text-xs font-medium uppercase tracking-widest">
           Welcome back
         </p>

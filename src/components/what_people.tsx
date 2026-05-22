@@ -8,8 +8,8 @@ import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
 import "@splidejs/splide/dist/css/splide.min.css";
 import { motion } from "framer-motion";
 
-/** Duplicate slides so loop + auto-scroll stay smooth on mobile */
-const FEED_SLIDES = [...data, ...data];
+/** Triple clone for seamless infinite loop on mobile */
+const FEED_SLIDES = [...data, ...data, ...data];
 
 const What_People_Say = () => {
   const splideRef = useRef<HTMLDivElement>(null);
@@ -54,10 +54,11 @@ const What_People_Say = () => {
       autoScroll: prefersReducedMotion
         ? false
         : {
-            speed: 0.65,
+            speed: 0.55,
             pauseOnHover: true,
             pauseOnFocus: false,
             autoStart: true,
+            rewind: true,
           },
     });
 
