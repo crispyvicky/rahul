@@ -1,6 +1,7 @@
 export const APP_TOUR_STORAGE_KEY = "rahulfitzz_app_tour_done_v1";
 export const TOUR_REPLAY_FLAG = "rahulfitzz_tour_replay";
 export const TOUR_OPEN_MENU_EVENT = "rahulfitzz-tour-open-menu";
+export const TOUR_CLOSE_MENU_EVENT = "rahulfitzz-tour-close-menu";
 
 export type TourPlacement = "top" | "bottom" | "left" | "right" | "center";
 
@@ -15,6 +16,8 @@ export type TourStep = {
   pathPrefix?: string;
   /** Open mobile drawer before highlighting sidebar links */
   openMobileMenu?: boolean;
+  /** Show "Open menu" button on the tour card (mobile) */
+  showOpenMenuAction?: boolean;
 };
 
 export const DASHBOARD_TOUR_STEPS: TourStep[] = [
@@ -29,10 +32,10 @@ export const DASHBOARD_TOUR_STEPS: TourStep[] = [
     id: "menu",
     target: '[data-tour="mobile-menu"]',
     title: "Menu (phone)",
-    body: "On mobile, tap here anytime to open the side menu and jump between pages.",
+    body: "Pages like AI Coach live inside this menu. Tap Open menu below (or the ☰ button), then hit Next.",
     placement: "bottom",
     pathPrefix: "/dashboard",
-    openMobileMenu: false,
+    showOpenMenuAction: true,
   },
   {
     id: "nav-ai",
@@ -144,6 +147,11 @@ export function clearTourCompleted(userKey: string) {
 export function dispatchOpenMobileMenu() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(TOUR_OPEN_MENU_EVENT));
+}
+
+export function dispatchCloseMobileMenu() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(TOUR_CLOSE_MENU_EVENT));
 }
 
 export function getStepsForPath(pathname: string): TourStep[] {

@@ -85,7 +85,7 @@ export default function Banner() {
 
       {/* Mobile Red Outline Watermark centered behind athlete */}
       <div 
-        className="absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden opacity-25"
+        className="rf-mobile-banner-watermark absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden"
         style={{ 
           fontFamily: '"Orbitron", sans-serif', 
           WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)", 
@@ -94,23 +94,14 @@ export default function Banner() {
         DISCIPLINE
       </div>
 
-      {/* Mobile Cutout Athlete (Centered, behind text, hidden on desktop) with Breathing Opacity Loop */}
-      <motion.div 
-        initial={{ opacity: 0.15 }}
-        animate={{ opacity: [0.15, 0.45, 0.15] }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="absolute top-[13%] sm:top-[12%] left-1/2 -translate-x-1/2 w-full max-w-[340px] aspect-[4/5] pointer-events-none z-[2] block lg:hidden mix-blend-screen"
-      >
+      {/* Mobile cutout — 1s image beat (sharp) / 2s text beat (dim) via CSS cycle */}
+      <div className="rf-mobile-banner-hero-img absolute top-[13%] sm:top-[12%] left-1/2 -translate-x-1/2 w-full max-w-[340px] aspect-[4/5] pointer-events-none z-[2] block lg:hidden mix-blend-screen">
         <img 
           src="/gym-hero.png" 
           alt="Rahul Performance Mobile Cutout" 
           className="w-full h-full object-contain filter contrast-125 brightness-[1.05]" 
         />
-      </motion.div>
+      </div>
 
       {/* 4. LAYER: CONTENT (2 Column Layout) */}
       <motion.div
@@ -119,7 +110,8 @@ export default function Banner() {
       >
         {/* LEFT COLUMN: TEXT (Centered on mobile, left-aligned on desktop) */}
         <div className="flex flex-col items-center lg:items-start justify-center w-full lg:w-[52%] text-center lg:text-left">
-          
+          {/* Mobile: blur this block during 1s image beat; desktop unchanged */}
+          <div className="rf-mobile-banner-text w-full lg:animate-none">
           {/* Pre-Heading Accent - Refined */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -204,6 +196,7 @@ export default function Banner() {
               Helping you build a stronger body, sharper mind, and unstoppable discipline.
             </p>
           </motion.div>
+          </div>
 
           {/* Community Proof - Modern Rectangular Style */}
           <motion.div

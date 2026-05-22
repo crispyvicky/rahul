@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/store/use-user-store";
 import { cn } from "@/lib/utils";
-import { TOUR_OPEN_MENU_EVENT } from "@/lib/app-tour";
+import { TOUR_CLOSE_MENU_EVENT, TOUR_OPEN_MENU_EVENT } from "@/lib/app-tour";
 
 const tourAttr: Record<string, string> = {
   "/dashboard": "nav-dashboard",
@@ -59,8 +59,13 @@ export default function Sidebar() {
 
   useEffect(() => {
     const open = () => setMobileOpen(true);
+    const close = () => setMobileOpen(false);
     window.addEventListener(TOUR_OPEN_MENU_EVENT, open);
-    return () => window.removeEventListener(TOUR_OPEN_MENU_EVENT, open);
+    window.addEventListener(TOUR_CLOSE_MENU_EVENT, close);
+    return () => {
+      window.removeEventListener(TOUR_OPEN_MENU_EVENT, open);
+      window.removeEventListener(TOUR_CLOSE_MENU_EVENT, close);
+    };
   }, []);
 
   const SidebarContent = () => (
@@ -218,7 +223,7 @@ export default function Sidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+              className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[205]"
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
@@ -226,7 +231,7 @@ export default function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-[min(280px,85vw)] max-w-[100vw] bg-surface-card border-r border-white/5 z-50 flex flex-col pb-[env(safe-area-inset-bottom)]"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-[min(280px,85vw)] max-w-[100vw] bg-surface-card border-r border-white/5 z-[210] flex flex-col pb-[env(safe-area-inset-bottom)]"
             >
               <button
                 type="button"

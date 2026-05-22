@@ -9,6 +9,7 @@ import { useUserStore } from "@/store/use-user-store";
 import {
   type TourStep,
   type TourPlacement,
+  dispatchCloseMobileMenu,
   dispatchOpenMobileMenu,
   getStepsForPath,
   isTourCompleted,
@@ -25,6 +26,31 @@ const SPOTLIGHT_PAD = 8;
 
 function queryTarget(selector: string): HTMLElement | null {
   return document.querySelector(selector) as HTMLElement | null;
+}
+
+/** Sidebar links are unmounted until the mobile drawer opens */
+async function waitForTarget(selector: string, maxMs = 1400): Promise<HTMLElement | null> {
+  const start = Date.now();
+  while (Date.now() - start < maxMs) {
+    const el = queryTarget(selector);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 8 && r.height > 8 && r.left > -20) return el;
+    }
+    await new Promise((r) => setTimeout(r, 60));
+  }
+  return null;
+}
+
+async function ensureMobileMenuForStep(step: TourStep, isMobile: boolean) {
+  if (!isMobile) return;
+  if (step.openMobileMenu || step.showOpenMenuAction) {
+    dispatchOpenMobileMenu();
+    await new Promise((r) => setTimeout(r, 520));
+  } else {
+    dispatchCloseMobileMenu();
+    await new Promise((r) => setTimeout(r, 120));
+  }
 }
 
 function measureRect(el: HTMLElement | null): Rect | null {
@@ -139,6 +165,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   const endTour = useCallback(
     (completed: boolean) => {
       if (completed) markTourCompleted(userKey);
+      dispatchCloseMobileMenu();
       setActive(false);
       setStepIndex(0);
       setSpotlight(null);
@@ -183,20 +210,22 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   const layoutStep = useCallback(async () => {
     if (!active || !step) return;
 
-    if (step.openMobileMenu && isMobile) {
-      dispatchOpenMobileMenu();
-      await new Promise((r) => setTimeout(r, 400));
-    }
+    await ensureMobileMenuForStep(step, isMobile);
 
+    let el: HTMLElement | null = null;
     if (step.target) {
-      const el = queryTarget(step.target);
+      el = step.openMobileMenu
+        ? await waitForTarget(step.target)
+        : queryTarget(step.target);
       if (el) {
         el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
-        await new Promise((r) => setTimeout(r, 300));
+        await new Promise((r) => setTimeout(r, 280));
+        el = step.openMobileMenu
+          ? (await waitForTarget(step.target, 600)) ?? el
+          : queryTarget(step.target);
       }
     }
 
-    const el = step.target ? queryTarget(step.target) : null;
     const rect = measureRect(el);
     setSpotlight(rect);
 
@@ -228,7 +257,17 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
       endTour(true);
       return;
     }
+    const current = steps[stepIndex];
+    if (isMobile && current?.id === "menu") {
+      dispatchOpenMobileMenu();
+    }
     setStepIndex((i) => i + 1);
+  };
+
+  const handleOpenMenu = () => {
+    dispatchOpenMobileMenu();
+    if (step.target === '[data-tour="mobile-menu"]') return;
+    void layoutStep();
   };
 
   if (!active || !step || steps.length === 0) return null;
@@ -237,7 +276,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
 
   return (
     <div
-      className="fixed inset-0 z-[200]"
+      className="fixed inset-0 z-[220]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="app-tour-title"
@@ -264,7 +303,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
       {showSpotlight && spotlight && (
         <>
           <div
-            className="fixed pointer-events-none z-[201] rounded-2xl ring-2 ring-brand"
+            className="fixed pointer-events-none z-[221] rounded-2xl ring-2 ring-brand"
             style={{
               top: spotlight.top - SPOTLIGHT_PAD,
               left: spotlight.left - SPOTLIGHT_PAD,
@@ -276,7 +315,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="fixed z-[202] pointer-events-none text-brand"
+            className="fixed z-[222] pointer-events-none text-brand"
             style={fingerPosition(resolvedPlacement, spotlight)}
           >
             <Hand className="w-9 h-9 -rotate-[25deg] animate-bounce" strokeWidth={2.5} />
@@ -290,7 +329,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "fixed z-[203] w-[min(calc(100vw-1.5rem),22rem)]",
+          "fixed z-[223] w-[min(calc(100vw-1.5rem),22rem)]",
           "bg-surface-card border border-white/10 rounded-2xl shadow-2xl p-4 sm:p-5",
           "max-h-[min(75dvh,28rem)] overflow-y-auto overscroll-contain"
         )}
@@ -317,6 +356,15 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
           {step.title}
         </h2>
         <p className="text-text-secondary text-sm leading-relaxed">{step.body}</p>
+        {isMobile && (step.showOpenMenuAction || step.openMobileMenu) && (
+          <button
+            type="button"
+            onClick={handleOpenMenu}
+            className="mt-4 w-full min-h-11 px-4 rounded-xl border border-brand/40 bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest touch-manipulation"
+          >
+            Open menu
+          </button>
+        )}
         <div className="flex flex-col gap-2 mt-5 sm:flex-row">
           <button
             type="button"

@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function TestimonialCard({ name, role, comment, rating, imageUrl }) {
   return (
-    <div className="md:max-w-[40rem] max-w-[90%]  md:max-h-64 h-auto md:min-h-64 bg-[#121212] rounded-xl overflow-hidden">
+    <div className="evolution-feed-card w-full max-w-full md:max-w-[40rem] md:max-h-64 h-auto md:min-h-64 bg-[#121212] rounded-xl overflow-hidden">
       <div className="flex flex-col  sm:flex-row">
         <div className="md:flex-grow max-w-full  md:max-w-52  md:h-auto  h-[10rem] ">
           <img
