@@ -18,17 +18,84 @@ body {
 $lightGray: rgb(150, 151, 156);
 $redText: #eb0000;
 
-/* Mobile hero card — no mix-blend halo */
+/* Mobile hero — center athlete cutout (PNG subject sits right in file) */
 .rf-mobile-hero-card {
   isolation: isolate;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
+}
 
-  img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 100%;
+.rf-mobile-hero-img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  /* Pull subject toward visual center on small screens */
+  transform: translateX(-7%);
+  transform-origin: center bottom;
+}
+
+@media (min-width: 640px) {
+  .rf-mobile-hero-img {
+    transform: translateX(-5%);
+  }
+}
+
+/* Home — Join now attention cue */
+.rf-join-cue-glow {
+  animation: rf-join-glow-pulse 1.4s ease-in-out infinite;
+}
+
+.rf-join-cue-finger {
+  animation: rf-bounce-point 1s ease-in-out infinite;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.85));
+}
+
+@keyframes rf-join-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(235, 0, 0, 0.45), 0 0 36px rgba(235, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(235, 0, 0, 0.75), 0 0 64px rgba(235, 0, 0, 0.35);
+  }
+}
+
+@keyframes rf-bounce-point {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+/* Homepage Join now attention cue */
+.rf-join-point-hand {
+  display: inline-block;
+  animation: rf-point-bounce 1.1s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+.rf-join-glow-pulse {
+  animation: rf-join-ring 1.4s ease-in-out infinite;
+}
+
+@keyframes rf-point-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(8px) rotate(-8deg);
+  }
+}
+
+@keyframes rf-join-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(235, 0, 0, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(235, 0, 0, 0.65);
   }
 }
 

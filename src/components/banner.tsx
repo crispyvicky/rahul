@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useUserStore } from "@/store/use-user-store";
 import { getAppEntryHref } from "@/lib/app-entry";
+import JoinNowHighlight from "@/components/join-now-highlight";
 
 // Cinematic Text Reveal Variants
 const textVariant = {
@@ -85,7 +86,7 @@ export default function Banner() {
           <img 
             src="/gym-hero.png" 
             alt="Gym Background Texture" 
-            className="w-full h-full object-cover object-center filter contrast-125 saturate-50"
+            className="w-full h-full object-cover object-[50%_center] lg:object-center filter contrast-125 saturate-50"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]" />
         </div>
@@ -120,24 +121,24 @@ export default function Banner() {
         DISCIPLINE
       </motion.div>
 
-      {/* Mobile hero card — smooth flip (no mix-blend white halo) */}
+      {/* Mobile hero — athlete centered (cutout PNG is right-heavy; no rotateY drift) */}
       <motion.div
-        className="absolute top-[12%] sm:top-[11%] left-1/2 -translate-x-1/2 w-[min(92vw,320px)] aspect-[4/5] pointer-events-none z-[2] block lg:hidden"
-        style={{ perspective: 1200 }}
+        className="absolute inset-x-0 top-[10%] sm:top-[9%] z-[2] flex justify-center pointer-events-none lg:hidden h-[min(52vh,420px)]"
         animate={{
-          rotateY: mobilePhase === "image" ? 0 : -14,
-          scale: mobilePhase === "image" ? 1 : 0.9,
-          opacity: mobilePhase === "image" ? 1 : 0.35,
+          scale: mobilePhase === "image" ? 1 : 0.94,
+          opacity: mobilePhase === "image" ? 1 : 0.3,
         }}
         transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="rf-mobile-hero-card relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-[0_24px_60px_rgba(0,0,0,0.65)]">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40" />
-          <img
-            src="/gym-hero.png"
-            alt="Rahul Performance Mobile Cutout"
-            className="relative z-[1] w-full h-full object-contain object-center contrast-[1.08] saturate-[1.05] [object-position:center_18%] sm:[object-position:center_15%]"
-          />
+        <div className="rf-mobile-hero-card relative h-full w-[min(92vw,340px)] rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a]/80 shadow-[0_24px_60px_rgba(0,0,0,0.65)]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40 pointer-events-none" />
+          <div className="relative z-[1] flex h-full w-full items-end justify-center">
+            <img
+              src="/gym-hero.png"
+              alt="Rahul Performance Mobile Cutout"
+              className="rf-mobile-hero-img max-h-[100%] w-auto max-w-[95%] object-contain object-bottom contrast-[1.08] saturate-[1.05]"
+            />
+          </div>
         </div>
       </motion.div>
 
@@ -310,18 +311,33 @@ export default function Banner() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.6, duration: 1 }}
-            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto pb-10 sm:pb-0"
           >
-            <Link
-              href={appHref}
-              className="group relative min-h-[56px] w-full sm:w-auto px-10 py-5 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden rounded-none transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center touch-manipulation no-underline active:scale-[0.98]"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-3">
-                {session || user ? "Launch App" : "Join now"}{" "}
-                <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden />
-              </span>
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-            </Link>
+            {!session && !user ? (
+              <JoinNowHighlight className="w-full sm:w-auto">
+                <Link
+                  href={appHref}
+                  className="group relative min-h-[56px] w-full sm:w-auto px-10 py-5 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden rounded-none transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center touch-manipulation no-underline active:scale-[0.98]"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-3">
+                    Join now{" "}
+                    <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden />
+                  </span>
+                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+                </Link>
+              </JoinNowHighlight>
+            ) : (
+              <Link
+                href={appHref}
+                className="group relative min-h-[56px] w-full sm:w-auto px-10 py-5 bg-[#eb0000] text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] overflow-hidden rounded-none transition-all duration-500 shadow-[0_0_40px_rgba(235,0,0,0.2)] flex items-center justify-center touch-manipulation no-underline active:scale-[0.98]"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  Launch App{" "}
+                  <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden />
+                </span>
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+              </Link>
+            )}
 
             <a
               href="#contact"

@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { useUserStore } from "@/store/use-user-store";
 import { getAppEntryHref, getWorkoutPlanHref, getDietPlanHref } from "@/lib/app-entry";
 import { cn } from "@/lib/utils";
+import JoinNowHighlight from "@/components/join-now-highlight";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -180,14 +181,27 @@ export default function Header() {
             </ul>
 
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              <RouterLink href={appHref}>
-                <button
-                  type="button"
-                  className="hidden md:inline-flex min-h-10 items-center bg-white/10 hover:bg-white/20 text-white py-2 px-6 rounded-none font-bold text-sm border border-white/10 touch-manipulation uppercase tracking-widest"
-                >
-                  {isLoggedIn ? "Launch App" : "Join now"}
-                </button>
-              </RouterLink>
+              {!isLoggedIn ? (
+                <JoinNowHighlight placement="below" className="hidden md:inline-flex">
+                  <RouterLink href={appHref} className="no-underline">
+                    <button
+                      type="button"
+                      className="min-h-10 items-center bg-white/10 hover:bg-white/20 text-white py-2 px-6 rounded-none font-bold text-sm border border-white/10 touch-manipulation uppercase tracking-widest inline-flex"
+                    >
+                      Join now
+                    </button>
+                  </RouterLink>
+                </JoinNowHighlight>
+              ) : (
+                <RouterLink href={appHref}>
+                  <button
+                    type="button"
+                    className="hidden md:inline-flex min-h-10 items-center bg-white/10 hover:bg-white/20 text-white py-2 px-6 rounded-none font-bold text-sm border border-white/10 touch-manipulation uppercase tracking-widest"
+                  >
+                    Launch App
+                  </button>
+                </RouterLink>
+              )}
 
               {/* Mobile Menu Button */}
               <button
