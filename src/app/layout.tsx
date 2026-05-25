@@ -5,7 +5,8 @@ import "../variables.scss";
 import { Toaster } from "react-hot-toast";
 import LayoutRouter from "../components/layout-router";
 import AuthProvider from "../components/auth-provider";
-import VercelAnalytics from "@/components/vercel-analytics";
+import DeferredAnalytics from "@/components/deferred-analytics";
+import { fontClassNames, spaceGrotesk } from "@/lib/fonts";
 import { buildPageMetadata, OG_IMAGE, SITE, SITE_URL } from "@/lib/seo";
 
 export const viewport: Viewport = {
@@ -56,24 +57,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en-IN">
+    <html lang="en-IN" className={fontClassNames}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/LOGO.png" />
         <link rel="icon" href="/LOGO.png" type="image/png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body suppressHydrationWarning>
+      <body className={spaceGrotesk.className} suppressHydrationWarning>
         <AuthProvider>
           <LayoutRouter>{children}</LayoutRouter>
         </AuthProvider>
-        <VercelAnalytics />
+        <DeferredAnalytics />
         <Toaster position="top-center" toastOptions={{ className: "text-sm" }} />
       </body>
     </html>

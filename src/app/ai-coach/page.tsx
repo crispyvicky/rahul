@@ -17,6 +17,7 @@ import {
   History,
   X,
   User,
+  Play,
 } from "lucide-react";
 import Link from "next/link";
 import { useUserStore, DEMO_USER } from "@/store/use-user-store";
@@ -27,6 +28,8 @@ import {
   DEFAULT_DIET_TELUGU_TIPS,
   DEFAULT_WORKOUT_TELUGU_TIPS,
 } from "@/lib/ai-coach-prompts";
+import { getExerciseYoutubeUrl } from "@/lib/exercise-youtube";
+import { useAppSessionResume } from "@/hooks/use-app-session-resume";
 
 function planTeluguTips(plan: { teluguTips?: unknown } | null, fallback: string[]): string[] {
   if (plan && Array.isArray(plan.teluguTips) && plan.teluguTips.length > 0) {
@@ -183,6 +186,29 @@ export default function AICoachPage() {
   const [loadingTipIndex, setLoadingTipIndex] = useState(0);
   const aiRequestLock = useRef(false);
 
+  useAppSessionResume({
+    routeKey: "/ai-coach",
+    state: {
+      activeTab,
+      planGenerated,
+      expandedDay,
+      customData,
+    },
+    deps: [activeTab, planGenerated, expandedDay, customData],
+    onRestore: (saved) => {
+      if (saved.activeTab === "workout" || saved.activeTab === "diet" || saved.activeTab === "analyze") {
+        setActiveTab(saved.activeTab);
+      }
+      if (typeof saved.planGenerated === "boolean") setPlanGenerated(saved.planGenerated);
+      if (saved.expandedDay === null || typeof saved.expandedDay === "number") {
+        setExpandedDay(saved.expandedDay as number | null);
+      }
+      if (saved.customData && typeof saved.customData === "object") {
+        setCustomData((prev) => ({ ...prev, ...(saved.customData as typeof customData) }));
+      }
+    },
+  });
+
   useEffect(() => {
     if (!isGenerating) return;
     setLoadingTipIndex(0);
@@ -192,50 +218,55 @@ export default function AICoachPage() {
     return () => window.clearInterval(id);
   }, [isGenerating]);
 
-  // On mount: Restore any cached results from global store (survives navigation)
+  // Restore plans from persisted store (survives reload / phone call)
   useEffect(() => {
     let mounted = true;
 
-    if (aiStore.lastWorkoutPlan && !workoutPlan) {
-      setWorkoutPlan(aiStore.lastWorkoutPlan);
-      setPlanGenerated(true);
-      setActiveTab("workout");
-    }
-    if (aiStore.lastDietPlan && !dietPlan) {
-      setDietPlan(aiStore.lastDietPlan);
-      if (!aiStore.lastWorkoutPlan) {
+    const applyFromStore = () => {
+      const store = useAiCoachStore.getState();
+      if (store.lastWorkoutPlan && !workoutPlan) {
+        setWorkoutPlan(store.lastWorkoutPlan);
         setPlanGenerated(true);
-        setActiveTab("diet");
       }
-    }
-    if (aiStore.lastPhysiqueAnalysis && !physiqueAnalysis) {
-      setPhysiqueAnalysis(aiStore.lastPhysiqueAnalysis);
-      if (!aiStore.lastWorkoutPlan && !aiStore.lastDietPlan) {
+      if (store.lastDietPlan && !dietPlan) {
+        setDietPlan(store.lastDietPlan);
         setPlanGenerated(true);
-        setActiveTab("analyze");
       }
-    }
-    if (aiStore.lastError) {
-      setGenerateError(aiStore.lastError);
-    }
-    // If a generation was in progress when user left, restore the loading state
-    if (aiStore.isGenerating && aiStore.generationPromise) {
-      setIsGenerating(true);
-      // Await the still-running promise (no duplicate API call)
-      aiStore.generationPromise
-        .then(() => {
-          if (!mounted) return;
-          const store = useAiCoachStore.getState();
-          if (store.lastWorkoutPlan) { setWorkoutPlan(store.lastWorkoutPlan); setActiveTab("workout"); }
-          if (store.lastDietPlan) { setDietPlan(store.lastDietPlan); setActiveTab("diet"); }
-          if (store.lastPhysiqueAnalysis) { setPhysiqueAnalysis(store.lastPhysiqueAnalysis); setActiveTab("analyze"); }
-          if (store.lastError) setGenerateError(store.lastError);
-          setPlanGenerated(!store.lastError);
-        })
-        .catch(() => {})
-        .finally(() => {
-          if (mounted) setIsGenerating(false);
-        });
+      if (store.lastPhysiqueAnalysis && !physiqueAnalysis) {
+        setPhysiqueAnalysis(store.lastPhysiqueAnalysis);
+        setPlanGenerated(true);
+      }
+      if (store.lastError) setGenerateError(store.lastError);
+
+      if (store.isGenerating && store.generationPromise) {
+        setIsGenerating(true);
+        store.generationPromise
+          .then(() => {
+            if (!mounted) return;
+            const s = useAiCoachStore.getState();
+            if (s.lastWorkoutPlan) setWorkoutPlan(s.lastWorkoutPlan);
+            if (s.lastDietPlan) setDietPlan(s.lastDietPlan);
+            if (s.lastPhysiqueAnalysis) setPhysiqueAnalysis(s.lastPhysiqueAnalysis);
+            if (s.lastError) setGenerateError(s.lastError);
+            setPlanGenerated(!s.lastError);
+          })
+          .catch(() => {})
+          .finally(() => {
+            if (mounted) setIsGenerating(false);
+          });
+      }
+    };
+
+    if (useAiCoachStore.persist.hasHydrated()) {
+      applyFromStore();
+    } else {
+      const unsub = useAiCoachStore.persist.onFinishHydration(() => {
+        if (mounted) applyFromStore();
+      });
+      return () => {
+        mounted = false;
+        unsub();
+      };
     }
 
     return () => {
@@ -1234,15 +1265,29 @@ export default function AICoachPage() {
                       {day.exercises.map((ex: any, j: number) => (
                         <div
                           key={j}
-                          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-white/[0.03] rounded-xl border border-white/5"
+                          className="flex flex-col gap-2.5 p-3 bg-white/[0.03] rounded-xl border border-white/5"
                         >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span className="text-text-muted text-xs font-mono w-5 shrink-0">{j + 1}</span>
-                            <p className="text-white text-sm font-medium sm:truncate">{ex.name}</p>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <span className="text-text-muted text-xs font-mono w-5 shrink-0">{j + 1}</span>
+                              <p className="text-white text-sm font-medium leading-snug">{ex.name}</p>
+                            </div>
+                            <a
+                              href={getExerciseYoutubeUrl(ex.name)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 shrink-0 text-[10px] font-black uppercase tracking-wider text-brand hover:text-white transition-colors border border-brand/25 hover:border-brand px-2.5 py-1.5 bg-brand/5 no-underline touch-manipulation"
+                              aria-label={`Watch ${ex.name} on YouTube`}
+                            >
+                              <Play className="w-3 h-3 fill-current" />
+                              YouTube
+                            </a>
                           </div>
-                          <div className="flex items-center gap-3 shrink-0 sm:ml-auto">
+                          <div className="flex items-center gap-3 pl-8">
                             <span className="text-brand text-xs font-bold">{ex.sets}×{ex.reps}</span>
-                            <span className="text-text-muted text-[10px] sm:inline">{ex.rest}</span>
+                            {(ex.rest || ex.notes) && (
+                              <span className="text-text-muted text-[10px] line-clamp-2">{ex.rest || ex.notes}</span>
+                            )}
                           </div>
                         </div>
                       ))}

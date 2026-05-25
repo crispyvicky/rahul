@@ -189,14 +189,29 @@ let hydrateGeneration = 0;
 /** Cancel in-flight AI swap if user triggers another. */
 let aiSuggestionAbort: AbortController | null = null;
 
+function bootFromLocalCache(): Pick<
+  GymPlanState,
+  "schedule" | "weeklyPlan" | "sets" | "isHydrated"
+> {
+  const local = loadLocalFallback();
+  return {
+    schedule: local.schedule,
+    weeklyPlan: local.weeklyPlan,
+    sets: local.sets,
+    isHydrated: typeof window !== "undefined",
+  };
+}
+
+const localBoot = bootFromLocalCache();
+
 export const useGymPlanStore = create<GymPlanState>((set, get) => ({
   userId: null,
   weeklyPlanId: null,
-  schedule: loadLocalFallback().schedule,
-  weeklyPlan: null,
-  sets: {},
+  schedule: localBoot.schedule,
+  weeklyPlan: localBoot.weeklyPlan,
+  sets: localBoot.sets,
   isLoading: false,
-  isHydrated: false,
+  isHydrated: localBoot.isHydrated,
   isMutating: false,
   error: null,
 
@@ -204,8 +219,19 @@ export const useGymPlanStore = create<GymPlanState>((set, get) => ({
 
   hydrate: async (userId) => {
     const generation = ++hydrateGeneration;
-    set({ isLoading: true, userId, error: null });
     const local = loadLocalFallback();
+    const hasLocal =
+      !!local.weeklyPlan || Object.keys(local.sets).length > 0;
+
+    set({
+      userId,
+      error: null,
+      schedule: local.schedule,
+      weeklyPlan: local.weeklyPlan ?? get().weeklyPlan,
+      sets: Object.keys(local.sets).length > 0 ? local.sets : get().sets,
+      isHydrated: true,
+      isLoading: !hasLocal,
+    });
 
     if (isUuidUserId(userId)) {
       const data = await apiGet<{
@@ -232,14 +258,7 @@ export const useGymPlanStore = create<GymPlanState>((set, get) => ({
     }
 
     if (generation !== hydrateGeneration) return;
-
-    set({
-      schedule: local.schedule,
-      weeklyPlan: local.weeklyPlan,
-      sets: local.sets,
-      isHydrated: true,
-      isLoading: false,
-    });
+    set({ isLoading: false });
   },
 
   updateSchedule: async (day, muscleId) => {

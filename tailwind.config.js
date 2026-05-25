@@ -24,8 +24,8 @@ export default {
         },
       },
       fontFamily: {
-        heading: ['"Orbitron"', "sans-serif"],
-        body: ['"Space Grotesk"', "sans-serif"],
+        heading: ["var(--font-orbitron)", "sans-serif"],
+        body: ["var(--font-space-grotesk)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         "2xl": "1rem",

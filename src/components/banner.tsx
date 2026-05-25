@@ -8,17 +8,17 @@ import { useSession } from "next-auth/react";
 import { useUserStore } from "@/store/use-user-store";
 import { getAppEntryHref } from "@/lib/app-entry";
 import JoinNowHighlight from "@/components/join-now-highlight";
+import HeroCutoutImage from "@/components/hero-cutout-image";
 
 // Cinematic Text Reveal Variants
 const textVariant = {
-  hidden: { opacity: 0, scale: 0.8, filter: "blur(20px)" },
+  hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
     opacity: 1,
-    scale: 1,
-    filter: "blur(0px)",
+    y: 0,
     transition: {
-      delay: i * 0.05,
-      duration: 1.5,
+      delay: i * 0.04,
+      duration: 0.6,
       ease: [0.16, 1, 0.3, 1],
     },
   }),
@@ -76,20 +76,11 @@ export default function Banner() {
         animate={{ opacity: 1 }}
         className="relative w-full h-full flex flex-col justify-center"
       >
-      {/* 1. LAYER: GRAIN & NOISE TEXTURE */}
-      <div className="absolute inset-0 z-[1] opacity-30 pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      {/* 1. LAYER: CSS grain (no external network request) */}
+      <div className="absolute inset-0 z-[1] opacity-[0.12] pointer-events-none mix-blend-overlay rf-grain" aria-hidden />
 
-      {/* 2. LAYER: ATMOSPHERIC GRADIENTS & MOODY GYM TEXTURE */}
+      {/* 2. LAYER: ATMOSPHERIC GRADIENTS */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        {/* Cinematic Low-Opacity Background Image (Visible on mobile/desktop as high-end texture) */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none z-0 hidden lg:block">
-          <img 
-            src="/gym-hero.png" 
-            alt="Gym Background Texture" 
-            className="w-full h-full object-cover object-center filter contrast-125 saturate-50"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]" />
-        </div>
         <motion.div
           style={{ opacity: glowOpacity }}
           className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[60vw] h-[60vw] bg-[#eb0000]/10 blur-[180px] rounded-full animate-pulse z-10"
@@ -102,19 +93,16 @@ export default function Banner() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.05 }}
         transition={{ duration: 3 }}
-        className="absolute bottom-10 right-[-5%] text-[35vw] font-black pointer-events-none select-none uppercase tracking-tighter leading-none italic text-white z-[5] hidden lg:block"
-        style={{ fontFamily: '"Orbitron", sans-serif', WebkitTextStroke: "1px rgba(255,255,255,0.1)", color: "transparent" }}
+        className="absolute bottom-10 right-[-5%] text-[35vw] font-black font-heading pointer-events-none select-none uppercase tracking-tighter leading-none italic text-white z-[5] hidden lg:block"
+        style={{ WebkitTextStroke: "1px rgba(255,255,255,0.1)", color: "transparent" }}
       >
         RF.
       </motion.div>
 
       {/* Mobile Red Outline Watermark centered behind athlete */}
       <motion.div
-        className="absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden"
-        style={{
-          fontFamily: '"Orbitron", sans-serif',
-          WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)",
-        }}
+        className="absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black font-heading uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden"
+        style={{ WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)" }}
         animate={{ opacity: isMobileBanner && mobilePhase === "image" ? 0.35 : 0.12 }}
         transition={{ duration: 0.7, ease: "easeInOut" }}
       >
@@ -131,11 +119,14 @@ export default function Banner() {
       >
         <div className="rf-mobile-hero-card relative h-full w-[min(88vw,320px)] max-w-full rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a]/90 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/30 pointer-events-none" />
-          <img
-            src="/gym-hero.png"
-            alt="Rahul Performance Mobile Cutout"
-            className="rf-mobile-hero-img relative z-[1] contrast-[1.08] saturate-[1.05]"
-          />
+          <div className="relative z-[1] h-full w-full rf-mobile-hero-img">
+            <HeroCutoutImage
+              priority
+              mobile
+              sizes="88vw"
+              className="contrast-[1.08] saturate-[1.05]"
+            />
+          </div>
         </div>
       </motion.div>
 
@@ -171,10 +162,7 @@ export default function Banner() {
           {/* Main Heading */}
           <div className="relative mb-8 w-full">
             {/* Desktop Heading (single line) */}
-            <h1
-              className="hidden lg:block text-white text-[11.5vw] md:text-[10vw] lg:text-[7.5vw] xl:text-[90px] leading-[0.85] font-black uppercase tracking-tighter whitespace-nowrap text-left"
-              style={{ fontFamily: '"Orbitron", sans-serif' }}
-            >
+            <h1 className="hidden lg:block text-white text-[11.5vw] md:text-[10vw] lg:text-[7.5vw] xl:text-[90px] leading-[0.85] font-black font-heading uppercase tracking-tighter whitespace-nowrap text-left">
               {"RAHULFITZZ".split("").map((letter, i) => (
                 <motion.span
                   key={i}
@@ -190,10 +178,7 @@ export default function Banner() {
             </h1>
 
             {/* Mobile Heading (split on two lines, centered) */}
-            <h1
-              className="block lg:hidden text-white text-[15vw] sm:text-[13vw] leading-[0.9] font-black uppercase tracking-tight text-center whitespace-normal"
-              style={{ fontFamily: '"Orbitron", sans-serif' }}
-            >
+            <h1 className="block lg:hidden text-white text-[15vw] sm:text-[13vw] leading-[0.9] font-black font-heading uppercase tracking-tight text-center whitespace-normal">
               <div className="block">
                 {"RAHUL".split("").map((letter, i) => (
                   <motion.span
@@ -232,7 +217,7 @@ export default function Banner() {
             transition={{ delay: 0.8, duration: 1 }}
             className="mb-8 w-full text-center lg:text-left"
           >
-            <p className="text-white text-xs md:text-sm lg:text-base font-black tracking-[0.25em] uppercase mb-3" style={{ fontFamily: '"Orbitron", sans-serif' }}>
+            <p className="text-white text-xs md:text-sm lg:text-base font-black font-heading tracking-[0.25em] uppercase mb-3">
               Discipline. Consistency. <span className="text-[#eb0000]">Dominate.</span>
             </p>
             <p className="text-[#96979c] text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto lg:mx-0 second">
@@ -251,17 +236,17 @@ export default function Banner() {
             {/* Desktop Layout (Standard flex row) */}
             <div className="hidden sm:flex flex-row items-center justify-start gap-10 px-4">
               <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors" style={{ fontFamily: '"Orbitron", sans-serif' }}>133K+ IG</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">133K+ IG</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Reach</div>
               </a>
               <div className="w-[1px] h-10 bg-white/10" />
               <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors" style={{ fontFamily: '"Orbitron", sans-serif' }}>97K+ YT</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">97K+ YT</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Subs</div>
               </a>
               <div className="w-[1px] h-10 bg-white/10" />
               <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors" style={{ fontFamily: '"Orbitron", sans-serif' }}>70K+ FB</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">70K+ FB</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Forces</div>
               </a>
             </div>
@@ -275,7 +260,7 @@ export default function Banner() {
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
-                <span className="text-white font-black text-sm tracking-tighter mt-2" style={{ fontFamily: '"Orbitron", sans-serif' }}>133K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">133K+</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">IG</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Reach</span>
               </a>
@@ -286,7 +271,7 @@ export default function Banner() {
                   <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
                   <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
                 </svg>
-                <span className="text-white font-black text-sm tracking-tighter mt-2" style={{ fontFamily: '"Orbitron", sans-serif' }}>97K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">97K+</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">YT</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Subs</span>
               </a>
@@ -296,7 +281,7 @@ export default function Banner() {
                 <svg className="w-5 h-5 text-[#eb0000]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
-                <span className="text-white font-black text-sm tracking-tighter mt-2" style={{ fontFamily: '"Orbitron", sans-serif' }}>70K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">70K+</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">FB</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Forces</span>
               </a>
@@ -347,17 +332,18 @@ export default function Banner() {
 
         {/* RIGHT COLUMN: CUTOUT IMAGE (Visible and LARGER on desktop) */}
         <motion.div
-          initial={{ opacity: 0, filter: "blur(20px)", scale: 0.95 }}
-          animate={{ opacity: 1, filter: "blur(0px)", scale: 1.12 }}
-          transition={{ duration: 1.5, delay: 0.8, ease: "easeOut" }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1.12 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="hidden lg:flex w-full lg:w-[48%] justify-center items-center mt-12 lg:mt-0 relative h-[600px] z-10"
         >
-          {/* Athlete Cutout Image using Screen Mix Blend Mode */}
-          <img 
-            src="/gym-hero.png" 
-            alt="Rahul Performance Cutout" 
-            className="relative z-10 w-full max-w-[550px] object-contain select-none pointer-events-none mix-blend-screen filter contrast-125 brightness-110" 
-          />
+          <div className="relative z-10 w-full max-w-[550px] h-[min(600px,70vh)] select-none pointer-events-none mix-blend-screen contrast-125 brightness-110">
+            <HeroCutoutImage
+              priority
+              sizes="(min-width: 1024px) 550px, 0px"
+              className="max-w-[550px] mx-auto"
+            />
+          </div>
         </motion.div>
       </motion.div>
 

@@ -129,6 +129,7 @@ export const SITEMAP_ROUTES: {
   { path: "/benefits", changeFrequency: "weekly", priority: 0.9 },
   { path: "/blogs", changeFrequency: "weekly", priority: 0.85 },
   { path: "/workout-plans", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/supplements", changeFrequency: "weekly", priority: 0.85 },
   { path: "/giveaways", changeFrequency: "daily", priority: 0.9 },
   { path: "/community", changeFrequency: "daily", priority: 0.85 },
   { path: "/challenges", changeFrequency: "weekly", priority: 0.8 },
@@ -136,10 +137,10 @@ export const SITEMAP_ROUTES: {
   { path: "/ai-coach", changeFrequency: "weekly", priority: 0.75 },
   { path: "/book-gym", changeFrequency: "monthly", priority: 0.75 },
   { path: "/premium", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/login", changeFrequency: "yearly", priority: 0.4 },
   { path: "/signup", changeFrequency: "yearly", priority: 0.5 },
 ];
 
+/** Paths crawlers should not index (private, redirects, or placeholders). */
 export const ROBOTS_DISALLOW = [
   "/api/",
   "/admin",
@@ -147,4 +148,7 @@ export const ROBOTS_DISALLOW = [
   "/settings",
   "/onboarding",
   "/offline",
+  "/overview",
+  "/coming-soon",
+  "/login",
 ];

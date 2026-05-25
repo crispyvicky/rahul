@@ -1,53 +1,67 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 /**
- * Zustand store for AI Coach generation state.
- * Persists across page navigations so in-flight requests
- * don't get lost when the user switches tabs/pages.
+ * AI Coach state — persisted to sessionStorage so plans survive
+ * tab reloads and phone-call interruptions.
  */
 
 interface AiCoachState {
-  // In-flight generation tracking
   isGenerating: boolean;
   generatingTab: "workout" | "diet" | "analyze" | null;
-  generationPromise: Promise<any> | null;
+  generationPromise: Promise<unknown> | null;
 
-  // Cached results (survive navigation)
-  lastWorkoutPlan: any | null;
-  lastDietPlan: any | null;
-  lastPhysiqueAnalysis: any | null;
+  lastWorkoutPlan: unknown | null;
+  lastDietPlan: unknown | null;
+  lastPhysiqueAnalysis: unknown | null;
   lastError: string | null;
 
-  // Actions
   setGenerating: (val: boolean, tab?: "workout" | "diet" | "analyze" | null) => void;
-  setGenerationPromise: (p: Promise<any> | null) => void;
-  setWorkoutPlan: (plan: any) => void;
-  setDietPlan: (plan: any) => void;
-  setPhysiqueAnalysis: (analysis: any) => void;
+  setGenerationPromise: (p: Promise<unknown> | null) => void;
+  setWorkoutPlan: (plan: unknown) => void;
+  setDietPlan: (plan: unknown) => void;
+  setPhysiqueAnalysis: (analysis: unknown) => void;
   setError: (err: string | null) => void;
   clearResults: () => void;
 }
 
-export const useAiCoachStore = create<AiCoachState>((set) => ({
-  isGenerating: false,
-  generatingTab: null,
-  generationPromise: null,
+export const useAiCoachStore = create<AiCoachState>()(
+  persist(
+    (set) => ({
+      isGenerating: false,
+      generatingTab: null,
+      generationPromise: null,
 
-  lastWorkoutPlan: null,
-  lastDietPlan: null,
-  lastPhysiqueAnalysis: null,
-  lastError: null,
+      lastWorkoutPlan: null,
+      lastDietPlan: null,
+      lastPhysiqueAnalysis: null,
+      lastError: null,
 
-  setGenerating: (val, tab = null) => set({ isGenerating: val, generatingTab: tab }),
-  setGenerationPromise: (p) => set({ generationPromise: p }),
-  setWorkoutPlan: (plan) => set({ lastWorkoutPlan: plan, lastError: null }),
-  setDietPlan: (plan) => set({ lastDietPlan: plan, lastError: null }),
-  setPhysiqueAnalysis: (analysis) => set({ lastPhysiqueAnalysis: analysis, lastError: null }),
-  setError: (err) => set({ lastError: err }),
-  clearResults: () => set({
-    lastWorkoutPlan: null,
-    lastDietPlan: null,
-    lastPhysiqueAnalysis: null,
-    lastError: null,
-  }),
-}));
+      setGenerating: (val, tab = null) =>
+        set({ isGenerating: val, generatingTab: tab }),
+      setGenerationPromise: (p) => set({ generationPromise: p }),
+      setWorkoutPlan: (plan) => set({ lastWorkoutPlan: plan, lastError: null }),
+      setDietPlan: (plan) => set({ lastDietPlan: plan, lastError: null }),
+      setPhysiqueAnalysis: (analysis) =>
+        set({ lastPhysiqueAnalysis: analysis, lastError: null }),
+      setError: (err) => set({ lastError: err }),
+      clearResults: () =>
+        set({
+          lastWorkoutPlan: null,
+          lastDietPlan: null,
+          lastPhysiqueAnalysis: null,
+          lastError: null,
+        }),
+    }),
+    {
+      name: "rahulfitzz-ai-coach-session",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        lastWorkoutPlan: state.lastWorkoutPlan,
+        lastDietPlan: state.lastDietPlan,
+        lastPhysiqueAnalysis: state.lastPhysiqueAnalysis,
+        lastError: state.lastError,
+      }),
+    }
+  )
+);

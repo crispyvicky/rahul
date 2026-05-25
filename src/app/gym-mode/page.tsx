@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,6 +11,8 @@ import { useUserStore } from "@/store/use-user-store";
 import { useGymPlanStore, DAYS_OF_WEEK } from "@/store/use-gym-plan-store";
 import type { SetLog } from "@/lib/gym-plan-types";
 import { ExerciseSwapModal } from "@/components/gym/exercise-swap-modal";
+import { getExerciseYoutubeUrl } from "@/lib/exercise-youtube";
+import { useAppSessionResume } from "@/hooks/use-app-session-resume";
 import toast from "react-hot-toast";
 
 const muscleGroups = [
@@ -54,6 +56,46 @@ export default function GymModePage() {
   const [setupMode, setSetupMode] = useState(false);
   const [generatingStatus, setGeneratingStatus] = useState<string | null>(null);
   const [swapModal, setSwapModal] = useState<{ dayIndex: number; exerciseIndex: number } | null>(null);
+  const resumedRef = useRef(false);
+
+  useAppSessionResume({
+    routeKey: "/gym-mode",
+    state: {
+      activeDayIndex,
+      activeExerciseSection,
+      activeExerciseIndex,
+      setupMode,
+      timerRunning,
+      restTimer,
+    },
+    deps: [
+      activeDayIndex,
+      activeExerciseSection,
+      activeExerciseIndex,
+      setupMode,
+      timerRunning,
+      restTimer,
+    ],
+    onRestore: (saved) => {
+      resumedRef.current = true;
+      if (typeof saved.activeDayIndex === "number") {
+        setActiveDayIndex(saved.activeDayIndex);
+      }
+      if (
+        saved.activeExerciseSection === "warmup" ||
+        saved.activeExerciseSection === "workout" ||
+        saved.activeExerciseSection === "cooldown"
+      ) {
+        setActiveExerciseSection(saved.activeExerciseSection);
+      }
+      if (saved.activeExerciseIndex === null || typeof saved.activeExerciseIndex === "number") {
+        setActiveExerciseIndex(saved.activeExerciseIndex as number | null);
+      }
+      if (typeof saved.setupMode === "boolean") setSetupMode(saved.setupMode);
+      if (typeof saved.restTimer === "number") setRestTimer(saved.restTimer);
+      if (typeof saved.timerRunning === "boolean") setTimerRunning(saved.timerRunning);
+    },
+  });
 
   useEffect(() => {
     if (userId) setUserId(userId);
@@ -61,10 +103,14 @@ export default function GymModePage() {
 
   useEffect(() => {
     void hydrate(userId ?? "local");
+  }, [userId, hydrate]);
+
+  useEffect(() => {
+    if (resumedRef.current) return;
     const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
     const matchIndex = DAYS_OF_WEEK.indexOf(todayName);
     if (matchIndex !== -1) setActiveDayIndex(matchIndex);
-  }, [userId, hydrate]);
+  }, []);
 
   const toggleMuscle = (day: string, muscleId: string) => {
     void updateSchedule(day, muscleId);
@@ -152,16 +198,11 @@ export default function GymModePage() {
     return () => clearInterval(interval);
   }, [timerRunning]);
 
-  // Video guide YouTube launcher
-  const getDemoUrl = (exerciseName: string) => {
-    return `https://www.youtube.com/results?search_query=how+to+do+${encodeURIComponent(exerciseName)}+correct+form`;
-  };
-
   useEffect(() => {
     if (planError) toast.error(planError);
   }, [planError]);
 
-  if (!isHydrated) {
+  if (!isHydrated && weeklyPlan === null && Object.keys(sets).length === 0) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <Dumbbell className="w-8 h-8 text-[#eb0000] animate-spin" />
@@ -581,7 +622,7 @@ export default function GymModePage() {
                               
                               {/* 🎥 YouTube Video Demo Button */}
                               <a
-                                href={getDemoUrl(ex.name)}
+                                href={getExerciseYoutubeUrl(ex.name)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-[#eb0000] hover:text-white transition-colors border border-[#eb0000]/20 hover:border-[#eb0000] px-2.5 py-1 bg-[#eb0000]/5 no-underline"

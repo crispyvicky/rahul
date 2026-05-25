@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import Banner from "@/components/banner";
-import Banner_Marquee from "@/components/banner-marquee";
-import Manifesto from "@/components/manifesto";
-import Misson from "@/components/misson";
-import VideoCard from "@/components/videoCard";
 
+const Banner_Marquee = dynamic(() => import("@/components/banner-marquee"));
+const Manifesto = dynamic(() => import("@/components/manifesto"));
+const Misson = dynamic(() => import("@/components/misson"));
+const VideoCard = dynamic(() => import("@/components/videoCard"));
 const Services = dynamic(() => import("@/components/ourServices"));
 const WorkoutLibrary = dynamic(() => import("@/components/WorkoutLibrary"));
 const Benefits = dynamic(() => import("@/components/benefits"));

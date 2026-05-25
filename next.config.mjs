@@ -8,7 +8,8 @@ const withPWA = withPWAInit({
     document: "/offline",
   },
   workboxOptions: {
-    skipWaiting: true,
+    // Avoid forcing an immediate full reload when user returns from a call/tab switch
+    skipWaiting: false,
     clientsClaim: true,
   },
 });
