@@ -82,17 +82,17 @@ export default function Banner() {
       {/* 2. LAYER: ATMOSPHERIC GRADIENTS & MOODY GYM TEXTURE */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {/* Cinematic Low-Opacity Background Image (Visible on mobile/desktop as high-end texture) */}
-        <div className="absolute inset-0 opacity-[0.08] lg:opacity-[0.04] pointer-events-none z-0">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none z-0 hidden lg:block">
           <img 
             src="/gym-hero.png" 
             alt="Gym Background Texture" 
-            className="w-full h-full object-cover object-[50%_center] lg:object-center filter contrast-125 saturate-50"
+            className="w-full h-full object-cover object-center filter contrast-125 saturate-50"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]" />
         </div>
         <motion.div
           style={{ opacity: glowOpacity }}
-          className="absolute top-1/4 left-1/4 w-[60vw] h-[60vw] bg-[#eb0000]/10 blur-[180px] rounded-full animate-pulse z-10"
+          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[60vw] h-[60vw] bg-[#eb0000]/10 blur-[180px] rounded-full animate-pulse z-10"
         />
         <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-t from-[#050505] via-transparent to-transparent z-20" />
       </div>
@@ -121,34 +121,31 @@ export default function Banner() {
         DISCIPLINE
       </motion.div>
 
-      {/* Mobile hero — athlete centered (cutout PNG is right-heavy; no rotateY drift) */}
+      {/* Mobile hero — centered on screen (no translateX drift) */}
       <motion.div
-        className="absolute inset-x-0 top-[10%] sm:top-[9%] z-[2] flex justify-center pointer-events-none lg:hidden h-[min(52vh,420px)]"
+        className="rf-mobile-hero-wrap absolute left-0 right-0 top-[9%] z-[2] pointer-events-none lg:hidden h-[min(46vh,380px)]"
         animate={{
-          scale: mobilePhase === "image" ? 1 : 0.94,
-          opacity: mobilePhase === "image" ? 1 : 0.3,
+          opacity: mobilePhase === "image" ? 1 : 0.25,
         }}
-        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.85, ease: "easeInOut" }}
       >
-        <div className="rf-mobile-hero-card relative h-full w-[min(92vw,340px)] rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a]/80 shadow-[0_24px_60px_rgba(0,0,0,0.65)]">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40 pointer-events-none" />
-          <div className="relative z-[1] flex h-full w-full items-end justify-center">
-            <img
-              src="/gym-hero.png"
-              alt="Rahul Performance Mobile Cutout"
-              className="rf-mobile-hero-img max-h-[100%] w-auto max-w-[95%] object-contain object-bottom contrast-[1.08] saturate-[1.05]"
-            />
-          </div>
+        <div className="rf-mobile-hero-card relative h-full w-[min(88vw,320px)] max-w-full rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a]/90 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/30 pointer-events-none" />
+          <img
+            src="/gym-hero.png"
+            alt="Rahul Performance Mobile Cutout"
+            className="rf-mobile-hero-img relative z-[1] contrast-[1.08] saturate-[1.05]"
+          />
         </div>
       </motion.div>
 
       {/* 4. LAYER: CONTENT (2 Column Layout) */}
       <motion.div
         style={{ opacity: contentFade, y: contentY }}
-        className="relative z-20 flex flex-col lg:flex-row items-center justify-between w-full max-w-[1400px] mx-auto px-6 sm:px-6 md:px-12 pt-24 sm:pt-20 pb-8 gap-12 lg:gap-8 h-full min-h-[85vh] lg:min-h-[80vh]"
+        className="relative z-20 flex flex-col lg:flex-row items-center justify-between w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 pt-[min(42vh,360px)] sm:pt-[38vh] lg:pt-20 pb-8 gap-12 lg:gap-8 h-full min-h-[85vh] lg:min-h-[80vh]"
       >
         {/* LEFT COLUMN: TEXT (Centered on mobile, left-aligned on desktop) */}
-        <div className="flex flex-col items-center lg:items-start justify-center w-full lg:w-[52%] text-center lg:text-left">
+        <div className="flex flex-col items-center lg:items-start justify-center w-full max-w-full lg:w-[52%] text-center lg:text-left mx-auto">
           {/* Mobile: blur this block during 1s image beat; desktop unchanged */}
           <motion.div
             className="w-full lg:opacity-100 lg:[filter:none]"
@@ -163,9 +160,9 @@ export default function Banner() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
-            className="flex items-center gap-6 mb-8 group"
+            className="flex items-center justify-center gap-6 mb-8 group w-full"
           >
-            <div className="h-[1px] w-16 bg-[#eb0000]/50 group-hover:w-24 transition-all duration-700 hidden lg:block" />
+            <div className="h-[1px] w-16 bg-[#eb0000]/50 group-hover:w-24 transition-all duration-700 hidden lg:block shrink-0" />
             <span className="text-[#eb0000] text-[10px] tracking-[0.8em] font-black uppercase mx-auto lg:mx-0">
               Code of Discipline
             </span>
@@ -249,7 +246,7 @@ export default function Banner() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 1 }}
-            className="w-full lg:w-auto mb-10 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-none p-4 sm:p-5 shadow-2xl"
+            className="w-full max-w-full lg:w-auto mb-10 mx-auto bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-none p-4 sm:p-5 shadow-2xl"
           >
             {/* Desktop Layout (Standard flex row) */}
             <div className="hidden sm:flex flex-row items-center justify-start gap-10 px-4">

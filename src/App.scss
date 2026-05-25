@@ -18,24 +18,32 @@ body {
 $lightGray: rgb(150, 151, 156);
 $redText: #eb0000;
 
-/* Mobile hero — center athlete cutout (PNG subject sits right in file) */
+/* Mobile hero — athlete centered on viewport */
+.rf-mobile-hero-wrap {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
 .rf-mobile-hero-card {
   isolation: isolate;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .rf-mobile-hero-img {
   display: block;
-  margin-left: auto;
-  margin-right: auto;
-  /* Pull subject toward visual center on small screens */
-  transform: translateX(-7%);
-  transform-origin: center bottom;
-}
-
-@media (min-width: 640px) {
-  .rf-mobile-hero-img {
-    transform: translateX(-5%);
-  }
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: none;
 }
 
 /* Home — Join now attention cue */
