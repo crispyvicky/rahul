@@ -1,5 +1,6 @@
--- IG claim screenshots (optional). Run once in Supabase SQL Editor.
--- Files live in Storage; only a short URL is stored in point_claim_requests.proof_url.
+-- IG claim screenshots (required for follow / share_story). Run once in Supabase SQL Editor.
+-- Files live in Storage; proof_url is stored on point_claim_requests until admin approves/denies,
+-- then the app deletes the file and clears proof_url to save storage.
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
@@ -20,5 +21,5 @@ CREATE POLICY "claim_proofs_public_read"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'claim-proofs');
 
--- Optional: delete old proofs after review (run manually or via cron):
--- DELETE FROM storage.objects WHERE bucket_id = 'claim-proofs' AND created_at < now() - interval '90 days';
+-- Orphan cleanup (only if something failed during review):
+-- DELETE FROM storage.objects WHERE bucket_id = 'claim-proofs' AND created_at < now() - interval '30 days';

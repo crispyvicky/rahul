@@ -92,11 +92,23 @@ export default function Header() {
     <>
       <div className="fixed flex top-0 left-0 right-0 w-full items-center xl:items-center justify-center xl:justify-center md:w-[90%] xl:w-[90%] z-50 border-gray h-auto mx-auto">
         <header className="!w-[90%] md:w-full xl:w-full md:!mx-auto xl:!mx-auto mt-8 text-[#96979c] border md:max-w-4xl xl:max-w-[1100px] header items-center relative bg-black md:bg-[#050505] rounded-none">
-          <nav className="container flex justify-between p-3 md:p-3 xl:p-3 items-center">
-            <div className="flex items-center space-x-2 md:space-x-3 h-10 md:h-[60px] w-auto">
-              <img src={(logo as any)?.src || logo} alt="RAHULFITZZ Logo" className="h-full w-auto object-contain" />
-              <span className="text-white tracking-wide text-base sm:text-2xl md:text-[28px] font-bold" style={{ fontFamily: '"Orbitron", sans-serif' }}>RahulFitzz</span>
-            </div>
+          <nav className="container flex justify-between gap-2 p-3 md:p-3 xl:p-3 items-center min-w-0">
+            <RouterLink
+              href="/"
+              className="flex items-center gap-2 md:gap-3 h-10 md:h-[60px] min-w-0 shrink no-underline"
+            >
+              <img
+                src={(logo as any)?.src || logo}
+                alt="RAHULFITZZ Logo"
+                className="h-9 sm:h-full w-auto object-contain shrink-0"
+              />
+              <span
+                className="text-white tracking-wide text-sm sm:text-2xl md:text-[28px] font-bold truncate max-w-[42vw] sm:max-w-none"
+                style={{ fontFamily: '"Orbitron", sans-serif' }}
+              >
+                RahulFitzz
+              </span>
+            </RouterLink>
 
             {/* for desktop */}
             <ul className="hidden md:flex items-center space-x-8 text-sm font-medium">
@@ -168,14 +180,6 @@ export default function Header() {
             </ul>
 
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              {/* Mobile Outline Join Now Button */}
-              <RouterLink href={appHref} className="md:hidden no-underline mr-1">
-                <span className="inline-flex items-center justify-center border border-[#eb0000] text-white hover:bg-[#eb0000] transition-colors py-1.5 px-3.5 rounded-none font-black text-[10px] uppercase tracking-[0.15em] touch-manipulation">
-                  {isLoggedIn ? "Launch App" : "Join now"}{" "}
-                  <span className="ml-1 text-[8px] font-black">→</span>
-                </span>
-              </RouterLink>
-
               <RouterLink href={appHref}>
                 <button
                   type="button"

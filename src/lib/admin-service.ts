@@ -130,6 +130,79 @@ export async function getPointLogs(filters: {
   return data || [];
 }
 
+const CLAIM_PROOFS_BUCKET = "claim-proofs";
+
+/** Storage object path inside claim-proofs, or null if external URL. */
+export function parseClaimProofStoragePath(
+  proofUrl: string | null | undefined
+): string | null {
+  if (!proofUrl?.trim()) return null;
+  const url = proofUrl.trim();
+  if (!url.includes(CLAIM_PROOFS_BUCKET)) return null;
+  try {
+    const u = new URL(url);
+    const marker = `/${CLAIM_PROOFS_BUCKET}/`;
+    const idx = u.pathname.indexOf(marker);
+    if (idx >= 0) {
+      return decodeURIComponent(u.pathname.slice(idx + marker.length));
+    }
+  } catch {
+    const m = url.match(/claim-proofs\/(.+)$/);
+    if (m?.[1]) return decodeURIComponent(m[1]);
+  }
+  return null;
+}
+
+/** Remove screenshot from Storage and clear proof_url after admin review. */
+async function deleteClaimProofAfterReview(
+  claimId: string,
+  proofUrl: string | null | undefined
+): Promise<void> {
+  const db = getSupabaseAdmin();
+  const path = parseClaimProofStoragePath(proofUrl);
+  if (path) {
+    const { error } = await db.storage.from(CLAIM_PROOFS_BUCKET).remove([path]);
+    if (error) {
+      console.warn("[deleteClaimProofAfterReview] storage remove failed", error);
+    }
+  }
+  await db
+    .from("point_claim_requests")
+    .update({ proof_url: null })
+    .eq("id", claimId);
+}
+
+/** Resolve proof_url to a URL the admin UI can load (public or short-lived signed). */
+export async function resolveClaimProofUrl(
+  proofUrl: string | null | undefined
+): Promise<string | null> {
+  if (!proofUrl?.trim()) return null;
+  const url = proofUrl.trim();
+  const path = parseClaimProofStoragePath(url);
+  if (!path) return url.includes(CLAIM_PROOFS_BUCKET) ? null : url;
+
+  const db = getSupabaseAdmin();
+  const { data: pub } = db.storage.from(CLAIM_PROOFS_BUCKET).getPublicUrl(path);
+  if (pub?.publicUrl) return pub.publicUrl;
+
+  const { data: signed, error } = await db.storage
+    .from(CLAIM_PROOFS_BUCKET)
+    .createSignedUrl(path, 3600);
+  if (!error && signed?.signedUrl) return signed.signedUrl;
+  return url;
+}
+
+async function enrichClaimsWithProofUrls<T extends { proof_url?: string | null }>(
+  rows: T[]
+): Promise<(T & { proof_display_url: string | null })[]> {
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      proof_display_url: await resolveClaimProofUrl(row.proof_url),
+    }))
+  );
+}
+
 export async function getPendingClaims() {
   const db = getSupabaseAdmin();
   const { data } = await db
@@ -137,7 +210,7 @@ export async function getPendingClaims() {
     .select("*, user_profiles(name, email, instagram_handle, avatar_url)")
     .eq("status", "pending")
     .order("created_at", { ascending: true });
-  return data || [];
+  return enrichClaimsWithProofUrls(data || []);
 }
 
 export async function getAllClaims(limit = 200) {
@@ -147,7 +220,7 @@ export async function getAllClaims(limit = 200) {
     .select("*, user_profiles(name, email, instagram_handle, avatar_url)")
     .order("created_at", { ascending: false })
     .limit(limit);
-  return data || [];
+  return enrichClaimsWithProofUrls(data || []);
 }
 
 export async function awardPointsAdmin(
@@ -191,6 +264,30 @@ export async function awardPointsAdmin(
 export async function approveClaim(claimId: string, reviewedBy: string) {
   const db = getSupabaseAdmin();
   const reviewedAt = new Date().toISOString();
+
+  const { data: pending } = await db
+    .from("point_claim_requests")
+    .select("id, action, proof_url, status")
+    .eq("id", claimId)
+    .maybeSingle();
+
+  if (!pending) {
+    return { ok: false, error: "Claim not found." };
+  }
+  if (pending.status !== "pending") {
+    if (pending.status === "approved") return { ok: true, alreadyReviewed: true };
+    return { ok: false, error: "This claim was already denied." };
+  }
+
+  const proofRequired =
+    pending.action === "follow" || pending.action === "share_story";
+  if (proofRequired && !pending.proof_url?.trim()) {
+    return {
+      ok: false,
+      error:
+        "Screenshot required for Instagram claims. Deny this claim and ask the user to resubmit with proof.",
+    };
+  }
 
   const { data: claim, error: lockError } = await db
     .from("point_claim_requests")
@@ -253,6 +350,8 @@ export async function approveClaim(claimId: string, reviewedBy: string) {
     }
   }
 
+  await deleteClaimProofAfterReview(claim.id, claim.proof_url);
+
   return { ok: true };
 }
 
@@ -267,7 +366,7 @@ export async function denyClaim(claimId: string, reviewedBy: string) {
     })
     .eq("id", claimId)
     .eq("status", "pending")
-    .select("id")
+    .select("id, proof_url")
     .maybeSingle();
 
   if (error) {
@@ -289,6 +388,8 @@ export async function denyClaim(claimId: string, reviewedBy: string) {
     }
     return { ok: false, error: "Claim not found." };
   }
+
+  await deleteClaimProofAfterReview(claimId, claim.proof_url);
 
   return { ok: true };
 }

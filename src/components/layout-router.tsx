@@ -12,6 +12,7 @@ const platformRoutes = [
   "/book-gym",
   "/dashboard",
   "/ai-coach",
+  "/supplements",
   "/challenges",
   "/community",
   "/gym-mode",

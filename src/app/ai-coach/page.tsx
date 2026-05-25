@@ -23,6 +23,17 @@ import { useUserStore, DEMO_USER } from "@/store/use-user-store";
 import { useAiCoachStore } from "@/store/use-ai-coach-store";
 import { cn } from "@/lib/utils";
 import { saveAiPlan, getUserAiPlans } from "@/lib/supabase-service";
+import {
+  DEFAULT_DIET_TELUGU_TIPS,
+  DEFAULT_WORKOUT_TELUGU_TIPS,
+} from "@/lib/ai-coach-prompts";
+
+function planTeluguTips(plan: { teluguTips?: unknown } | null, fallback: string[]): string[] {
+  if (plan && Array.isArray(plan.teluguTips) && plan.teluguTips.length > 0) {
+    return plan.teluguTips.map((t) => String(t)).slice(0, 8);
+  }
+  return fallback;
+}
 
 const GOAL_LABELS: Record<string, string> = {
   muscle_gain: "Muscle gain",
@@ -56,6 +67,7 @@ type PrintDocOptions = {
   hydration?: string;
   supplements?: string[];
   tipLines: string[];
+  region?: string;
 };
 
 const tabs = [
@@ -267,9 +279,13 @@ export default function AICoachPage() {
       if (hyd || sup) extrasHtml = `<div class="extras-card">${hyd}${sup}</div>`;
     }
 
+    const regionHtml = opts.region
+      ? `<p class="region-badge">${escapeHtml(opts.region)} · Telugu states nutrition &amp; training</p>`
+      : `<p class="region-badge">Telangana · Andhra · Hyderabad</p>`;
+
     const tipsHtml =
       opts.tipLines.length > 0
-        ? `<div class="tips-card"><h3 class="tips-title">Elite tips &amp; motivation</h3><ul class="tips-list">${opts.tipLines.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul></div>`
+        ? `<div class="tips-card"><h3 class="tips-title">Telugu tips · సూచనలు</h3><ul class="tips-list">${opts.tipLines.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul></div>`
         : "";
 
     const markSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff2a2a"/><stop offset="1" stop-color="#9a0000"/></linearGradient></defs><rect width="56" height="56" rx="16" fill="url(#${gradId})"/><text x="28" y="37" text-anchor="middle" fill="#fff" font-family="Segoe UI,Arial Black,sans-serif" font-size="19" font-weight="900">RF</text></svg>`;
@@ -385,6 +401,14 @@ export default function AICoachPage() {
     margin-bottom: 6px;
   }
   .coach-text { font-size: 0.88rem; line-height: 1.55; color: #e4e4e8; }
+  .region-badge {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #eb0000;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
   .focus-pill {
     margin-top: 12px;
     display: inline-flex;
@@ -439,6 +463,13 @@ export default function AICoachPage() {
   .meal-time { font-size: 0.72rem; font-weight: 800; color: #eb0000; letter-spacing: 0.06em; text-transform: uppercase; }
   .meal-food { font-size: 0.82rem; margin-top: 6px; line-height: 1.5; color: #222; }
   .meal-cal { font-size: 0.72rem; color: #888; margin-top: 8px; font-weight: 600; }
+  .meal-telugu {
+    font-size: 0.72rem;
+    color: #555;
+    margin-top: 6px;
+    font-style: italic;
+    line-height: 1.4;
+  }
   .day { margin-bottom: 16px; page-break-inside: avoid; }
   .day-title {
     font-size: 0.82rem;
@@ -506,6 +537,7 @@ export default function AICoachPage() {
       <div class="gen-stamp">Generated<br/><strong>${escapeHtml(genDate)}</strong></div>
     </div>
     <h1 class="doc-title">${escapeHtml(opts.docTitle)}</h1>
+    ${regionHtml}
     <p class="user-line">Prepared for <strong>${escapeHtml(opts.userDisplayName)}</strong></p>
     <div class="meta-grid">${profileHtml}</div>
     ${coachHtml}
@@ -523,13 +555,12 @@ export default function AICoachPage() {
 
     const iframe = document.createElement("iframe");
     iframe.setAttribute("aria-hidden", "true");
-    /* Full height required — 1px iframe only captured the dark header (black PDF with RF logo). */
     iframe.style.cssText =
-      "position:fixed;left:0;top:0;width:820px;border:0;z-index:-9999;opacity:0;pointer-events:none;visibility:hidden;";
+      "position:fixed;left:0;top:0;width:794px;min-height:1123px;border:0;z-index:-1;opacity:0.01;pointer-events:none;";
     document.body.appendChild(iframe);
     const doc = iframe.contentDocument;
     if (!doc) {
-      document.body.removeChild(iframe);
+      iframe.remove();
       return;
     }
     doc.open();
@@ -539,7 +570,7 @@ export default function AICoachPage() {
     const openPrintFallback = () => {
       const w = window.open("", "_blank", "noopener,noreferrer");
       if (!w) {
-        window.alert("Allow pop-ups to print this plan, or try again.");
+        window.alert("Allow pop-ups to save this plan as PDF (Print → Save as PDF), or try again.");
         return;
       }
       w.document.write(html);
@@ -547,23 +578,29 @@ export default function AICoachPage() {
       w.focus();
       setTimeout(() => {
         w.print();
-      }, 500);
+      }, 600);
     };
 
     try {
+      if (!opts.contentHtml?.trim()) {
+        window.alert("Generate a plan first, then download.");
+        return;
+      }
+
       await doc.fonts.ready.catch(() => {});
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 700));
 
-      const body = doc.body;
+      const pageEl = doc.querySelector(".page") as HTMLElement | null;
+      const captureRoot = pageEl || doc.body;
       const contentHeight = Math.max(
-        body.scrollHeight,
-        body.offsetHeight,
+        captureRoot.scrollHeight,
+        captureRoot.offsetHeight,
         doc.documentElement.scrollHeight,
-        1200
+        1100
       );
-      iframe.style.height = `${contentHeight}px`;
+      iframe.style.height = `${contentHeight + 40}px`;
 
-      await new Promise((r) => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 400));
 
       /* html2pdf.js — no bundled types */
       const html2pdf = (await import("html2pdf.js")).default as () => {
@@ -581,21 +618,30 @@ export default function AICoachPage() {
         .set({
           margin: [10, 10, 12, 10],
           filename,
-          image: { type: "jpeg", quality: 0.92 },
+          image: { type: "jpeg", quality: 0.94 },
           html2canvas: {
             scale: 2,
             useCORS: true,
             logging: false,
-            backgroundColor: "#ffffff",
+            backgroundColor: "#fafafa",
+            width: 820,
             height: contentHeight,
+            windowWidth: 820,
             windowHeight: contentHeight,
             scrollY: 0,
             scrollX: 0,
+            onclone: (clonedDoc: Document) => {
+              const clonedPage = clonedDoc.querySelector(".page") as HTMLElement | null;
+              if (clonedPage) {
+                clonedPage.style.minHeight = `${contentHeight}px`;
+              }
+              clonedDoc.body.style.background = "#050505";
+            },
           },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["css", "legacy"] },
         })
-        .from(body)
+        .from(captureRoot)
         .save();
     } catch (e) {
       console.error("PDF export failed", e);
@@ -684,12 +730,8 @@ export default function AICoachPage() {
       coachMessage: typeof workoutPlan.message === "string" ? workoutPlan.message : undefined,
       planFocus: typeof workoutPlan.focus === "string" ? workoutPlan.focus : undefined,
       profileRows,
-      tipLines: [
-        "Consistency beats intensity — show up on schedule even at 70% effort.",
-        "Track loads in the gym; progressive overload is the real growth signal.",
-        "Sleep 7+ hours — it’s when muscle actually repairs and adapts.",
-        "You already earned this plan — execute it like the athlete you’re becoming.",
-      ],
+      tipLines: planTeluguTips(workoutPlan, DEFAULT_WORKOUT_TELUGU_TIPS),
+      region: typeof workoutPlan.region === "string" ? workoutPlan.region : "Telangana · Andhra",
     });
   };
 
@@ -706,10 +748,15 @@ export default function AICoachPage() {
     const mealHtml = meals
       .map((m: any) => {
         const food = Array.isArray(m.foods) ? m.foods.join(", ") : m.items || "";
+        const teluguNote =
+          typeof m.teluguNote === "string" && m.teluguNote.trim()
+            ? `<p class="meal-telugu">${escapeHtml(m.teluguNote)}</p>`
+            : "";
         return `
       <div class="meal">
         <div class="meal-time">${escapeHtml(m.time)} — ${escapeHtml(m.name || "")}</div>
         <div class="meal-food">${escapeHtml(food)}</div>
+        ${teluguNote}
         <div class="meal-cal">${escapeHtml(String(m.calories ?? m.cal ?? ""))} kcal</div>
       </div>`;
       })
@@ -745,12 +792,8 @@ export default function AICoachPage() {
       profileRows,
       hydration: typeof dietPlan.hydration === "string" ? dietPlan.hydration : undefined,
       supplements: supplements.length ? supplements : undefined,
-      tipLines: [
-        "Hit protein first each meal — it anchors satiety and recovery.",
-        "Fiber + water beat cravings; front-load vegetables early in the day.",
-        "Batch-cook twice weekly so discipline becomes convenience.",
-        "This menu is a compass, not a cage — adjust portions by hunger and training load.",
-      ],
+      tipLines: planTeluguTips(dietPlan, DEFAULT_DIET_TELUGU_TIPS),
+      region: typeof dietPlan.region === "string" ? dietPlan.region : "Telangana · Andhra",
     });
   };
 
@@ -1126,9 +1169,16 @@ export default function AICoachPage() {
           )}
 
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-white font-bold text-sm uppercase tracking-widest min-w-0 flex-1 truncate pr-2">
-              {workoutPlan.planName || mockWorkoutPlan.title}
-            </h2>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-white font-bold text-sm uppercase tracking-widest truncate pr-2">
+                {workoutPlan.planName || mockWorkoutPlan.title}
+              </h2>
+              {workoutPlan.region && (
+                <p className="text-brand text-[10px] font-bold uppercase tracking-widest mt-1">
+                  {workoutPlan.region}
+                </p>
+              )}
+            </div>
             <div className="flex gap-2 shrink-0">
               <button type="button" onClick={handleDownloadWorkout} className="min-h-10 min-w-10 h-10 w-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-text-secondary hover:text-white transition-colors touch-manipulation">
                 <Download className="w-4 h-4" />
@@ -1137,6 +1187,19 @@ export default function AICoachPage() {
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
+          </div>
+
+          <div className="bg-[#120808] border border-brand/20 rounded-2xl p-4">
+            <p className="text-brand text-xs font-bold uppercase tracking-widest mb-3">
+              Telugu tips · సూచనలు
+            </p>
+            <ul className="space-y-2">
+              {planTeluguTips(workoutPlan, DEFAULT_WORKOUT_TELUGU_TIPS).map((tip, idx) => (
+                <li key={idx} className="text-text-secondary text-sm leading-relaxed">
+                  {tip}
+                </li>
+              ))}
+            </ul>
           </div>
 
           {(workoutPlan.days || mockWorkoutPlan.days).map((day: any, i: number) => (
@@ -1210,14 +1273,34 @@ export default function AICoachPage() {
           )}
 
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-white font-bold text-sm uppercase tracking-widest min-w-0 flex-1 truncate pr-2">
-              {dietPlan?.planName || "Personalized Diet Plan"}
-            </h2>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-white font-bold text-sm uppercase tracking-widest truncate pr-2">
+                {dietPlan?.planName || "Personalized Diet Plan"}
+              </h2>
+              {dietPlan.region && (
+                <p className="text-brand text-[10px] font-bold uppercase tracking-widest mt-1">
+                  {dietPlan.region}
+                </p>
+              )}
+            </div>
             <div className="flex gap-2 shrink-0">
               <button type="button" onClick={handleDownloadDiet} className="min-h-10 min-w-10 h-10 w-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-text-secondary hover:text-white transition-colors touch-manipulation">
                 <Download className="w-4 h-4" />
               </button>
             </div>
+          </div>
+
+          <div className="bg-[#120808] border border-brand/20 rounded-2xl p-4">
+            <p className="text-brand text-xs font-bold uppercase tracking-widest mb-3">
+              Telugu tips · సూచనలు
+            </p>
+            <ul className="space-y-2">
+              {planTeluguTips(dietPlan, DEFAULT_DIET_TELUGU_TIPS).map((tip, idx) => (
+                <li key={idx} className="text-text-secondary text-sm leading-relaxed">
+                  {tip}
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Macro summary */}
@@ -1248,6 +1331,9 @@ export default function AICoachPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm leading-relaxed">{Array.isArray(meal.foods) ? meal.foods.join(", ") : meal.items}</p>
+                  {meal.teluguNote && (
+                    <p className="text-text-muted text-xs mt-2 italic">{meal.teluguNote}</p>
+                  )}
                 </div>
                 <div className="hidden sm:block shrink-0 sm:text-right">
                   <p className="text-text-secondary text-xs font-bold">{meal.calories || meal.cal} cal</p>
@@ -1255,6 +1341,13 @@ export default function AICoachPage() {
               </div>
             ))}
           </div>
+
+          <Link
+            href="/supplements"
+            className="flex items-center justify-center gap-2 min-h-12 w-full rounded-2xl border border-brand/25 bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest no-underline touch-manipulation hover:bg-brand/15"
+          >
+            Full supplement guide — creatine, whey, gut & hair →
+          </Link>
         </motion.div>
       )}
 

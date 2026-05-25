@@ -496,6 +496,10 @@ export default function AdminDashboard() {
                   All claims
                 </button>
               </div>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Instagram follow (+200) and story (+100) claims need a screenshot. Referrals (+150) are
+                automatic when a friend signs up with your link — no screenshot in this list.
+              </p>
               {claims.length === 0 ? (
                 <p className="text-text-muted text-sm">No claims to show.</p>
               ) : (
@@ -524,22 +528,55 @@ export default function AdminDashboard() {
                           IG: {c.user_profiles.instagram_handle}
                         </p>
                       )}
-                      {c.proof_url && (
-                        <a
-                          href={c.proof_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-brand text-xs font-bold mt-1 inline-block"
-                        >
-                          View screenshot →
-                        </a>
-                      )}
+                      {c.proof_display_url || c.proof_url ? (
+                        <div className="mt-3 space-y-2">
+                          <a
+                            href={c.proof_display_url || c.proof_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-xl overflow-hidden border border-white/10 bg-black/40 max-w-[280px]"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={c.proof_display_url || c.proof_url}
+                              alt={`Proof for ${c.action}`}
+                              className="w-full max-h-48 object-contain bg-black"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          </a>
+                          <a
+                            href={c.proof_display_url || c.proof_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-brand text-xs font-bold inline-block"
+                          >
+                            Open full screenshot →
+                          </a>
+                        </div>
+                      ) : c.status === "pending" &&
+                        (c.action === "follow" || c.action === "share_story") ? (
+                        <p className="text-yellow-400/90 text-xs mt-2 font-medium">
+                          No screenshot attached — ask user to re-submit with proof, or deny.
+                        </p>
+                      ) : null}
                     </div>
                     {c.status === "pending" && (
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          disabled={reviewingId === c.id}
+                          disabled={
+                            reviewingId === c.id ||
+                            ((c.action === "follow" || c.action === "share_story") &&
+                              !(c.proof_display_url || c.proof_url))
+                          }
+                          title={
+                            (c.action === "follow" || c.action === "share_story") &&
+                            !(c.proof_display_url || c.proof_url)
+                              ? "Screenshot required before approval"
+                              : undefined
+                          }
                           onClick={() => reviewClaim(c.id, "approve")}
                           className="flex items-center gap-1 px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold disabled:opacity-50"
                         >

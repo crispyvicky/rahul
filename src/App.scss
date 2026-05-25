@@ -23,6 +23,13 @@ $redText: #eb0000;
   isolation: isolate;
   transform-style: preserve-3d;
   backface-visibility: hidden;
+
+  img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+  }
 }
 
 .border {
@@ -185,6 +192,40 @@ $redText: #eb0000;
   display: none;
 }
 
+/* Red feature ticker — seamless infinite scroll (mobile + desktop) */
+.rf-ticker {
+  .rf-ticker-track {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    will-change: transform;
+    animation: rf-ticker-scroll 28s linear infinite;
+  }
+
+  .rf-ticker-strip {
+    flex-shrink: 0;
+  }
+
+  .rf-ticker-item {
+    flex-shrink: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rf-ticker-track {
+      animation: none;
+    }
+  }
+}
+
+@keyframes rf-ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0);
@@ -196,7 +237,7 @@ $redText: #eb0000;
 
 .animate-marquee {
   display: flex;
-  width: 90%;
+  width: max-content;
   animation: marquee 30s linear infinite;
 }
 

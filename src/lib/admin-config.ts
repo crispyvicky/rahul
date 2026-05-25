@@ -3,7 +3,7 @@
  * Set ADMIN_EMAILS in .env.local (comma-separated) or edit HARDCODED_ADMIN_EMAILS below.
  */
 export const HARDCODED_ADMIN_EMAILS: string[] = [
-  "YOUR_EMAIL@example.com", // Replace with your Google email
+  "collab@rahulfitzz.com",
 ];
 
 export function getAdminEmails(): string[] {

@@ -100,6 +100,12 @@ export default function DashboardPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [gymLoading, setGymLoading] = useState(true);
   const [gymError, setGymError] = useState<string | null>(null);
+  const [hasGymPlan, setHasGymPlan] = useState(false);
+
+  const weeklyAllZero =
+    !gymLoading && weeklyCompleted.every((d) => d.value === 0);
+  const showGymModeHint =
+    !gymLoading && (!hasGymPlan || (weeklyAllZero && stats.workouts.value === 0));
 
   useEffect(() => {
     const userId = currentUser.id;
@@ -178,6 +184,7 @@ export default function DashboardPage() {
         workoutsCompleted: completed,
         workoutsTotal: total,
       });
+      setHasGymPlan(activePlan.length > 0);
     };
 
     const isUuid =
@@ -203,8 +210,15 @@ export default function DashboardPage() {
           if (controller.signal.aborted) return;
           if (data) {
             applyGymData(data);
+            setHasGymPlan(Boolean(data.weeklyPlan?.length));
           } else {
             loadLocal();
+            try {
+              const saved = localStorage.getItem("rahulfitzz_gym_mode_weekly_plan");
+              setHasGymPlan(Boolean(saved && JSON.parse(saved)?.length));
+            } catch {
+              setHasGymPlan(false);
+            }
           }
         })
         .catch((err) => {
@@ -339,6 +353,16 @@ export default function DashboardPage() {
       {/* Today's Stats */}
       <div>
         <h2 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Today&apos;s Progress</h2>
+        {showGymModeHint && (
+          <p className="text-text-muted text-xs mb-3 leading-relaxed">
+            <span className="text-text-secondary font-medium">Workouts</span> and{" "}
+            <span className="text-text-secondary font-medium">Weekly Activity</span> come from{" "}
+            <Link href="/gym-mode" className="text-brand font-bold no-underline hover:underline">
+              Gym Mode
+            </Link>
+            — not login streaks. Generate a weekly plan and mark sets complete there.
+          </p>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <StatCard icon={Dumbbell} label="Workouts Completed" value={stats.workouts.value} target={stats.workouts.target} unit={stats.workouts.unit} color="bg-emerald-600" />
           <StatCard icon={Flame} label="Day Streak" value={currentUser.currentStreak} target={Math.max(currentUser.longestStreak, 7) || 7} unit="days" color="bg-brand" />
@@ -355,30 +379,44 @@ export default function DashboardPage() {
             <span className="text-text-muted text-xs">Completion %</span>
           </div>
           <div className="flex items-end gap-2 sm:gap-4 h-40">
-            {weeklyCompleted.map((d, i) => (
-              <motion.div key={d.day} className="flex-1 flex flex-col items-center gap-2">
-                {gymLoading ? (
-                  <div className="w-full h-24 rounded-xl bg-white/10 animate-pulse" />
-                ) : (
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(d.value, 5)}%` }}
-                    transition={{ duration: 0.5, delay: i * 0.08 }}
-                    className={`w-full rounded-xl transition-colors ${
-                      d.value === 0
-                        ? "bg-white/5"
-                        : d.value >= 90
-                        ? "bg-brand"
-                        : d.value >= 70
-                        ? "bg-brand/60"
-                        : "bg-brand/30"
-                    }`}
-                  />
-                )}
-                <span className="text-text-muted text-[10px] font-medium">{d.day}</span>
-              </motion.div>
-            ))}
+            {weeklyCompleted.map((d, i) => {
+              const barPx = Math.max(6, Math.round((d.value / 100) * 128));
+              return (
+                <motion.div key={d.day} className="flex-1 flex flex-col items-center gap-2 h-full">
+                  {gymLoading ? (
+                    <div className="w-full flex-1 max-h-32 rounded-xl bg-white/10 animate-pulse" />
+                  ) : (
+                    <div className="w-full flex-1 max-h-32 flex items-end justify-center">
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: barPx }}
+                        transition={{ duration: 0.5, delay: i * 0.08 }}
+                        title={`${d.value}%`}
+                        className={`w-full max-w-[2.5rem] rounded-xl transition-colors ${
+                          d.value === 0
+                            ? "bg-white/10"
+                            : d.value >= 90
+                            ? "bg-brand"
+                            : d.value >= 70
+                            ? "bg-brand/60"
+                            : "bg-brand/30"
+                        }`}
+                      />
+                    </div>
+                  )}
+                  <span className="text-text-muted text-[10px] font-medium">{d.day}</span>
+                  {!gymLoading && d.value > 0 && (
+                    <span className="text-[9px] text-text-muted -mt-1">{d.value}%</span>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
+          {showGymModeHint && (
+            <p className="text-text-muted text-[11px] mt-4 text-center">
+              No workout completion logged this week yet.
+            </p>
+          )}
         </div>
 
         {/* Achievements */}

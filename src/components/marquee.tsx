@@ -1,53 +1,49 @@
-import React from "react";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
-import "@splidejs/splide/dist/css/splide.min.css"; // Splide's default CSS
+"use client";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle } from "@fortawesome/free-solid-svg-icons";
 
-const Marquee = () => {
-  const content = [
-    "FITNESS PLANS",
-    "WORKOUT ROUTINES",
-    "PROGRESS TRACKING",
-    "FITNESS PLANS",
-    "WORKOUT ROUTINES",
-    "PROGRESS TRACKING",
-  ];
+const TICKER_ITEMS = [
+  "FITNESS PLANS",
+  "WORKOUT ROUTINES",
+  "PROGRESS TRACKING",
+  "ELITE COACHING",
+  "GYM MODE",
+  "AI COACH",
+] as const;
 
+function TickerStrip({ ariaHidden }: { ariaHidden?: boolean }) {
   return (
     <div
-      className="overflow-hidden bg-[#f33] p-4"
-      style={{ border: "2px solid red" }}
+      className="rf-ticker-strip flex shrink-0 items-center gap-8 sm:gap-12"
+      aria-hidden={ariaHidden}
     >
-      <Splide
-        options={{
-          type: "loop",
-          autoplay: true,
-          interval: 0,
-          speed: 75000,
-          drag: false,
-          arrows: false,
-          pagination: false,
-          perPage: 5,
-          gap: "1rem",
-        }}
-        style={{
-          overflow: "hidden",
-          background: "#f33",
-        }}
-      >
-        {content.map((item, index) => (
-          <SplideSlide key={index}>
-            <div className="flex items-center text-center font-normal !text-[12px] whitespace-nowrap leading-3 text-white second">
-              <FontAwesomeIcon
-                icon={faCircle}
-                className="text-white mr-2 !text-[5px]"
-              />
-              <span className="!text-[12px]">{item}</span>
-            </div>
-          </SplideSlide>
-        ))}
-      </Splide>
+      {TICKER_ITEMS.map((item) => (
+        <span
+          key={item}
+          className="rf-ticker-item flex shrink-0 items-center gap-2 whitespace-nowrap text-white second"
+        >
+          <FontAwesomeIcon
+            icon={faCircle}
+            className="!text-[5px] text-white shrink-0"
+            aria-hidden
+          />
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em]">
+            {item}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+const Marquee = () => {
+  return (
+    <div className="rf-ticker w-full overflow-hidden bg-[#eb0000] py-3 sm:py-4 border-y border-[#eb0000]/80">
+      <div className="rf-ticker-track flex w-max items-center">
+        <TickerStrip />
+        <TickerStrip ariaHidden />
+      </div>
     </div>
   );
 };

@@ -53,6 +53,15 @@ export async function POST(request: Request) {
     }
 
     if (PENDING_ACTIONS.has(actionKey) && hasSupabaseAdmin()) {
+      if (!proofUrl || typeof proofUrl !== "string" || !proofUrl.trim()) {
+        return NextResponse.json(
+          {
+            error:
+              "Upload a screenshot first (follow or story proof), then submit your claim.",
+          },
+          { status: 400 }
+        );
+      }
       const done = await hasCompletedAction(userId, actionKey);
       if (done) {
         return NextResponse.json(
@@ -60,7 +69,7 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
-      const result = await createPendingClaim(userId, actionKey, proofUrl);
+      const result = await createPendingClaim(userId, actionKey, proofUrl.trim());
       if (!result.ok && result.error) {
         return NextResponse.json({ error: result.error }, { status: 409 });
       }

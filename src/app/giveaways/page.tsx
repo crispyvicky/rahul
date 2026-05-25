@@ -57,6 +57,7 @@ export default function GiveawayPage() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<GiveawayData | null>(null);
   const [proofFiles, setProofFiles] = useState<Record<string, File>>({});
+  const [proofPreviews, setProofPreviews] = useState<Record<string, string>>({});
   const [compressingProof, setCompressingProof] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const syncedOnPage = useRef(false);
@@ -110,6 +111,12 @@ export default function GiveawayPage() {
   }, [load]);
 
   useEffect(() => {
+    return () => {
+      Object.values(proofPreviews).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [proofPreviews]);
+
+  useEffect(() => {
     if (!session?.user?.email || syncedOnPage.current) return;
     if (user?.id && isUuidUserId(user.id)) return;
 
@@ -138,19 +145,27 @@ export default function GiveawayPage() {
     try {
       let proofUrl: string | undefined;
       const file = proofFiles[action];
-      if (file && (action === "follow" || action === "share_story")) {
+      const needsProof = action === "follow" || action === "share_story";
+      if (needsProof) {
+        if (!file) {
+          setError("Upload a screenshot of your follow or story before claiming points.");
+          setClaiming(null);
+          return;
+        }
         const fd = new FormData();
         fd.append("file", file);
         fd.append("userId", user!.id);
         const up = await fetch("/api/claim-proof/upload", { method: "POST", body: fd });
         const uploadJson = await up.json();
-        if (up.ok) {
-          proofUrl = uploadJson.proofUrl;
-        } else {
+        if (!up.ok || !uploadJson.proofUrl) {
           setError(
-            `${uploadJson.error || "Screenshot upload failed"} — claim submitted without image.`
+            uploadJson.error ||
+              "Screenshot upload failed. Run supabase/claim_storage.sql in Supabase, then try again."
           );
+          setClaiming(null);
+          return;
         }
+        proofUrl = uploadJson.proofUrl;
       }
 
       const res = await fetch("/api/giveaway/claim", {
@@ -179,6 +194,13 @@ export default function GiveawayPage() {
           delete next[action];
           return next;
         });
+        setProofPreviews((prev) => {
+          const next = { ...prev };
+          const old = next[action];
+          if (old) URL.revokeObjectURL(old);
+          delete next[action];
+          return next;
+        });
       }
       await load();
     } catch {
@@ -195,21 +217,36 @@ export default function GiveawayPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleAction = async (action: string) => {
+  const openIgTask = (action: string) => {
     if (action === "follow") {
-      window.open("https://www.instagram.com/rahulfitzz", "_blank");
-      await claim("follow");
-    } else if (action === "share_story") {
+      window.open("https://www.instagram.com/rahulfitzz", "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (action === "share_story") {
       const text = `I'm competing on RahulFitzz! Join: ${referralLink}`;
       if (navigator.share) {
-        await navigator.share({ title: "RahulFitzz", text, url: referralLink });
+        void navigator.share({ title: "RahulFitzz", text, url: referralLink });
       } else {
-        window.open("https://www.instagram.com/", "_blank");
+        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
       }
-      await claim("share_story");
-    } else if (action === "refer") {
+    }
+  };
+
+  const handleAction = async (action: string) => {
+    if (action === "follow" || action === "share_story") {
+      if (!proofFiles[action]) {
+        setError("Upload your screenshot first, then tap Submit for review.");
+        openIgTask(action);
+        return;
+      }
+      await claim(action);
+      return;
+    }
+    if (action === "refer") {
       copyReferralLink();
-    } else if (action === "checkin") {
+      return;
+    }
+    if (action === "checkin") {
       await claim("checkin");
     }
   };
@@ -377,31 +414,58 @@ export default function GiveawayPage() {
                   <p className="text-white text-sm font-bold truncate">{action.label}</p>
                   <p className="text-brand text-xs font-bold mt-0.5">+{action.points} pts {action.oneTime ? "· one time" : "· repeatable"}</p>
                   {(action.action === "follow" || action.action === "share_story") && !done && !pending && (
-                    <label className="mt-2 block text-[10px] text-text-muted">
-                      <span className="font-bold uppercase tracking-wider text-text-secondary">
-                        Screenshot (optional, resized automatically)
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        disabled={compressingProof === action.action}
-                        className="mt-1 block w-full text-xs text-text-muted file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-brand/20 file:text-brand disabled:opacity-50"
-                        onChange={async (e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          setCompressingProof(action.action);
-                          try {
-                            const compressed = await compressImageForUpload(f);
-                            setProofFiles((prev) => ({ ...prev, [action.action]: compressed }));
-                          } catch (err) {
-                            setError(err instanceof Error ? err.message : "Invalid image");
-                          } finally {
-                            setCompressingProof(null);
-                            e.target.value = "";
-                          }
-                        }}
-                      />
-                    </label>
+                    <div className="mt-2 space-y-2">
+                      <p className="text-[10px] text-text-muted leading-relaxed">
+                        1) Open Instagram · 2) Upload screenshot · 3) Submit for admin review
+                      </p>
+                      <label className="block text-[10px] text-text-muted">
+                        <span className="font-bold uppercase tracking-wider text-text-secondary">
+                          Screenshot required (auto-resized)
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          disabled={compressingProof === action.action}
+                          className="mt-1 block w-full text-xs text-text-muted file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-brand/20 file:text-brand disabled:opacity-50"
+                          onChange={async (e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            setCompressingProof(action.action);
+                            try {
+                              const compressed = await compressImageForUpload(f);
+                              setProofFiles((prev) => ({ ...prev, [action.action]: compressed }));
+                              setProofPreviews((prev) => {
+                                const old = prev[action.action];
+                                if (old) URL.revokeObjectURL(old);
+                                return {
+                                  ...prev,
+                                  [action.action]: URL.createObjectURL(compressed),
+                                };
+                              });
+                              setError(null);
+                            } catch (err) {
+                              setError(err instanceof Error ? err.message : "Invalid image");
+                            } finally {
+                              setCompressingProof(null);
+                              e.target.value = "";
+                            }
+                          }}
+                        />
+                      </label>
+                      {proofPreviews[action.action] && (
+                        <div className="flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={proofPreviews[action.action]}
+                            alt="Your screenshot preview"
+                            className="h-14 w-14 rounded-lg object-cover border border-white/10"
+                          />
+                          <span className="text-emerald-400 text-[10px] font-bold uppercase">
+                            Ready to submit
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </motion.div>
                 {pending ? (
@@ -422,6 +486,29 @@ export default function GiveawayPage() {
                   </Link>
                 ) : action.action === "streak" ? (
                   <span className="text-text-muted text-[10px] font-bold uppercase shrink-0">On login</span>
+                ) : action.action === "follow" || action.action === "share_story" ? (
+                  <div className="flex flex-col gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      disabled={!canEarn}
+                      onClick={() => openIgTask(action.action)}
+                      className="px-3 py-2 bg-white/5 border border-white/10 text-text-secondary font-bold text-[10px] uppercase rounded-lg"
+                    >
+                      Open IG
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!!claiming || !canEarn || !proofFiles[action.action]}
+                      onClick={() => handleAction(action.action)}
+                      className="px-4 py-2 bg-brand/10 border border-brand/20 text-brand font-bold text-[10px] uppercase rounded-lg flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {claiming === action.action ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        "Submit"
+                      )}
+                    </button>
+                  </div>
                 ) : (
                   <button
                     type="button"

@@ -5,6 +5,11 @@ import {
   generateAiText,
   generateAiVision,
 } from "@/lib/ai-provider";
+import {
+  buildDietPrompt,
+  buildWorkoutPrompt,
+  isVegetarianPreference,
+} from "@/lib/ai-coach-prompts";
 
 /** Node runtime required for AI HTTP calls. */
 export const runtime = "nodejs";
@@ -44,39 +49,7 @@ export async function POST(req: Request) {
     }
 
     if (type === "workout") {
-      const instructions = clampCustomInstructions(userData!.customInstructions);
-
-      const locationPrompt =
-        userData!.workoutLocation === "home"
-          ? "They are working out at HOME with minimal equipment (bodyweight, dumbbells, bands)."
-          : "They are working out at a FULL GYM with machines, barbells, and cables.";
-
-      const customRequest = instructions
-        ? `\nCRITICAL SPECIAL INSTRUCTIONS FROM USER: "${instructions}". YOU MUST ADAPT THE WORKOUT TO ACCOUNT FOR THIS EXACT REQUEST.`
-        : "";
-
-      const prompt = `You are an elite, charismatic, and slightly flirty fitness coach. Use simple, easy-to-understand English.
-      The user is a ${userData!.age} year old ${userData!.gender}, weighs ${userData!.weight}kg, and is ${userData!.height}cm tall.
-      Their primary goal is: ${userData!.goal}. Their current fitness level is: ${userData!.fitnessLevel}.
-      They can workout ${userData!.workoutDays} days a week.
-      ${locationPrompt}${customRequest}
-
-      Generate a highly personalized ${userData!.workoutDays}-day workout split for them.
-      Return the response in JSON format. The response must EXACTLY match this structure (no markdown tags, just the raw JSON object):
-      {
-        "message": "Hey gorgeous! Ready to sweat? I made this special workout just for you...",
-        "planName": "Name of the Plan",
-        "focus": "Main focus/philosophy of this plan",
-        "days": [
-          {
-            "day": "Day 1",
-            "title": "Push Day / Legs / etc",
-            "exercises": [
-              { "name": "Bench Press", "sets": "4", "reps": "8-10", "notes": "Control the negative" }
-            ]
-          }
-        ]
-      }`;
+      const prompt = buildWorkoutPrompt(userData!);
 
       const rl = consumeAiRateLimit(clientIp, "text");
       if (rl.ok === false) {
@@ -93,38 +66,28 @@ export async function POST(req: Request) {
           { error: "Model did not return valid JSON. Try again or shorten special instructions." },
           { status: 502 }
         );
+      }
+      const days = Array.isArray(parsed.days) ? parsed.days : [];
+      const expected = Number(userData!.workoutDays) || days.length;
+      if (days.length < 1) {
+        return NextResponse.json(
+          { error: "Plan was empty. Please generate again." },
+          { status: 502 }
+        );
+      }
+      if (expected > 0 && days.length !== expected) {
+        parsed.days = days.slice(0, expected);
+        while (parsed.days.length < expected) {
+          parsed.days.push(days[parsed.days.length % days.length]);
+        }
       }
       return NextResponse.json(parsed);
     }
 
     if (type === "diet") {
       const instructions = clampCustomInstructions(userData!.customInstructions);
-
-      const customRequest = instructions
-        ? `\nCRITICAL SPECIAL INSTRUCTIONS FROM USER: "${instructions}". YOU MUST ADAPT THE DIET TO ACCOUNT FOR THIS EXACT REQUEST.`
-        : "";
-
-      const prompt = `You are a charismatic, slightly flirty sports nutritionist. Use simple, easy-to-understand English.
-      The user is a ${userData!.age} year old ${userData!.gender}, weighs ${userData!.weight}kg, and is ${userData!.height}cm tall.
-      Their goal is: ${userData!.goal}. Their current fitness level is: ${userData!.fitnessLevel}.${customRequest}
-
-      Generate a highly personalized daily meal plan for them.
-      Return the response in JSON format. The response must EXACTLY match this structure (no markdown tags, just the raw JSON object):
-      {
-        "message": "Hey cutie, abs are made in the kitchen! I've put together a delicious menu to help you reach your goals...",
-        "dailyCalories": "2500",
-        "macros": { "protein": "180g", "carbs": "250g", "fats": "70g" },
-        "meals": [
-          {
-            "time": "Breakfast",
-            "name": "Oatmeal & Eggs",
-            "foods": ["1 cup oats", "3 whole eggs", "1 banana"],
-            "calories": "550"
-          }
-        ],
-        "hydration": "Drink 3.5L of water daily",
-        "supplements": ["Whey Protein", "Creatine Monohydrate"]
-      }`;
+      userData!.customInstructions = instructions;
+      const prompt = buildDietPrompt(userData!);
 
       const rl = consumeAiRateLimit(clientIp, "text");
       if (rl.ok === false) {
@@ -141,6 +104,24 @@ export async function POST(req: Request) {
           { error: "Model did not return valid JSON. Try again or shorten special instructions." },
           { status: 502 }
         );
+      }
+      const meals = Array.isArray(parsed.meals) ? parsed.meals : [];
+      if (meals.length < 1) {
+        return NextResponse.json(
+          { error: "Diet plan was empty. Please generate again." },
+          { status: 502 }
+        );
+      }
+      if (isVegetarianPreference(instructions)) {
+        const eggMeat = /\b(egg|eggs|chicken|mutton|fish|prawn|meat)\b/i;
+        parsed.meals = meals.map((m: { foods?: string[]; name?: string }) => {
+          const foods = Array.isArray(m.foods) ? m.foods.filter((f) => !eggMeat.test(f)) : m.foods;
+          const name = m.name && eggMeat.test(m.name) ? "Vegetarian Telugu meal" : m.name;
+          return { ...m, foods, name };
+        });
+      }
+      if (!Array.isArray(parsed.teluguTips) || parsed.teluguTips.length < 1) {
+        parsed.region = parsed.region || "Telangana · Andhra";
       }
       return NextResponse.json(parsed);
     }

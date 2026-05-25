@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -41,27 +41,45 @@ export default function PostComments({
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState<DbPostComment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(commentsCount);
+  const onCountChangeRef = useRef(onCountChange);
 
   useEffect(() => {
-    setDisplayCount(commentsCount);
-  }, [commentsCount]);
+    onCountChangeRef.current = onCountChange;
+  }, [onCountChange]);
+
+  useEffect(() => {
+    if (!open) setDisplayCount(commentsCount);
+  }, [commentsCount, open]);
 
   const loadComments = useCallback(async () => {
     setLoading(true);
-    const data = await getPostComments(postId);
-    setComments(data);
-    setDisplayCount(data.length);
-    onCountChange?.(data.length);
-    setLoading(false);
-  }, [postId, onCountChange]);
+    setLoadError(null);
+    try {
+      const data = await Promise.race([
+        getPostComments(postId),
+        new Promise<DbPostComment[]>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), 12_000)
+        ),
+      ]);
+      setComments(data);
+      setDisplayCount(data.length);
+    } catch {
+      setComments([]);
+      setLoadError("Could not load comments. Check connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [postId]);
 
   useEffect(() => {
-    if (open) loadComments();
-  }, [open, loadComments]);
+    if (!open) return;
+    void loadComments();
+  }, [open, postId, loadComments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +103,7 @@ export default function PostComments({
     setComments((prev) => [...prev, created as DbPostComment]);
     const next = displayCount + 1;
     setDisplayCount(next);
-    onCountChange?.(next);
+    onCountChangeRef.current?.(next);
     toast.success("Comment added");
   };
 
@@ -103,7 +121,7 @@ export default function PostComments({
     setComments((prev) => prev.filter((c) => c.id !== comment.id));
     const next = Math.max(0, displayCount - 1);
     setDisplayCount(next);
-    onCountChange?.(next);
+    onCountChangeRef.current?.(next);
   };
 
   const canComment = Boolean(currentUserId);
@@ -128,8 +146,23 @@ export default function PostComments({
             <div className="py-6 flex justify-center">
               <Loader2 className="w-5 h-5 text-brand animate-spin" />
             </div>
+          ) : loadError ? (
+            <div className="py-2 space-y-2">
+              <p className="text-red-300/90 text-xs">{loadError}</p>
+              <button
+                type="button"
+                onClick={() => void loadComments()}
+                className="text-brand text-xs font-bold uppercase tracking-wider touch-manipulation"
+              >
+                Retry
+              </button>
+            </div>
           ) : comments.length === 0 ? (
-            <p className="text-text-muted text-xs py-2">No comments yet. Be the first!</p>
+            <p className="text-text-muted text-xs py-2">
+              {displayCount > 0
+                ? "Comments could not be loaded. Tap Retry or refresh the page."
+                : "No comments yet. Be the first!"}
+            </p>
           ) : (
             <ul className="space-y-3 max-h-64 overflow-y-auto overscroll-contain pr-1">
               {comments.map((c) => {
