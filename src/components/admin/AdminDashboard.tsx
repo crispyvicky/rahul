@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AdminShell from "./AdminShell";
 import { cn } from "@/lib/utils";
+import { DEFAULT_GRAND_PRIZE } from "@/lib/prize-sheet";
 import {
   Loader2,
   RefreshCw,
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [logFilter, setLogFilter] = useState("");
   const [winnerUserId, setWinnerUserId] = useState("");
-  const [winnerPrize, setWinnerPrize] = useState("iPhone 16 Pro");
+  const [winnerPrize, setWinnerPrize] = useState(DEFAULT_GRAND_PRIZE);
   const [claimsShowAll, setClaimsShowAll] = useState(false);
   const claimsFilterRef = useRef(claimsShowAll);
   claimsFilterRef.current = claimsShowAll;

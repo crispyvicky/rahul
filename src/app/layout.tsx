@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     path: "/",
   }),
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   authors: [{ name: SITE.name, url: SITE_URL }],
   creator: SITE.name,
   publisher: SITE.name,
@@ -60,8 +67,6 @@ export default function RootLayout({
     <html lang="en-IN" className={fontClassNames}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/LOGO.png" />
-        <link rel="icon" href="/LOGO.png" type="image/png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={spaceGrotesk.className} suppressHydrationWarning>

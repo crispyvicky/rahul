@@ -39,7 +39,7 @@ export const SITE = {
   ],
 } as const;
 
-export const OG_IMAGE = `${SITE_URL}/LOGO.png`;
+export const OG_IMAGE = `${SITE_URL}/icon-512.png`;
 
 export type PageSeo = {
   title: string;

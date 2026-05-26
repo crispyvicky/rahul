@@ -10,7 +10,7 @@ export default function HomeJsonLd() {
     jobTitle: "Fitness Influencer & Coach",
     description: SITE.description,
     email: SITE.email,
-    image: `${SITE_URL}/LOGO.png`,
+    image: `${SITE_URL}/icon-512.png`,
     nationality: { "@type": "Country", name: SITE.countryName },
     homeLocation: {
       "@type": "Place",
@@ -58,7 +58,7 @@ export default function HomeJsonLd() {
     name: `${SITE.name} — ${SITE.city}`,
     description: `Fitness coaching and influencer services in ${SITE.city}, ${SITE.countryName}.`,
     url: SITE_URL,
-    image: `${SITE_URL}/LOGO.png`,
+    image: `${SITE_URL}/icon-512.png`,
     email: SITE.email,
     address: {
       "@type": "PostalAddress",

@@ -1,4 +1,4 @@
-/** Giveaway points → unlockable prizes (leaderboard winner gets campaign grand prize). */
+/** Giveaway points → unlockable prizes (fitness gear + supplements). */
 export type PrizeTier = {
   id: string;
   points: number;
@@ -8,16 +8,22 @@ export type PrizeTier = {
 };
 
 export const PRIZE_SHEET: PrizeTier[] = [
-  { id: "t1", points: 250, prize: "RF Sticker Pack", emoji: "🏷️" },
-  { id: "t2", points: 500, prize: "Shaker Bottle", emoji: "🥤" },
-  { id: "t3", points: 800, prize: "Gym Towel", emoji: "🧴", tag: "hot" },
-  { id: "t4", points: 1200, prize: "Resistance Bands Set", emoji: "🎯" },
-  { id: "t5", points: 1800, prize: "Branded Tee", emoji: "👕" },
-  { id: "t6", points: 2500, prize: "Whey Sample Box", emoji: "💪", tag: "hot" },
-  { id: "t7", points: 3500, prize: "Lifting Belt", emoji: "🏋️" },
-  { id: "t8", points: 5000, prize: "1 Month Premium", emoji: "👑" },
-  { id: "t9", points: 7500, prize: "1-on-1 Check-in Call", emoji: "📞", tag: "elite" },
-  { id: "t10", points: 10000, prize: "Grand Draw Entry", emoji: "🎁", tag: "elite" },
+  { id: "t1", points: 300, prize: "Shaker Bottle", emoji: "🥤" },
+  { id: "t2", points: 600, prize: "Gym Gloves", emoji: "🧤" },
+  { id: "t3", points: 1000, prize: "Resistance Bands Set", emoji: "🎯", tag: "hot" },
+  { id: "t4", points: 1500, prize: "Skipping Rope", emoji: "⏭️" },
+  { id: "t5", points: 2200, prize: "Yoga Mat", emoji: "🧘" },
+  { id: "t6", points: 3000, prize: "Whey Protein (1kg)", emoji: "💪", tag: "hot" },
+  { id: "t7", points: 4500, prize: "Pre-Workout + Multivitamins", emoji: "💊" },
+  { id: "t8", points: 6000, prize: "Foam Roller + Ab Wheel", emoji: "🔄" },
+  { id: "t9", points: 8000, prize: "Plant Protein + Peanut Butter", emoji: "🥜", tag: "elite" },
+  {
+    id: "t10",
+    points: 10000,
+    prize: "Supplement Stack (Whey + Pre)",
+    emoji: "🏆",
+    tag: "elite",
+  },
 ];
 
 /** How to earn giveaway points (matches giveaways page). */
@@ -37,3 +43,6 @@ export function getNextPrizeTier(giveawayPoints: number): PrizeTier | null {
 export function getUnlockedTiers(giveawayPoints: number): PrizeTier[] {
   return PRIZE_SHEET.filter((t) => giveawayPoints >= t.points);
 }
+
+/** Default grand campaign prize (admin winner picker). */
+export const DEFAULT_GRAND_PRIZE = "Whey Protein (2kg)";

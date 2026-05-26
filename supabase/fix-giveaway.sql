@@ -6,9 +6,9 @@ CREATE POLICY IF NOT EXISTS "Admin can manage giveaways" ON giveaways FOR INSERT
 -- Re-seed giveaway
 INSERT INTO giveaways (title, description, prize, ends_at, is_active)
 VALUES (
-  'Win an iPhone 16 Pro',
-  'The most consistent athlete this month wins an iPhone 16 Pro. Track workouts, complete challenges, and rise to the top of the leaderboard.',
-  'iPhone 16 Pro',
+  'Win a Whey Protein Stack',
+  'Top leaderboard athletes this month can win a premium whey protein stack. Earn points from workouts, streaks, and community — climb the ranks.',
+  'Whey Protein (2kg)',
   NOW() + INTERVAL '30 days',
   TRUE
 )
