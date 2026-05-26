@@ -3,7 +3,7 @@ import CounterNumber from "./counter";
 
 export default function Misson() {
   return (
-    <section id="mission" className="relative w-full bg-black py-32 overflow-hidden flex justify-center">
+    <section id="mission" className="relative w-full bg-black py-12 sm:py-16 md:py-28 overflow-x-hidden flex justify-center scroll-mt-24">
 
       {/* Background ambient lighting */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#eb0000] opacity-10 blur-[120px] pointer-events-none" />
@@ -19,11 +19,9 @@ export default function Misson() {
           <span className="text-[#eb0000] text-sm md:text-base tracking-[0.4em] font-bold uppercase mb-4 block">
             The Philosophy
           </span>
-          <h1
-            className="text-white text-4xl md:text-[80px] leading-[1.1] font-black uppercase tracking-tighter mb-8"
-            style={{ fontFamily: '"Orbitron", sans-serif' }}
-          >
-            YOUR TRANSFORMATION.<br />
+          <h1 className="text-white text-[clamp(1.65rem,7vw,2.5rem)] md:text-[80px] leading-[1.1] font-black font-heading uppercase tracking-tighter mb-6 md:mb-8 break-words max-w-full px-1">
+            YOUR<br className="sm:hidden" /> TRANSFORMATION.
+            <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">
               MY BLUEPRINT.
             </span>

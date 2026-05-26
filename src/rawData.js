@@ -45,29 +45,39 @@ export const testimonialData = [
 
 export const faqs = [
   {
-    question: "Who is the 'RahulFitzz' Blueprint designed for?",
+    question: "Who is the RahulFitzz Blueprint designed for?",
     answer:
-      "The Blueprint is engineered for the high-performance athlete. Whether you are starting from zero or a seasoned pro, my system provides the scientific hierarchy required for absolute physical evolution.",
+      "Hyderabad, Telangana mariyu Andhra Pradesh nunchi — gym ki kotha ga start chesina vallu nundi serious lifters varaku andariki. Blueprint ante clear plan, daily discipline, and real body transformation. Evaraina follow cheyochu — age or level matter kaadu, consistency matter avtundi.",
   },
   {
-    question: "How do the Official Pro-Training Hubs operate?",
+    question: "Does the AI Coach give Telugu-style diet and workout plans?",
     answer:
-      "These are vetted, elite-tier facilities equipped with the specific hardware required to execute my high-intensity hypertrophy and mobility protocols. They are currently expanding globally.",
+      "Avunu ra! Workout plans full gym or home batti vastayi. Diet plans lo idli, dosa, pesarattu, pappu, sambar, curd rice, ragi sangati la mana local foods untayi — generic Western meal prep kaadu. Romanized Telugu tips kuda plan lo vastayi.",
   },
   {
-    question: "Is nutrition precision-engineered for every plan?",
+    question: "How do giveaways and community points work?",
     answer:
-      "Absolutely. No more guessing. Every Blueprint program includes comprehensive nutritional frameworks calibrated to your specific metabolic engine, ensuring every calorie fuels your peak condition.",
+      "Instagram follow, friends ni refer cheyadam, roju login streak, Gym Mode lo workouts complete cheyadam, community lo post cheyadam — ivanni tho points earn avtayi. Leaderboard lo rank penchukuni prizes and giveaways ki qualify avochu. Consistency unte points easy ga stack avtayi.",
   },
   {
-    question: "What defines the 'Iron Mindset' in the programs?",
+    question: "Can I get a pure vegetarian diet plan?",
     answer:
-      "Discipline is our core currency. The Iron Mindset isn't just about weight; it's about the psychological framework required to maintain peak focus when the initial motivation fades.",
+      "100% veg plan kuda generate cheyochu. AI Coach ki 'pure veg' or 'no egg, no meat' ani cheppu — plan lo eggs, chicken, fish em include cheyadu. Dal, paneer, whey (neeku ok ante), tiffin and home-style Telugu meals tho macros set avtayi.",
   },
   {
-    question: "Can I access the digital vault from any device?",
+    question: "What is Gym Mode and how do I track workouts?",
     answer:
-      "Yes. The Blueprint digital vault is built for the modern athlete, providing 24/7 access to your training splits, metrics, and technical coaching tutorials from any mobile interface.",
+      "Gym Mode lo nee weekly split set chey, roju exercises chudu, sets/reps/weight log chey, rest timer use chey. AI plan save chesi direct ga Gym Mode ki apply cheyochu. Phone lo ne workout history untundi — dashboard lo streak and activity kuda update avtundi.",
+  },
+  {
+    question: "Where is RahulFitzz based and can I book a gym?",
+    answer:
+      "RahulFitzz Hyderabad, Telangana based — but online community India and worldwide use chestundi. Book Gym page lo partner gyms ki pre-book cheyochu. Digital vault lo AI Coach, supplements guide, challenges — anni phone nunchi 24/7 access.",
+  },
+  {
+    question: "Can brands collaborate with RahulFitzz?",
+    answer:
+      "Avunu — fitness, nutrition, apparel brands ki collab cheyochu. collab@rahulfitzz.com ki mail chey. 136K+ Instagram, 97K+ YouTube, 70K+ Facebook reach undi — sponsored content, campaigns, and long-term partnerships ki open.",
   },
 ];
 

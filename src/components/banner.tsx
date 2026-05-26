@@ -29,29 +29,14 @@ export default function Banner() {
   const { data: session } = useSession();
   const { user } = useUserStore();
   const appHref = getAppEntryHref(!!session || !!user);
-  const [mobilePhase, setMobilePhase] = useState<"text" | "image">("text");
-  const [isMobileBanner, setIsMobileBanner] = useState(false);
+  const [enableScrollFx, setEnableScrollFx] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
-    const updateMobile = () => setIsMobileBanner(mq.matches);
-    updateMobile();
-    mq.addEventListener("change", updateMobile);
-
-    let phase: "text" | "image" = "text";
-    let timer: ReturnType<typeof setTimeout>;
-    const cycle = () => {
-      if (!mq.matches) return;
-      phase = phase === "text" ? "image" : "text";
-      setMobilePhase(phase);
-      timer = setTimeout(cycle, phase === "text" ? 2000 : 1000);
-    };
-    timer = setTimeout(cycle, 2000);
-
-    return () => {
-      mq.removeEventListener("change", updateMobile);
-      clearTimeout(timer);
-    };
+    const update = () => setEnableScrollFx(!mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
 
   const { scrollYProgress } = useScroll({
@@ -60,7 +45,7 @@ export default function Banner() {
     layoutEffect: false,
   });
 
-  // Master Cinematic Physics
+  // Desktop-only parallax — on mobile this caused huge black gaps while scrolling
   const contentFade = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const contentY = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
   const glowOpacity = useTransform(scrollYProgress, [0, 0.5], [0.15, 0]);
@@ -69,10 +54,10 @@ export default function Banner() {
     <section
       ref={ref}
       id="home"
-      className="relative min-h-[100dvh] w-full max-w-[100vw] bg-[#050505] overflow-x-hidden flex flex-col justify-center py-20 sm:py-24"
+      className="relative w-full lg:min-h-[100dvh] bg-[#050505] overflow-x-hidden flex flex-col justify-center py-16 sm:py-20 lg:py-24"
     >
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={false}
         animate={{ opacity: 1 }}
         className="relative w-full h-full flex flex-col justify-center"
       >
@@ -82,7 +67,7 @@ export default function Banner() {
       {/* 2. LAYER: ATMOSPHERIC GRADIENTS */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <motion.div
-          style={{ opacity: glowOpacity }}
+          style={enableScrollFx ? { opacity: glowOpacity } : undefined}
           className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[60vw] h-[60vw] bg-[#eb0000]/10 blur-[180px] rounded-full animate-pulse z-10"
         />
         <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-t from-[#050505] via-transparent to-transparent z-20" />
@@ -103,49 +88,39 @@ export default function Banner() {
       <motion.div
         className="absolute top-[26%] sm:top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-[14vw] sm:text-[12vw] font-black font-heading uppercase tracking-[0.2em] text-transparent pointer-events-none select-none z-[1] text-center w-full block lg:hidden"
         style={{ WebkitTextStroke: "1px rgba(235, 0, 0, 0.45)" }}
-        animate={{ opacity: isMobileBanner && mobilePhase === "image" ? 0.35 : 0.12 }}
+        animate={{ opacity: 0.12 }}
         transition={{ duration: 0.7, ease: "easeInOut" }}
       >
         DISCIPLINE
       </motion.div>
 
-      {/* Mobile hero — centered on screen (no translateX drift) */}
-      <motion.div
-        className="rf-mobile-hero-wrap absolute left-0 right-0 top-[9%] z-[2] pointer-events-none lg:hidden h-[min(46vh,380px)]"
-        animate={{
-          opacity: mobilePhase === "image" ? 1 : 0.25,
-        }}
-        transition={{ duration: 0.85, ease: "easeInOut" }}
-      >
-        <div className="rf-mobile-hero-card relative h-full w-[min(88vw,320px)] max-w-full rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a]/90 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/30 pointer-events-none" />
+      {/* Mobile hero — always sharp & full brightness (no fade/blur cycle) */}
+      <div className="rf-mobile-hero-wrap absolute left-0 right-0 top-[9%] z-[2] pointer-events-none lg:hidden h-[min(46vh,380px)]">
+        <div className="rf-mobile-hero-card relative h-full w-[min(88vw,320px)] max-w-full rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a]/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/60 via-transparent to-transparent pointer-events-none" />
           <div className="relative z-[1] h-full w-full rf-mobile-hero-img">
             <HeroCutoutImage
               priority
               mobile
               sizes="88vw"
-              className="contrast-[1.08] saturate-[1.05]"
+              className="contrast-[1.12] brightness-110 saturate-[1.08]"
             />
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* 4. LAYER: CONTENT (2 Column Layout) */}
       <motion.div
-        style={{ opacity: contentFade, y: contentY }}
-        className="relative z-20 flex flex-col lg:flex-row items-center justify-between w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 pt-[min(42vh,360px)] sm:pt-[38vh] lg:pt-20 pb-8 gap-12 lg:gap-8 h-full min-h-[85vh] lg:min-h-[80vh]"
+        style={
+          enableScrollFx
+            ? { opacity: contentFade, y: contentY }
+            : undefined
+        }
+        className="relative z-20 flex flex-col lg:flex-row items-center justify-between w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 pt-[min(42vh,360px)] sm:pt-[38vh] lg:pt-20 pb-8 gap-12 lg:gap-8 lg:min-h-[85vh]"
       >
         {/* LEFT COLUMN: TEXT (Centered on mobile, left-aligned on desktop) */}
         <div className="flex flex-col items-center lg:items-start justify-center w-full max-w-full lg:w-[52%] text-center lg:text-left mx-auto">
-          {/* Mobile: blur this block during 1s image beat; desktop unchanged */}
-          <motion.div
-            className="w-full lg:opacity-100 lg:[filter:none]"
-            animate={{
-              opacity: !isMobileBanner || mobilePhase === "text" ? 1 : 0.25,
-              filter: !isMobileBanner || mobilePhase === "text" ? "blur(0px)" : "blur(10px)",
-            }}
-            transition={{ duration: 0.7, ease: "easeInOut" }}
-          >
+          <div className="w-full lg:opacity-100">
           {/* Pre-Heading Accent - Refined */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -224,7 +199,7 @@ export default function Banner() {
               Helping you build a stronger body, sharper mind, and unstoppable discipline.
             </p>
           </motion.div>
-          </motion.div>
+          </div>
 
           {/* Community Proof - Modern Rectangular Style */}
           <motion.div
@@ -236,7 +211,7 @@ export default function Banner() {
             {/* Desktop Layout (Standard flex row) */}
             <div className="hidden sm:flex flex-row items-center justify-start gap-10 px-4">
               <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">133K+ IG</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">136K+ IG</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Reach</div>
               </a>
               <div className="w-[1px] h-10 bg-white/10" />
@@ -260,7 +235,7 @@ export default function Banner() {
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
-                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">133K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">136K+</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">IG</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Reach</span>
               </a>

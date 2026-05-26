@@ -52,11 +52,13 @@ export function FAQ() {
         >
           <span className="text-[#eb0000] text-sm tracking-[0.4em] font-bold uppercase mb-4 block">Information Hub</span>
           <h2
-            className="text-white text-4xl md:text-6xl font-black uppercase tracking-tighter"
-            style={{ fontFamily: '"Orbitron", sans-serif' }}
+            className="text-white text-4xl md:text-6xl font-black uppercase tracking-tighter font-heading"
           >
             THE <span className="text-[#eb0000]">BLUEPRINT</span> FAQ
           </h2>
+          <p className="text-[#96979c] text-xs md:text-sm mt-4 tracking-wide">
+            Questions in English · Answers in Telugu (Romanized)
+          </p>
         </motion.div>
 
         <motion.div
@@ -114,7 +116,7 @@ export function FaqItem({ question, answer, isOpen, onToggle, childVariants }: {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.5, ease: [0.2, 0.65, 0.3, 0.9] }}
           >
-            <div className="px-8 pb-8 pt-0 text-[#96979c] text-sm md:text-base leading-relaxed font-light border-t border-white/5 mt-2 pt-6 second">
+            <div className="px-8 pb-8 pt-0 text-[#c8c8cc] text-sm md:text-base leading-relaxed font-normal border-t border-white/5 mt-2 pt-6 second">
               {answer}
             </div>
           </motion.div>

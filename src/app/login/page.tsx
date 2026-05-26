@@ -68,7 +68,7 @@ export default function LoginPage() {
           </p>
           <div className="flex gap-8 mt-12">
             <div>
-              <p className="text-white text-2xl font-black">133K+</p>
+              <p className="text-white text-2xl font-black">136K+</p>
               <p className="text-text-secondary text-xs uppercase tracking-widest">IG Athletes</p>
             </div>
             <div>

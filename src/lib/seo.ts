@@ -99,22 +99,22 @@ export const HOME_FAQS = [
   {
     question: "Who is the RahulFitzz Blueprint designed for?",
     answer:
-      "High-performance athletes at any level — from beginners in Hyderabad to seasoned lifters — who want a structured path to physical transformation.",
+      "Hyderabad, Telangana and Andhra Pradesh athletes — beginners to advanced. Clear plans, daily discipline, real transformation.",
   },
   {
-    question: "Where is RahulFitzz based?",
+    question: "Does the AI Coach give Telugu-style diet and workout plans?",
     answer:
-      "RahulFitzz is based in Hyderabad, India, serving a global digital community with in-person training hubs and online programs.",
+      "Yes — local foods like idli, dosa, pappu, sambar, pesarattu in diet plans; Romanized Telugu tips included.",
   },
   {
     question: "How do giveaways and community points work?",
     answer:
-      "Earn points by following on Instagram, referring friends, daily streaks, workouts, and community posts — then compete on the leaderboard for prizes.",
+      "Earn points via Instagram follows, referrals, streaks, workouts, and community posts; compete on the leaderboard for prizes.",
   },
   {
     question: "Can brands collaborate with RahulFitzz?",
     answer:
-      "Yes. Reach out at collab@rahulfitzz.com for fitness brand partnerships, sponsored content, and campaign integrations across 165K+ combined followers.",
+      "Yes — email collab@rahulfitzz.com for partnerships across 136K+ IG, 97K+ YT, and 70K+ FB reach.",
   },
 ] as const;
 

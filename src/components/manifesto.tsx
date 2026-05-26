@@ -21,13 +21,13 @@ const lineVariant = {
 
 export default function Manifesto() {
     return (
-        <section id="about" className="relative bg-[#050505] w-full py-40 md:py-64 overflow-hidden border-b border-white/5">
+        <section id="about" className="relative bg-[#050505] w-full py-12 sm:py-20 md:py-40 lg:py-52 overflow-x-hidden border-b border-white/5 scroll-mt-24">
             {/* Ambient Background Detail */}
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,_rgba(235,0,0,0.03)_0%,_transparent_50%)] pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-start">
 
                     {/* Left Column: Heading & Visual */}
                     <div className="lg:col-span-5">
@@ -41,10 +41,7 @@ export default function Manifesto() {
                             <span className="text-[#eb0000] text-xs tracking-[0.6em] font-bold uppercase mb-6 block">
                                 The Identity
                             </span>
-                            <h1
-                                className="text-white text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-12"
-                                style={{ fontFamily: '"Orbitron", sans-serif' }}
-                            >
+                            <h1 className="text-white text-[clamp(2.5rem,12vw,4.5rem)] md:text-9xl font-black font-heading uppercase tracking-tighter leading-[0.85] mb-8 md:mb-12">
                                 I'M <br />
                                 <span className="text-[#eb0000]">RAHUL.</span>
                             </h1>
@@ -54,7 +51,7 @@ export default function Manifesto() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.5, duration: 1 }}
-                                className="relative mt-12 aspect-square md:aspect-[4/5] rounded-none overflow-hidden border border-white/10 group shadow-2xl"
+                                className="relative mt-8 md:mt-12 aspect-[4/5] max-h-[min(72vw,320px)] sm:max-h-[380px] md:max-h-none md:aspect-[4/5] w-full mx-auto rounded-none overflow-hidden border border-white/10 group shadow-2xl"
                             >
                                 <Image
                                     src={bannerImg}
@@ -73,12 +70,12 @@ export default function Manifesto() {
                     </div>
 
                     {/* Right Column: Content */}
-                    <div className="lg:col-span-7 flex flex-col gap-16 lg:mt-24">
+                    <div className="lg:col-span-7 flex flex-col gap-8 md:gap-12 lg:mt-24">
                         <motion.div
                             custom={1} variants={lineVariant} initial="hidden" whileInView="visible" viewport={{ once: true }}
                             className="max-w-xl"
                         >
-                            <h3 className="text-white text-3xl md:text-5xl font-black tracking-tighter mb-8 leading-[1.1]">
+                            <h3 className="text-white text-[clamp(1.35rem,5.5vw,2rem)] md:text-5xl font-black tracking-tighter mb-6 md:mb-8 leading-[1.15] break-words">
                                 THIS IS MORE THAN FITNESS — <br />
                                 <span className="text-[#eb0000] italic">IT'S DISCIPLINE.</span>
                             </h3>
@@ -105,12 +102,9 @@ export default function Manifesto() {
 
                         <motion.div
                             custom={3} variants={lineVariant} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                            className="mt-8"
+                            className="mt-2 md:mt-8"
                         >
-                            <h4
-                                className="text-white text-4xl md:text-7xl font-black uppercase tracking-tighter leading-none"
-                                style={{ fontFamily: '"Orbitron", sans-serif' }}
-                            >
+                            <h4 className="text-white text-[clamp(1.75rem,8vw,2.75rem)] md:text-7xl font-black font-heading uppercase tracking-tighter leading-[1.05] break-words">
                                 THIS IS JUST <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-800">
                                     THE BEGINNING.
