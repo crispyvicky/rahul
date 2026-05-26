@@ -22,7 +22,7 @@ export function FAQ() {
   };
 
   const childVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
@@ -63,9 +63,9 @@ export function FAQ() {
 
         <motion.div
           variants={containerVariants}
-          initial="hidden"
+          initial={false}
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="space-y-4"
         >
           {faqs.map((faq, index) => (
@@ -93,6 +93,7 @@ export function FaqItem({ question, answer, isOpen, onToggle, childVariants }: {
   return (
     <motion.div
       variants={childVariants}
+      initial={false}
       className={`group border border-white/5 transition-all duration-500 overflow-hidden rounded-2xl ${isOpen ? "bg-white/[0.03] border-[#eb0000]/30 shadow-2xl" : "bg-[#0a0a0a] hover:border-white/20"
         }`}
     >

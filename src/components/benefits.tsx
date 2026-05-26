@@ -15,7 +15,7 @@ function Benefits() {
 
   const childVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { delay: 2 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   };
 
   return (
@@ -25,7 +25,7 @@ function Benefits() {
           Benefits overview
         </p>
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
           className="text-white text-4xl md:text-7xl font-black text-center uppercase tracking-tighter"
@@ -35,7 +35,7 @@ function Benefits() {
         </motion.h2>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
           className="text-center mt-6"
@@ -50,8 +50,9 @@ function Benefits() {
         </motion.div>
         <motion.div
           variants={containerVariants}
-          initial="hidden"
+          initial={false}
           whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
           className="flex flex-col md:flex-row xl:flex items-center justify-center gap-12 py-12"
         >
           <Features features={features} childVariants={childVariants} />

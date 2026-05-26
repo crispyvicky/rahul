@@ -33,9 +33,9 @@ export default function Manifesto() {
                     <div className="lg:col-span-5">
                         <motion.div
                             variants={lineVariant}
-                            initial="hidden"
+                            initial={false}
                             whileInView="visible"
-                            viewport={{ once: true }}
+                            viewport={{ once: true, amount: 0.1 }}
                             custom={0}
                         >
                             <span className="text-[#eb0000] text-xs tracking-[0.6em] font-bold uppercase mb-6 block">
@@ -48,7 +48,7 @@ export default function Manifesto() {
 
                             {/* Added Visual as requested */}
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
+                                initial={false}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.5, duration: 1 }}
                                 className="relative mt-8 md:mt-12 aspect-[4/5] max-h-[min(72vw,320px)] sm:max-h-[380px] md:max-h-none md:aspect-[4/5] w-full mx-auto rounded-none overflow-hidden border border-white/10 group shadow-2xl"
@@ -72,7 +72,7 @@ export default function Manifesto() {
                     {/* Right Column: Content */}
                     <div className="lg:col-span-7 flex flex-col gap-8 md:gap-12 lg:mt-24">
                         <motion.div
-                            custom={1} variants={lineVariant} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                            custom={1} variants={lineVariant} initial={false} whileInView="visible" viewport={{ once: true, amount: 0.1 }}
                             className="max-w-xl"
                         >
                             <h3 className="text-white text-[clamp(1.35rem,5.5vw,2rem)] md:text-5xl font-black tracking-tighter mb-6 md:mb-8 leading-[1.15] break-words">
@@ -85,7 +85,7 @@ export default function Manifesto() {
                         </motion.div>
 
                         <motion.div
-                            custom={2} variants={lineVariant} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                            custom={2} variants={lineVariant} initial={false} whileInView="visible" viewport={{ once: true, amount: 0.1 }}
                             className="relative group py-4"
                         >
                             <div className="absolute left-0 top-0 w-[2px] h-full bg-gradient-to-b from-[#eb0000] to-transparent" />
@@ -101,7 +101,7 @@ export default function Manifesto() {
                         </motion.div>
 
                         <motion.div
-                            custom={3} variants={lineVariant} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                            custom={3} variants={lineVariant} initial={false} whileInView="visible" viewport={{ once: true, amount: 0.1 }}
                             className="mt-2 md:mt-8"
                         >
                             <h4 className="text-white text-[clamp(1.75rem,8vw,2.75rem)] md:text-7xl font-black font-heading uppercase tracking-tighter leading-[1.05] break-words">

@@ -6,14 +6,15 @@ export default function Services() {
   return (
     <motion.section
       id="services"
-      initial={{ opacity: 0 }}
+      initial={false}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
+      viewport={{ once: true, amount: 0.1 }}
       className="pt-24 bg-[#0a0a0a]"
     >
       <div className="max-w-5xl mx-auto px-6 mb-16 text-center">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           style={{ fontFamily: '"Orbitron", sans-serif' }}
@@ -22,7 +23,7 @@ export default function Services() {
           Brand <span className="text-[#eb0000]">Portfolio</span>
         </motion.h2>
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-[#96979c] text-lg md:text-xl font-light leading-relaxed max-w-4xl mx-auto"
@@ -43,7 +44,7 @@ export default function Services() {
 
 const FitnessPanel = ({ activity, text, imageUrl, index }: any) => (
   <motion.div
-    initial={{ opacity: 0, y: 30 }}
+    initial={false}
     whileInView={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: index * 0.1 }}
     viewport={{ once: true }}
