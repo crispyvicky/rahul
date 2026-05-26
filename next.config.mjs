@@ -4,13 +4,33 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
+  /** Cache platform pages on in-app navigation (Gym Mode, dashboard, etc.) */
+  cacheOnFrontEndNav: true,
+  reloadOnOnline: true,
   fallbacks: {
     document: "/offline",
   },
+  customWorkerSrc: "worker",
+  extendDefaultRuntimeCaching: true,
   workboxOptions: {
     // Avoid forcing an immediate full reload when user returns from a call/tab switch
     skipWaiting: false,
     clientsClaim: true,
+    runtimeCaching: [
+      {
+        urlPattern: ({ url: { pathname }, sameOrigin }) =>
+          sameOrigin && !pathname.startsWith("/api/"),
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "pages",
+          networkTimeoutSeconds: 4,
+          expiration: {
+            maxEntries: 48,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          },
+        },
+      },
+    ],
   },
 });
 

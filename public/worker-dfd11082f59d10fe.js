@@ -1,0 +1,1 @@
+(()=>{"use strict";let e="/offline",t=self.fallback;self.fallback=async r=>{if(t)try{let e=await t(r);if(e&&"error"!==e.type)return e}catch{}let{destination:a}=r;if("document"===a||""===a){let t=await caches.match(e,{ignoreSearch:!0});if(t)return t;try{let t=await fetch(e,{cache:"no-store"});if(t.ok)return t}catch{}}return Response.error()}})();

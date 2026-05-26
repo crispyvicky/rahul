@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import LayoutRouter from "../components/layout-router";
 import AuthProvider from "../components/auth-provider";
 import DeferredAnalytics from "@/components/deferred-analytics";
+import PwaRouteRecovery from "@/components/pwa-route-recovery";
 import { fontClassNames, spaceGrotesk } from "@/lib/fonts";
 import { buildPageMetadata, OG_IMAGE, SITE, SITE_URL } from "@/lib/seo";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
           <LayoutRouter>{children}</LayoutRouter>
         </AuthProvider>
         <DeferredAnalytics />
+        <PwaRouteRecovery />
         <Toaster position="top-center" toastOptions={{ className: "text-sm" }} />
       </body>
     </html>
