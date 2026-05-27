@@ -12,7 +12,6 @@ import {
   Swords,
   Users,
   Dumbbell,
-  Crown,
   Gift,
   Pill,
   Settings,
@@ -44,14 +43,13 @@ const tourAttr: Record<string, string> = {
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/book-gym", icon: CalendarCheck, label: "Gym Booking", badge: "NEW" as const },
   { href: "/ai-coach", icon: Brain, label: "AI Coach" },
   { href: "/supplements", icon: Pill, label: "Supplements" },
   { href: "/challenges", icon: Swords, label: "Challenges" },
   { href: "/community", icon: Users, label: "Community" },
   { href: "/gym-mode", icon: Dumbbell, label: "Gym Mode" },
   { href: "/giveaways", icon: Gift, label: "Giveaways" },
-  { href: "/premium", icon: Crown, label: "Premium" },
+  { href: "/book-gym", icon: CalendarCheck, label: "Gym Booking", badge: "NEW" as const },
 ];
 
 const bottomItems = [

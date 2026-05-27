@@ -297,6 +297,21 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   if (!active || !step || steps.length === 0) return null;
 
   const showSpotlight = Boolean(step.target && spotlight);
+  const compactMobileCard = isMobile && (step.openMobileMenu || step.showOpenMenuAction);
+  const tooltipStyle: React.CSSProperties = compactMobileCard
+    ? {
+        right: "max(0.5rem, env(safe-area-inset-right))",
+        left: "auto",
+        top: "auto",
+        bottom: "max(0.5rem, env(safe-area-inset-bottom))",
+        width: "min(16.75rem, calc(100vw - 1rem))",
+        paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
+      }
+    : {
+        top: tooltipPos.top,
+        left: tooltipPos.left,
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+      };
 
   return (
     <div
@@ -353,35 +368,47 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "fixed z-[323] w-[min(calc(100vw-1.5rem),22rem)] pointer-events-auto",
-          "bg-surface-card border border-white/10 rounded-2xl shadow-2xl p-4 sm:p-5",
-          "max-h-[min(75dvh,28rem)] overflow-y-auto overscroll-contain"
+          "fixed z-[323] pointer-events-auto",
+          compactMobileCard
+            ? "w-[min(calc(100vw-1rem),16.75rem)] rounded-xl p-3"
+            : "w-[min(calc(100vw-1.5rem),22rem)] rounded-2xl p-4 sm:p-5",
+          "bg-surface-card border border-white/10 shadow-2xl",
+          compactMobileCard
+            ? "max-h-[min(52dvh,21rem)] overflow-y-auto overscroll-contain"
+            : "max-h-[min(75dvh,28rem)] overflow-y-auto overscroll-contain"
         )}
-        style={{
-          top: tooltipPos.top,
-          left: tooltipPos.left,
-          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
-        }}
+        style={tooltipStyle}
       >
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <p className="text-text-muted text-[10px] font-bold uppercase tracking-[0.25em]">
+        <div className={cn("flex items-start justify-between gap-2", compactMobileCard ? "mb-1.5" : "mb-2")}>
+          <p className={cn("text-text-muted font-bold uppercase", compactMobileCard ? "text-[9px] tracking-[0.2em]" : "text-[10px] tracking-[0.25em]")}>
             Step {stepIndex + 1} of {steps.length}
           </p>
           <button
             type="button"
             onClick={() => endTour(true)}
-            className="min-h-10 min-w-10 rounded-xl flex items-center justify-center text-text-secondary hover:text-white touch-manipulation"
+            className={cn(
+              "rounded-xl flex items-center justify-center text-text-secondary hover:text-white touch-manipulation",
+              compactMobileCard ? "min-h-8 min-w-8" : "min-h-10 min-w-10"
+            )}
             aria-label="Close tour"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
-        <h2 id="app-tour-title" className="text-white font-bold text-base leading-snug mb-2">
+        <h2
+          id="app-tour-title"
+          className={cn(
+            "text-white font-bold leading-snug",
+            compactMobileCard ? "text-sm mb-1.5" : "text-base mb-2"
+          )}
+        >
           {step.title}
         </h2>
-        <p className="text-text-secondary text-sm leading-relaxed">{step.body}</p>
+        <p className={cn("text-text-secondary leading-relaxed", compactMobileCard ? "text-xs" : "text-sm")}>
+          {step.body}
+        </p>
         {needsMenuToContinue && (
-          <p className="mt-3 text-amber-400/90 text-xs font-medium leading-relaxed">
+          <p className={cn("text-amber-400/90 text-xs font-medium leading-relaxed", compactMobileCard ? "mt-2" : "mt-3")}>
             Open the ☰ menu first, then tap Next (or Skip tour).
           </p>
         )}
@@ -389,16 +416,22 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
           <button
             type="button"
             onClick={handleOpenMenu}
-            className="mt-4 w-full min-h-11 px-4 rounded-xl border border-brand/40 bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest touch-manipulation"
+            className={cn(
+              "w-full px-4 rounded-xl border border-brand/40 bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest touch-manipulation",
+              compactMobileCard ? "mt-2.5 min-h-9" : "mt-4 min-h-11"
+            )}
           >
             Open menu
           </button>
         )}
-        <div className="flex flex-col gap-2 mt-5 sm:flex-row">
+        <div className={cn("flex flex-col gap-2 sm:flex-row", compactMobileCard ? "mt-3" : "mt-5")}>
           <button
             type="button"
             onClick={() => endTour(true)}
-            className="min-h-11 flex-1 px-4 rounded-xl border border-white/10 text-text-secondary text-xs font-bold uppercase tracking-widest hover:bg-white/5 touch-manipulation"
+            className={cn(
+              "flex-1 px-4 rounded-xl border border-white/10 text-text-secondary text-xs font-bold uppercase tracking-widest hover:bg-white/5 touch-manipulation",
+              compactMobileCard ? "min-h-9" : "min-h-11"
+            )}
           >
             Skip tour
           </button>
@@ -407,7 +440,8 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
             onClick={goNext}
             disabled={needsMenuToContinue}
             className={cn(
-              "min-h-11 flex-1 px-4 rounded-xl text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1 touch-manipulation",
+              "flex-1 px-4 rounded-xl text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1 touch-manipulation",
+              compactMobileCard ? "min-h-9" : "min-h-11",
               needsMenuToContinue
                 ? "bg-white/10 text-text-muted cursor-not-allowed"
                 : "bg-brand hover:bg-brand-dark"
