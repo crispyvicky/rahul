@@ -43,20 +43,27 @@ async function waitForTarget(selector: string, maxMs = 1400): Promise<HTMLElemen
   return null;
 }
 
-async function ensureMobileMenuForStep(step: TourStep, isMobile: boolean) {
+async function ensureMobileMenuForStep(
+  step: TourStep,
+  isMobile: boolean,
+  syncMenuOpen: (open: boolean) => void
+) {
   if (!isMobile) return;
   if (step.openMobileMenu) {
+    syncMenuOpen(true);
     dispatchOpenMobileMenu();
     await new Promise((r) => setTimeout(r, 520));
   } else if (!step.showOpenMenuAction) {
+    syncMenuOpen(false);
     dispatchCloseMobileMenu();
     await new Promise((r) => setTimeout(r, 120));
   }
 }
 
+/** Only the menu intro step requires a manual open — nav steps auto-open in layoutStep. */
 function stepRequiresOpenMenu(step: TourStep | undefined, isMobile: boolean) {
   if (!isMobile || !step) return false;
-  return Boolean(step.openMobileMenu);
+  return Boolean(step.showOpenMenuAction && !step.openMobileMenu);
 }
 
 function measureRect(el: HTMLElement | null): Rect | null {
@@ -226,7 +233,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   const layoutStep = useCallback(async () => {
     if (!active || !step) return;
 
-    await ensureMobileMenuForStep(step, isMobile);
+    await ensureMobileMenuForStep(step, isMobile, setMobileMenuOpen);
 
     let el: HTMLElement | null = null;
     if (step.target) {
@@ -280,6 +287,8 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
   };
 
   const handleOpenMenu = () => {
+    // Update immediately so "Next" unlocks without waiting for sidebar event propagation.
+    setMobileMenuOpen(true);
     dispatchOpenMobileMenu();
     if (step.target === '[data-tour="mobile-menu"]') return;
     setTimeout(() => void layoutStep(), 550);
@@ -291,7 +300,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
 
   return (
     <div
-      className="fixed inset-0 z-[220] pointer-events-none"
+      className="fixed inset-0 z-[320] pointer-events-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="app-tour-title"
@@ -318,7 +327,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
       {showSpotlight && spotlight && (
         <>
           <div
-            className="fixed pointer-events-none z-[221] rounded-2xl ring-2 ring-brand"
+            className="fixed pointer-events-none z-[321] rounded-2xl ring-2 ring-brand"
             style={{
               top: spotlight.top - SPOTLIGHT_PAD,
               left: spotlight.left - SPOTLIGHT_PAD,
@@ -330,7 +339,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="fixed z-[222] pointer-events-none text-brand"
+            className="fixed z-[322] pointer-events-none text-brand"
             style={fingerPosition(resolvedPlacement, spotlight)}
           >
             <Hand className="w-9 h-9 -rotate-[25deg] animate-bounce" strokeWidth={2.5} />
@@ -344,7 +353,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "fixed z-[223] w-[min(calc(100vw-1.5rem),22rem)] pointer-events-auto",
+          "fixed z-[323] w-[min(calc(100vw-1.5rem),22rem)] pointer-events-auto",
           "bg-surface-card border border-white/10 rounded-2xl shadow-2xl p-4 sm:p-5",
           "max-h-[min(75dvh,28rem)] overflow-y-auto overscroll-contain"
         )}

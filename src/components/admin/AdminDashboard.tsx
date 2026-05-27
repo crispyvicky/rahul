@@ -529,6 +529,14 @@ export default function AdminDashboard() {
                           IG: {c.user_profiles.instagram_handle}
                         </p>
                       )}
+                      {c.instagram_username && (
+                        <p className="text-text-muted text-xs mt-1">
+                          Claim IG username: @{String(c.instagram_username).replace(/^@+/, "")}
+                        </p>
+                      )}
+                      {c.phone && (
+                        <p className="text-text-muted text-xs mt-1">Claim phone: {c.phone}</p>
+                      )}
                       {c.proof_display_url || c.proof_url ? (
                         <div className="mt-3 space-y-2">
                           <a

@@ -58,6 +58,10 @@ export default function GiveawayPage() {
   const [data, setData] = useState<GiveawayData | null>(null);
   const [proofFiles, setProofFiles] = useState<Record<string, File>>({});
   const [proofPreviews, setProofPreviews] = useState<Record<string, string>>({});
+  const [followClaimDetails, setFollowClaimDetails] = useState({
+    instagramUsername: "",
+    phone: "",
+  });
   const [compressingProof, setCompressingProof] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const syncedOnPage = useRef(false);
@@ -143,6 +147,21 @@ export default function GiveawayPage() {
     setError(null);
     setSuccessMsg(null);
     try {
+      if (action === "follow") {
+        const instagramUsername = followClaimDetails.instagramUsername.trim().replace(/^@+/, "");
+        const phone = followClaimDetails.phone.trim();
+        if (!instagramUsername) {
+          setError("Enter your Instagram username before submitting the follow claim.");
+          setClaiming(null);
+          return;
+        }
+        if (!phone || phone.replace(/\D/g, "").length < 10) {
+          setError("Enter a valid phone number (at least 10 digits) before submitting.");
+          setClaiming(null);
+          return;
+        }
+      }
+
       let proofUrl: string | undefined;
       const file = proofFiles[action];
       const needsProof = action === "follow" || action === "share_story";
@@ -171,7 +190,16 @@ export default function GiveawayPage() {
       const res = await fetch("/api/giveaway/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user!.id, action, proofUrl }),
+        body: JSON.stringify({
+          userId: user!.id,
+          action,
+          proofUrl,
+          instagramUsername:
+            action === "follow"
+              ? followClaimDetails.instagramUsername.trim().replace(/^@+/, "")
+              : undefined,
+          phone: action === "follow" ? followClaimDetails.phone.trim() : undefined,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -418,6 +446,48 @@ export default function GiveawayPage() {
                       <p className="text-[10px] text-text-muted leading-relaxed">
                         1) Open Instagram · 2) Upload screenshot · 3) Submit for admin review
                       </p>
+                      {action.action === "follow" && (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <label className="block text-[10px] text-text-muted">
+                            <span className="font-bold uppercase tracking-wider text-text-secondary">
+                              Instagram username
+                            </span>
+                            <input
+                              type="text"
+                              inputMode="text"
+                              autoComplete="off"
+                              placeholder="@yourusername"
+                              value={followClaimDetails.instagramUsername}
+                              onChange={(e) =>
+                                setFollowClaimDetails((prev) => ({
+                                  ...prev,
+                                  instagramUsername: e.target.value,
+                                }))
+                              }
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs text-white placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand"
+                            />
+                          </label>
+                          <label className="block text-[10px] text-text-muted">
+                            <span className="font-bold uppercase tracking-wider text-text-secondary">
+                              Phone number
+                            </span>
+                            <input
+                              type="tel"
+                              inputMode="tel"
+                              autoComplete="tel"
+                              placeholder="9876543210"
+                              value={followClaimDetails.phone}
+                              onChange={(e) =>
+                                setFollowClaimDetails((prev) => ({
+                                  ...prev,
+                                  phone: e.target.value,
+                                }))
+                              }
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs text-white placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand"
+                            />
+                          </label>
+                        </div>
+                      )}
                       <label className="block text-[10px] text-text-muted">
                         <span className="font-bold uppercase tracking-wider text-text-secondary">
                           Screenshot required (auto-resized)
@@ -498,7 +568,14 @@ export default function GiveawayPage() {
                     </button>
                     <button
                       type="button"
-                      disabled={!!claiming || !canEarn || !proofFiles[action.action]}
+                      disabled={
+                        !!claiming ||
+                        !canEarn ||
+                        !proofFiles[action.action] ||
+                        (action.action === "follow" &&
+                          (!followClaimDetails.instagramUsername.trim() ||
+                            followClaimDetails.phone.trim().replace(/\D/g, "").length < 10))
+                      }
                       onClick={() => handleAction(action.action)}
                       className="px-4 py-2 bg-brand/10 border border-brand/20 text-brand font-bold text-[10px] uppercase rounded-lg flex items-center gap-1 disabled:opacity-50"
                     >

@@ -498,7 +498,9 @@ export async function getWinners(giveawayId?: string) {
 export async function createPendingClaim(
   userId: string,
   action: string,
-  proofUrl?: string | null
+  proofUrl?: string | null,
+  instagramUsername?: string | null,
+  phone?: string | null
 ) {
   const db = getSupabaseAdmin();
   const points = ACTION_POINTS[action] ?? 0;
@@ -533,6 +535,8 @@ export async function createPendingClaim(
     points,
     status: "pending",
     proof_url: proofUrl || null,
+    instagram_username: instagramUsername || null,
+    phone: phone || null,
   });
 
   if (error) {

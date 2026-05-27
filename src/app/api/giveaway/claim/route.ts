@@ -21,7 +21,7 @@ const PENDING_ACTIONS = new Set<PointActionKey>(["follow", "share_story"]);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId: bodyUserId, action, proofUrl } = body;
+    const { userId: bodyUserId, action, proofUrl, instagramUsername, phone } = body;
 
     if (!bodyUserId || !action || !(action in POINT_ACTIONS)) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -69,7 +69,39 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
-      const result = await createPendingClaim(userId, actionKey, proofUrl.trim());
+      const followMeta =
+        actionKey === "follow"
+          ? {
+              instagramUsername:
+                typeof instagramUsername === "string"
+                  ? instagramUsername.trim().replace(/^@+/, "")
+                  : "",
+              phone: typeof phone === "string" ? phone.trim() : "",
+            }
+          : null;
+
+      if (actionKey === "follow") {
+        if (!followMeta?.instagramUsername) {
+          return NextResponse.json(
+            { error: "Instagram username is required for follow claims." },
+            { status: 400 }
+          );
+        }
+        if (!followMeta.phone || followMeta.phone.replace(/\D/g, "").length < 10) {
+          return NextResponse.json(
+            { error: "Valid phone number is required for follow claims." },
+            { status: 400 }
+          );
+        }
+      }
+
+      const result = await createPendingClaim(
+        userId,
+        actionKey,
+        proofUrl.trim(),
+        followMeta?.instagramUsername || null,
+        followMeta?.phone || null
+      );
       if (!result.ok && result.error) {
         return NextResponse.json({ error: result.error }, { status: 409 });
       }

@@ -8,10 +8,18 @@ CREATE TABLE IF NOT EXISTS point_claim_requests (
   points INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied')),
   proof_url TEXT,
+  instagram_username TEXT,
+  phone TEXT,
   reviewed_by TEXT,
   reviewed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE point_claim_requests
+  ADD COLUMN IF NOT EXISTS instagram_username TEXT;
+
+ALTER TABLE point_claim_requests
+  ADD COLUMN IF NOT EXISTS phone TEXT;
 
 -- Partial unique: only one pending per user+action (Postgres 15+ use partial index)
 DROP INDEX IF EXISTS point_claim_requests_one_pending;
