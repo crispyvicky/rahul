@@ -341,15 +341,14 @@ export async function sendCampaignPushBlast(campaign: NotificationCampaign) {
         body,
         tag: `rf-campaign-${campaign.id}`,
         url: "/dashboard",
+        campaignId: campaign.id,
+        userId: sub.user_id as string,
       }
     );
 
     if (result.ok) {
       delivered += 1;
-      await db.from("notification_campaign_seen").upsert(
-        { campaign_id: campaign.id, user_id: sub.user_id as string },
-        { onConflict: "campaign_id,user_id" }
-      );
+      // Do not mark seen here — FCM accept ≠ user saw it. Client/SW marks seen after display.
       await db
         .from("push_subscriptions")
         .update({

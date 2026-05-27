@@ -13,6 +13,8 @@ type PushPayload = {
   body: string;
   tag?: string;
   url?: string;
+  campaignId?: string;
+  userId?: string;
 };
 
 let vapidConfigured = false;
@@ -54,6 +56,8 @@ export async function sendWebPush(
         url: payload.url || "/dashboard",
         icon: "/icon.png",
         badge: "/icon.png",
+        campaignId: payload.campaignId,
+        userId: payload.userId,
       })
     );
     return { ok: true };

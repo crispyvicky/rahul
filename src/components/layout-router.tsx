@@ -9,6 +9,7 @@ import Topbar from "@/components/platform/topbar";
 import PlatformTourHost from "@/components/app-tour/platform-tour-host";
 import CampaignNotificationHost from "@/components/platform/campaign-notification-host";
 import PushSubscriptionHost from "@/components/platform/push-subscription-host";
+import ServiceWorkerRegister from "@/components/platform/service-worker-register";
 import NotificationPermissionPrompt from "@/components/platform/notification-permission-prompt";
 import AppSessionResumeHost from "@/components/app-session-resume-host";
 
@@ -61,6 +62,7 @@ export default function LayoutRouter({
           </main>
         </div>
         <AppSessionResumeHost scrollRootId="rf-platform-main" />
+        <ServiceWorkerRegister />
         <CampaignNotificationHost />
         <PushSubscriptionHost />
         <NotificationPermissionPrompt />

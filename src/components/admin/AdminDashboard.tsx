@@ -48,6 +48,7 @@ export default function AdminDashboard() {
   const [campaignError, setCampaignError] = useState<string | null>(null);
   const [updatingCampaignId, setUpdatingCampaignId] = useState<string | null>(null);
   const [pushReadiness, setPushReadiness] = useState<any>(null);
+  const [testingPush, setTestingPush] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [logFilter, setLogFilter] = useState("");
@@ -324,8 +325,11 @@ export default function AdminDashboard() {
       if (push?.error) {
         alert(`Campaign saved, but push blast was skipped: ${push.error}`);
       } else {
+        const delivered = push?.delivered ?? 0;
+        const total = push?.totalSubscriptions ?? 0;
+        const failed = push?.failed ?? 0;
         alert(
-          `Campaign sent. Push delivered: ${push?.delivered ?? 0}/${push?.totalSubscriptions ?? 0}.`
+          `Campaign sent.\nPush: ${delivered} delivered, ${failed} failed (${total} devices).\n\nIf you don't see it: check Windows/Mac notification center, use Chrome (not incognito), and on localhost set ENABLE_PWA_DEV=true then restart dev server.`
         );
       }
     } catch (e) {
@@ -349,6 +353,25 @@ export default function AdminDashboard() {
       setCampaignError(e instanceof Error ? e.message : "Could not update campaign");
     } finally {
       setUpdatingCampaignId(null);
+    }
+  };
+
+  const sendTestPush = async () => {
+    setTestingPush(true);
+    setCampaignError(null);
+    try {
+      const res = await fetchJson("/api/admin/campaigns/test-push", { method: "POST" });
+      if (!res.success) {
+        alert(res.error || res.hint || "Test push failed");
+      } else {
+        alert(
+          `Test push sent to ${res.delivered}/${res.total} of your device(s).\n\n${res.hint || "Check notification center."}`
+        );
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Test push failed");
+    } finally {
+      setTestingPush(false);
     }
   };
 
@@ -886,7 +909,8 @@ export default function AdminDashboard() {
                       Push readiness
                     </p>
                     <p className="text-text-muted text-xs mt-1">
-                      Background push needs VAPID keys in env + user permission + saved subscription.
+                      Background push needs VAPID keys, user Allow, and service worker. On localhost
+                      add ENABLE_PWA_DEV=true to .env.local and restart dev.
                     </p>
                   </div>
                   <span
@@ -962,6 +986,15 @@ export default function AdminDashboard() {
                         <code className="text-red-300">npx web-push generate-vapid-keys</code>
                       </p>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={sendTestPush}
+                      disabled={testingPush || !pushReadiness.vapidConfigured}
+                      className="w-full py-2.5 bg-white/5 border border-white/10 text-text-secondary font-bold text-xs uppercase tracking-widest rounded-xl hover:text-white hover:border-brand/40 disabled:opacity-50"
+                    >
+                      {testingPush ? "Sending test…" : "Send test push to my devices"}
+                    </button>
                   </>
                 ) : (
                   <p className="text-text-muted text-sm">Could not load push stats.</p>

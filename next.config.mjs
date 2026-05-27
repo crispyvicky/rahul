@@ -2,7 +2,9 @@ import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  // PWA off in dev by default — set ENABLE_PWA_DEV=true in .env.local to test push notifications locally.
+  disable:
+    process.env.NODE_ENV === "development" && process.env.ENABLE_PWA_DEV !== "true",
   register: true,
   /** Cache platform pages on in-app navigation (Gym Mode, dashboard, etc.) */
   cacheOnFrontEndNav: true,

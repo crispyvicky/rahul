@@ -10,6 +10,7 @@ import {
 } from "@/lib/engagement-notifications";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+const STORED_VAPID_KEY = "rahulfitzz_vapid_public_v1";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -46,8 +47,13 @@ export default function PushSubscriptionHost() {
     (async () => {
       try {
         const prefs = loadNotificationPreferences();
-        const registration = await navigator.serviceWorker.ready;
-        const existingSubscription = await registration.pushManager.getSubscription();
+        let registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+          registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        }
+        await navigator.serviceWorker.ready;
+        const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource;
+        let existingSubscription = await registration.pushManager.getSubscription();
 
         if (!prefs.enabled || Notification.permission === "denied") {
           if (existingSubscription) {
@@ -63,15 +69,24 @@ export default function PushSubscriptionHost() {
         }
 
         if (Notification.permission !== "granted") return;
+
+        // Re-subscribe if VAPID public key changed in .env
+        const storedVapid = localStorage.getItem(STORED_VAPID_KEY);
+        if (storedVapid && storedVapid !== VAPID_PUBLIC_KEY && existingSubscription) {
+          await existingSubscription.unsubscribe();
+          existingSubscription = null;
+        }
+        localStorage.setItem(STORED_VAPID_KEY, VAPID_PUBLIC_KEY);
+
         const subscription =
           existingSubscription ||
           (await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+            applicationServerKey: appServerKey,
           }));
 
         if (cancelled || !subscription) return;
-        await fetch("/api/notifications/push-subscriptions", {
+        const res = await fetch("/api/notifications/push-subscriptions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -80,8 +95,13 @@ export default function PushSubscriptionHost() {
             userAgent: navigator.userAgent,
           }),
         });
-      } catch {
-        /* non-blocking */
+        if (!res.ok) {
+          console.warn("[push] failed to save subscription", await res.text());
+        } else {
+          console.info("[push] subscription saved for", userId);
+        }
+      } catch (e) {
+        console.warn("[push] subscribe error", e);
       }
     })();
 

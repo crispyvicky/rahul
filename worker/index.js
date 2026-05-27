@@ -49,7 +49,26 @@ self.addEventListener("push", (event) => {
     },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(title, options);
+      if (data.campaignId && data.userId) {
+        try {
+          await fetch("/api/notifications/campaigns/seen", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: data.userId,
+              campaignId: data.campaignId,
+            }),
+            credentials: "include",
+          });
+        } catch {
+          /* non-blocking */
+        }
+      }
+    })()
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
