@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User, Save, Camera, LogOut } from "lucide-react";
 import { useUserStore, DEMO_USER } from "@/store/use-user-store";
 import { cn } from "@/lib/utils";
 import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
 import { isUuidUserId } from "@/lib/api-guards";
+import {
+  loadVoiceShoutoutSettings,
+  saveVoiceShoutoutSettings,
+  type VoicePreference,
+} from "@/lib/voice-shoutout-settings";
 
 export default function SettingsPage() {
   const { user, updateProfile, login, logout } = useUserStore();
@@ -16,6 +21,14 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voicePreference, setVoicePreference] = useState<VoicePreference>("auto");
+
+  useEffect(() => {
+    const settings = loadVoiceShoutoutSettings();
+    setVoiceEnabled(settings.enabled);
+    setVoicePreference(settings.voicePreference);
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -23,6 +36,10 @@ export default function SettingsPage() {
 
     if (!isUuidUserId(currentUser.id)) {
       updateProfile({ name, instagramHandle: instagram });
+      saveVoiceShoutoutSettings({
+        enabled: voiceEnabled,
+        voicePreference,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       setSaving(false);
@@ -49,6 +66,10 @@ export default function SettingsPage() {
       } else {
         updateProfile({ name, instagramHandle: instagram });
       }
+      saveVoiceShoutoutSettings({
+        enabled: voiceEnabled,
+        voicePreference,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
@@ -137,6 +158,60 @@ export default function SettingsPage() {
             </>
           )}
         </button>
+      </div>
+
+      <div className="bg-surface-card border border-white/5 rounded-2xl p-5 space-y-5">
+        <h3 className="text-white font-bold text-sm uppercase tracking-widest">
+          Voice Shoutouts
+        </h3>
+        <p className="text-text-muted text-xs leading-relaxed">
+          Control spoken dashboard welcomes (morning/evening motivation, English + Telugu mix).
+        </p>
+
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <div>
+            <p className="text-white text-sm font-bold">Enable voice shoutouts</p>
+            <p className="text-text-muted text-xs">
+              Plays one motivational welcome after opening dashboard.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={voiceEnabled}
+            onClick={() => setVoiceEnabled((v) => !v)}
+            className={cn(
+              "relative w-12 h-7 rounded-full transition-colors",
+              voiceEnabled ? "bg-brand" : "bg-white/20"
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-1 h-5 w-5 rounded-full bg-white transition-transform",
+                voiceEnabled ? "translate-x-6" : "translate-x-1"
+              )}
+            />
+          </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-text-muted text-[10px] font-bold uppercase tracking-[0.2em]">
+            Voice Preference
+          </label>
+          <select
+            value={voicePreference}
+            onChange={(e) => setVoicePreference(e.target.value as VoicePreference)}
+            disabled={!voiceEnabled}
+            className={cn(
+              "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-brand transition-colors",
+              !voiceEnabled && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <option value="auto">Auto (recommended)</option>
+            <option value="male">Prefer male voice</option>
+            <option value="female">Prefer female voice</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-surface-card border border-red-500/10 rounded-2xl p-5">

@@ -20,9 +20,76 @@ import { useUserStore, DEMO_USER } from "@/store/use-user-store";
 import { calculateLevel, getStreakEmoji } from "@/lib/utils";
 import type { DashboardGymData } from "@/lib/gym-plan-types";
 import PrizeSheetCard from "@/components/dashboard/prize-sheet-card";
+import { loadVoiceShoutoutSettings } from "@/lib/voice-shoutout-settings";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const DAY_ABBREVS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const SHOUTOUT_SESSION_KEY = "rahulfitzz_voice_welcome_v1";
+const GYM_SHOUTOUTS_ANY_EN = [
+  "Time to lock in. One more rep than yesterday.",
+  "Discipline check. Show up, stay sharp, finish strong.",
+  "No excuses today. Warm up and chase the next level.",
+  "Energy on max. Build muscle, build mindset, build legacy.",
+  "If you are feeling low today, start small. One set can change your mood.",
+  "You are not behind. You are building. Keep going.",
+  "Champions are built on ordinary days like this.",
+  "Your future body is waiting on today's effort.",
+  "Hydrate, breathe, and attack your first set.",
+  "Progress is slow until one day it is obvious. Stay consistent.",
+  "Mind tired? Train anyway. Confidence comes after action.",
+  "No perfect day is coming. This is the day.",
+  "Start now. No overthinking, no delay.",
+  "Action over words. Prove it with work.",
+  "Stop scrolling and start training.",
+  "No shortcuts. Only consistent grind.",
+  "Your body reflects your habits. Choose stronger ones.",
+  "If nothing changes, nothing changes. Move now.",
+  "Train now or stay the same.",
+  "Pain now, pride later. Push one more rep.",
+  "You are stronger than your excuses.",
+  "No discipline means average results. Raise your standard.",
+];
+
+const GYM_SHOUTOUTS_MORNING_EN = [
+  "Good morning champ. Fresh day, fresh discipline.",
+  "Morning sets the tone. Win the first workout, win the day.",
+  "Start strong this morning and carry that energy all day.",
+  "Early effort becomes evening confidence.",
+];
+
+const GYM_SHOUTOUTS_EVENING_EN = [
+  "Good evening warrior. Finish today stronger than you started.",
+  "Evening grind builds next-level confidence.",
+  "Long day? Perfect. Train and reset your mind.",
+  "End the day with effort, not regret.",
+];
+
+const GYM_SHOUTOUTS_ANY_TE = [
+  "నువ్వు లోగా ఫీల్ అవుతున్నావా? పరవాలేదు. ఒక సెట్తోనే మూడ్ మారిపోతుంది.",
+  "రా ఛాంప్, ఈరోజు కూడా కాస్త కష్టపడదాం. నీ ఫ్యూచర్ నీపై గర్వపడుతుంది.",
+  "ఆగిపోకు. నెమ్మదిగా అయినా ముందుకే వెళ్లు.",
+  "శరీరం స్ట్రాంగ్ అవ్వాలి అంటే మనసు ముందు స్ట్రాంగ్ అవ్వాలి.",
+  "ఈ రోజు వేసిన ఒక్క స్టెప్ రేపటి రిజల్ట్ ని మార్చేస్తుంది.",
+  "లోగా ఉన్నా ఫర్వాలేదు, లిఫ్ట్ మొదలు పెట్టి హైకి వెళ్లిపోదాం.",
+  "స్టార్ట్ చెయ్. ఆలస్యం చాలించింది.",
+  "ఎక్సిక్యూషన్ మొదలు పెట్టు. ప్లానింగ్ తరువాత కూడా చేయొచ్చు.",
+  "స్క్రోల్ ఆపు, ట్రైనింగ్ స్టార్ట్ చెయ్.",
+  "కంఫర్ట్ నుంచి బయటికొస్తేనే ప్రోగ్రెస్ కనిపిస్తుంది.",
+  "ఎక్స్క్యూసెస్ కాదు, ఎఫర్ట్ చూపించు.",
+  "ఇప్పుడే ఒక రిప్ ఎక్కువ చెయ్. అదే నీ గెలుపు మొదలు.",
+];
+
+const GYM_SHOUTOUTS_MORNING_TE = [
+  "శుభోదయం ఛాంప్. ఈ ఉదయం స్టార్ట్ బాగుంటే రోజు అంతా నీదే.",
+  "మార్నింగ్ ఎనర్జీ ని వర్కౌట్ లో పెట్టు. రోజు సెటప్ అయిపోతుంది.",
+  "ఉదయం మొదటి సెటే నీ కాన్ఫిడెన్స్ ని పెంచుతుంది.",
+];
+
+const GYM_SHOUTOUTS_EVENING_TE = [
+  "శుభ సాయంత్రం యోధా. రోజు ముగిసేలోపు ఒక్క మంచి సెషన్ ముగిద్దాం.",
+  "ఈవెనింగ్ లో చేసిన కష్టం రేపటి బాడీని బిల్డ్ చేస్తుంది.",
+  "రోజంతా టెన్షన్ అయిందా? ట్రైనింగ్ తో రీసెట్ అవ్వి.",
+];
 
 type Achievement = { name: string; icon: string; desc: string; time: string };
 
@@ -106,6 +173,78 @@ export default function DashboardPage() {
     !gymLoading && weeklyCompleted.every((d) => d.value === 0);
   const showGymModeHint =
     !gymLoading && (!hasGymPlan || (weeklyAllZero && stats.workouts.value === 0));
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (document.visibilityState !== "visible") return;
+    const settings = loadVoiceShoutoutSettings();
+    if (!settings.enabled) return;
+
+    const firstName = (displayName || "Athlete").split(" ")[0].trim();
+    const userKey = `${currentUser.id}:${new Date().toISOString().slice(0, 10)}`;
+    const alreadySpoken = sessionStorage.getItem(SHOUTOUT_SESSION_KEY);
+    if (alreadySpoken === userKey) return;
+
+    const now = new Date();
+    const hour = now.getHours();
+    const timeBucket = hour < 12 ? "morning" : hour >= 17 ? "evening" : "any";
+    const useTelugu = Math.random() < 0.35;
+    const source =
+      useTelugu
+        ? timeBucket === "morning"
+          ? [...GYM_SHOUTOUTS_MORNING_TE, ...GYM_SHOUTOUTS_ANY_TE]
+          : timeBucket === "evening"
+            ? [...GYM_SHOUTOUTS_EVENING_TE, ...GYM_SHOUTOUTS_ANY_TE]
+            : GYM_SHOUTOUTS_ANY_TE
+        : timeBucket === "morning"
+          ? [...GYM_SHOUTOUTS_MORNING_EN, ...GYM_SHOUTOUTS_ANY_EN]
+          : timeBucket === "evening"
+            ? [...GYM_SHOUTOUTS_EVENING_EN, ...GYM_SHOUTOUTS_ANY_EN]
+            : GYM_SHOUTOUTS_ANY_EN;
+    const shoutout = source[Math.floor(Math.random() * source.length)];
+    const message = `Hey ${firstName}. ${shoutout}`;
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 1.02;
+    utterance.pitch = 1.0;
+    utterance.volume = 0.95;
+
+    const pickVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+      const localePreferred = useTelugu
+        ? voices.find((v) => /te-IN/i.test(v.lang))
+        : voices.find((v) => /en-IN/i.test(v.lang)) ||
+          voices.find((v) => /en-US|en-GB/i.test(v.lang));
+
+      const maleHint = /(male|david|mark|alex|james|guy|man)/i;
+      const femaleHint = /(female|zira|susan|siri|aria|emma|jenny|woman|girl)/i;
+      const byPreference =
+        settings.voicePreference === "male"
+          ? voices.find((v) => maleHint.test(v.name))
+          : settings.voicePreference === "female"
+            ? voices.find((v) => femaleHint.test(v.name))
+            : null;
+
+      const preferred = byPreference || localePreferred;
+      if (preferred) utterance.voice = preferred;
+    };
+
+    const speak = () => {
+      if (document.visibilityState !== "visible") return;
+      pickVoice();
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+      sessionStorage.setItem(SHOUTOUT_SESSION_KEY, userKey);
+    };
+
+    // Wait briefly so page UI settles first.
+    const timer = window.setTimeout(speak, 900);
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+    return () => {
+      window.clearTimeout(timer);
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, [displayName, currentUser.id]);
 
   useEffect(() => {
     const userId = currentUser.id;
