@@ -15,6 +15,7 @@ import { isUuidUserId } from "@/lib/api-guards";
 import { compressImageForUpload } from "@/lib/compress-image";
 import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
 import PrizeSheetCard from "@/components/dashboard/prize-sheet-card";
+import { sendEngagementNotification } from "@/lib/engagement-notifications";
 
 const POINT_ACTIONS = [
   { icon: Instagram, label: "Follow @rahulfitzz on Instagram", points: 200, oneTime: true, action: "follow", cta: "Follow & Claim" },
@@ -212,11 +213,18 @@ export default function GiveawayPage() {
           xpPoints: json.xpPoints,
         });
         setSuccessMsg(`+${json.pointsAwarded ?? ""} points added!`);
+        void sendEngagementNotification("points_earned", {
+          firstName: (user?.name || "Athlete").split(" ")[0],
+          points: json.pointsAwarded ?? 0,
+        });
       } else {
         setSuccessMsg(
           json.message ||
             "Submitted for admin review. You will see Pending on this action until approved."
         );
+        void sendEngagementNotification("points_pending", {
+          firstName: (user?.name || "Athlete").split(" ")[0],
+        });
         setProofFiles((prev) => {
           const next = { ...prev };
           delete next[action];

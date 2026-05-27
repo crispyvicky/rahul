@@ -21,10 +21,12 @@ import { calculateLevel, getStreakEmoji } from "@/lib/utils";
 import type { DashboardGymData } from "@/lib/gym-plan-types";
 import PrizeSheetCard from "@/components/dashboard/prize-sheet-card";
 import { loadVoiceShoutoutSettings } from "@/lib/voice-shoutout-settings";
+import { sendEngagementNotification } from "@/lib/engagement-notifications";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const DAY_ABBREVS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const SHOUTOUT_SESSION_KEY = "rahulfitzz_voice_welcome_v1";
+const GYM_NOTIFICATION_SESSION_KEY = "rahulfitzz_gym_nudge_v1";
 const GYM_SHOUTOUTS_ANY_EN = [
   "Time to lock in. One more rep than yesterday.",
   "Discipline check. Show up, stay sharp, finish strong.",
@@ -244,6 +246,20 @@ export default function DashboardPage() {
       window.clearTimeout(timer);
       window.speechSynthesis.onvoiceschanged = null;
     };
+  }, [displayName, currentUser.id]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const firstName = (displayName || "Athlete").split(" ")[0].trim();
+    const todayKey = `${currentUser.id}:${new Date().toISOString().slice(0, 10)}`;
+    const sentKey = sessionStorage.getItem(GYM_NOTIFICATION_SESSION_KEY);
+    if (sentKey === todayKey) return;
+    const t = window.setTimeout(() => {
+      void sendEngagementNotification("gym_nudge", { firstName });
+      sessionStorage.setItem(GYM_NOTIFICATION_SESSION_KEY, todayKey);
+    }, 2200);
+    return () => window.clearTimeout(t);
   }, [displayName, currentUser.id]);
 
   useEffect(() => {

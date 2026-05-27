@@ -29,3 +29,45 @@ self.fallback = async (payload) => {
 
   return Response.error();
 };
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+
+  const title = data.title || "RahulFitzz update";
+  const options = {
+    body: data.body || "Open app for latest updates.",
+    icon: data.icon || "/icon.png",
+    badge: data.badge || "/icon.png",
+    tag: data.tag || "rf-campaign",
+    data: {
+      url: data.url || "/dashboard",
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification?.data?.url || "/dashboard";
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientsArr) => {
+        for (const client of clientsArr) {
+          if ("focus" in client && client.url.includes(targetUrl)) {
+            return client.focus();
+          }
+        }
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(targetUrl);
+        }
+      })
+  );
+});

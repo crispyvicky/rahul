@@ -11,6 +11,12 @@ import {
   saveVoiceShoutoutSettings,
   type VoicePreference,
 } from "@/lib/voice-shoutout-settings";
+import {
+  loadNotificationPreferences,
+  requestNotificationPermission,
+  saveNotificationPreferences,
+  dispatchNotificationPermissionUpdated,
+} from "@/lib/engagement-notifications";
 
 export default function SettingsPage() {
   const { user, updateProfile, login, logout } = useUserStore();
@@ -23,11 +29,14 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voicePreference, setVoicePreference] = useState<VoicePreference>("auto");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
     const settings = loadVoiceShoutoutSettings();
     setVoiceEnabled(settings.enabled);
     setVoicePreference(settings.voicePreference);
+    const n = loadNotificationPreferences();
+    setNotificationsEnabled(n.enabled);
   }, []);
 
   const handleSave = async () => {
@@ -40,6 +49,10 @@ export default function SettingsPage() {
         enabled: voiceEnabled,
         voicePreference,
       });
+      saveNotificationPreferences({
+        enabled: notificationsEnabled,
+      });
+      dispatchNotificationPermissionUpdated();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       setSaving(false);
@@ -70,6 +83,10 @@ export default function SettingsPage() {
         enabled: voiceEnabled,
         voicePreference,
       });
+      saveNotificationPreferences({
+        enabled: notificationsEnabled,
+      });
+      dispatchNotificationPermissionUpdated();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
@@ -157,6 +174,47 @@ export default function SettingsPage() {
               <Save className="w-4 h-4" /> Save Changes
             </>
           )}
+        </button>
+      </div>
+
+      <div className="bg-surface-card border border-white/5 rounded-2xl p-5 space-y-5">
+        <h3 className="text-white font-bold text-sm uppercase tracking-widest">
+          App Notifications
+        </h3>
+        <p className="text-text-muted text-xs leading-relaxed">
+          Catchy gym nudges, giveaway alerts, and points updates. Default is subscribed.
+        </p>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <div>
+            <p className="text-white text-sm font-bold">Enable app notifications</p>
+            <p className="text-text-muted text-xs">
+              Turn off only if you do not want motivational reminders.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={notificationsEnabled}
+            onClick={() => setNotificationsEnabled((v) => !v)}
+            className={cn(
+              "relative w-12 h-7 rounded-full transition-colors",
+              notificationsEnabled ? "bg-brand" : "bg-white/20"
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-1 h-5 w-5 rounded-full bg-white transition-transform",
+                notificationsEnabled ? "translate-x-6" : "translate-x-1"
+              )}
+            />
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => requestNotificationPermission()}
+          className="px-4 py-2 rounded-xl border border-brand/30 bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest"
+        >
+          Ask Browser Permission
         </button>
       </div>
 

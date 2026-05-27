@@ -5,13 +5,21 @@ import { useUserStore, GUEST_USER } from "@/store/use-user-store";
 import { calculateLevel, getStreakEmoji } from "@/lib/utils";
 import Link from "next/link";
 import { Flame, Bell, Zap, Shield } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
+import {
+  loadNotificationPreferences,
+  requestNotificationPermission,
+  saveNotificationPreferences,
+  sendEngagementNotification,
+  dispatchNotificationPermissionUpdated,
+} from "@/lib/engagement-notifications";
 
 export default function Topbar() {
   const { data: session } = useSession();
   const { user, login } = useUserStore();
   const syncedRef = useRef(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -62,6 +70,11 @@ export default function Topbar() {
     }
     syncUser();
   }, [session, login]);
+
+  useEffect(() => {
+    const prefs = loadNotificationPreferences();
+    setNotificationsEnabled(prefs.enabled);
+  }, []);
 
   const displayName = session?.user?.name || user?.name || "Athlete";
   const avatarUrl = session?.user?.image || user?.avatarUrl || "";
@@ -114,10 +127,32 @@ export default function Topbar() {
 
         <button
           type="button"
+          onClick={async () => {
+            // Default is subscribed; bell acts as permission/preview control.
+            const nextEnabled = true;
+            setNotificationsEnabled(nextEnabled);
+            saveNotificationPreferences({ enabled: nextEnabled });
+            void requestNotificationPermission().then(() => {
+              dispatchNotificationPermissionUpdated();
+            });
+            if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+              await sendEngagementNotification("gym_nudge", {
+                firstName: displayName.split(" ")[0] || "Athlete",
+              });
+            }
+          }}
           className="relative min-h-11 min-w-11 h-11 w-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-text-secondary hover:text-white hover:bg-white/10 transition-all touch-manipulation"
           aria-label="Notifications"
+          title={
+            notificationsEnabled
+              ? "Notifications enabled"
+              : "Enable notifications"
+          }
         >
           <Bell className="w-4 h-4" />
+          {notificationsEnabled && (
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-emerald-400" />
+          )}
         </button>
 
         {avatarUrl ? (

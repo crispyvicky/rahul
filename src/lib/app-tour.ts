@@ -3,6 +3,7 @@ export const TOUR_REPLAY_FLAG = "rahulfitzz_tour_replay";
 export const TOUR_OPEN_MENU_EVENT = "rahulfitzz-tour-open-menu";
 export const TOUR_CLOSE_MENU_EVENT = "rahulfitzz-tour-close-menu";
 export const TOUR_MENU_STATE_EVENT = "rahulfitzz-tour-menu-state";
+export const TOUR_COMPLETED_EVENT = "rahulfitzz-tour-completed";
 
 export function dispatchTourMenuState(open: boolean) {
   if (typeof window === "undefined") return;

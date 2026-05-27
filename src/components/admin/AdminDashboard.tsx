@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AdminShell from "./AdminShell";
 import { cn } from "@/lib/utils";
 import { DEFAULT_GRAND_PRIZE } from "@/lib/prize-sheet";
+import { ENGAGEMENT_KIND_OPTIONS } from "@/lib/engagement-notifications";
 import {
   Loader2,
   RefreshCw,
@@ -21,7 +22,8 @@ type Tab =
   | "claims"
   | "community"
   | "giveaways"
-  | "prebookings";
+  | "prebookings"
+  | "notifications";
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -36,6 +38,16 @@ export default function AdminDashboard() {
   const [giveaways, setGiveaways] = useState<any[]>([]);
   const [winners, setWinners] = useState<any[]>([]);
   const [prebookings, setPrebookings] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaignKind, setCampaignKind] = useState<string>("giveaway_live");
+  const [campaignTitle, setCampaignTitle] = useState("");
+  const [campaignBody, setCampaignBody] = useState("");
+  const [campaignAudience, setCampaignAudience] = useState("all");
+  const [campaignExpiresHours, setCampaignExpiresHours] = useState("72");
+  const [sendingCampaign, setSendingCampaign] = useState(false);
+  const [campaignError, setCampaignError] = useState<string | null>(null);
+  const [updatingCampaignId, setUpdatingCampaignId] = useState<string | null>(null);
+  const [pushReadiness, setPushReadiness] = useState<any>(null);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [logFilter, setLogFilter] = useState("");
@@ -115,6 +127,22 @@ export default function AdminDashboard() {
     setPrebookings(d.prebookings || []);
   }, []);
 
+  const loadCampaigns = useCallback(async () => {
+    const d = await fetchJson("/api/admin/campaigns");
+    setCampaigns(d.campaigns || []);
+  }, []);
+
+  const loadPushReadiness = useCallback(async (audience: string) => {
+    try {
+      const d = await fetchJson(
+        `/api/admin/campaigns/push-readiness?audience=${encodeURIComponent(audience)}`
+      );
+      setPushReadiness(d.stats || null);
+    } catch {
+      setPushReadiness(null);
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -130,6 +158,10 @@ export default function AdminDashboard() {
         if (leaderboard.length === 0) await loadLeaderboard();
       }
       else if (tab === "prebookings") await loadPrebookings();
+      else if (tab === "notifications") {
+        await loadCampaigns();
+        await loadPushReadiness(campaignAudience);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -145,11 +177,25 @@ export default function AdminDashboard() {
     loadCommunity,
     loadGiveaways,
     loadPrebookings,
+    loadCampaigns,
+    loadPushReadiness,
+    campaignAudience,
   ]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (tab === "notifications" && !campaignTitle && !campaignBody) {
+      applyKindTemplate(campaignKind);
+    }
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (tab !== "notifications") return;
+    void loadPushReadiness(campaignAudience);
+  }, [tab, campaignAudience, loadPushReadiness]);
 
   const reloadClaimsForFilter = async (showAll: boolean) => {
     claimsFilterRef.current = showAll;
@@ -244,6 +290,74 @@ export default function AdminDashboard() {
     });
     await loadGiveaways();
     alert("Winner recorded.");
+  };
+
+  const applyKindTemplate = (kind: string) => {
+    setCampaignKind(kind);
+    const option = ENGAGEMENT_KIND_OPTIONS.find((o) => o.value === kind);
+    if (option) {
+      setCampaignTitle(option.sampleTitle);
+      setCampaignBody(option.sampleBody);
+    }
+  };
+
+  const sendCampaign = async () => {
+    setSendingCampaign(true);
+    setCampaignError(null);
+    try {
+      const response = await fetchJson("/api/admin/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: campaignKind,
+          title: campaignTitle,
+          body: campaignBody,
+          audience: campaignAudience,
+          expiresInHours: Number(campaignExpiresHours) || 72,
+        }),
+      });
+      setCampaignTitle("");
+      setCampaignBody("");
+      await loadCampaigns();
+      await loadPushReadiness(campaignAudience);
+      const push = response.push;
+      if (push?.error) {
+        alert(`Campaign saved, but push blast was skipped: ${push.error}`);
+      } else {
+        alert(
+          `Campaign sent. Push delivered: ${push?.delivered ?? 0}/${push?.totalSubscriptions ?? 0}.`
+        );
+      }
+    } catch (e) {
+      setCampaignError(e instanceof Error ? e.message : "Could not send campaign");
+    } finally {
+      setSendingCampaign(false);
+    }
+  };
+
+  const updateCampaignStatus = async (campaignId: string, status: "active" | "paused" | "ended") => {
+    setUpdatingCampaignId(campaignId);
+    setCampaignError(null);
+    try {
+      await fetchJson("/api/admin/campaigns", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId, status }),
+      });
+      await loadCampaigns();
+    } catch (e) {
+      setCampaignError(e instanceof Error ? e.message : "Could not update campaign");
+    } finally {
+      setUpdatingCampaignId(null);
+    }
+  };
+
+  const audienceLabels: Record<string, string> = {
+    all: "All users",
+    active_7d: "Active in last 7 days",
+    top_20: "Top 20 leaderboard",
+    streak_users: "Users with active streak",
+    zero_points: "Users with 0 giveaway points",
   };
 
   const pendingCount = claims.filter((c) => c.status === "pending").length;
@@ -761,6 +875,263 @@ export default function AdminDashboard() {
                 new Date(b.created_at).toLocaleString(),
               ])}
             />
+          )}
+
+          {tab === "notifications" && (
+            <div className="space-y-6">
+              <div className="bg-surface-card border border-white/10 rounded-2xl p-5 space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-white font-bold text-sm uppercase tracking-widest">
+                      Push readiness
+                    </p>
+                    <p className="text-text-muted text-xs mt-1">
+                      Background push needs VAPID keys in env + user permission + saved subscription.
+                    </p>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-xs font-bold uppercase px-2 py-1 rounded-lg",
+                      pushReadiness?.vapidConfigured
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-red-500/10 text-red-400"
+                    )}
+                  >
+                    {pushReadiness?.vapidConfigured ? "VAPID ready" : "VAPID missing"}
+                  </span>
+                </div>
+
+                {pushReadiness ? (
+                  <>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        { label: "Total users", value: pushReadiness.totalUsers },
+                        { label: "Push subscribers", value: pushReadiness.usersWithPush },
+                        { label: "Active devices", value: pushReadiness.activeSubscriptions },
+                        { label: "Reach (all)", value: `${pushReadiness.pushReachPercent}%` },
+                      ].map((c) => (
+                        <div
+                          key={c.label}
+                          className="bg-black/30 border border-white/10 rounded-xl p-3"
+                        >
+                          <p className="text-text-muted text-[10px] uppercase tracking-widest">
+                            {c.label}
+                          </p>
+                          <p className="text-white text-lg font-bold mt-1">{c.value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-brand/5 border border-brand/20 rounded-xl p-4">
+                      <p className="text-brand text-xs font-bold uppercase tracking-widest mb-2">
+                        Selected audience: {audienceLabels[campaignAudience] || campaignAudience}
+                      </p>
+                      <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                        <p className="text-text-secondary">
+                          Users in audience:{" "}
+                          <span className="text-white font-semibold">
+                            {pushReadiness.audienceUsers}
+                          </span>
+                        </p>
+                        <p className="text-text-secondary">
+                          With push enabled:{" "}
+                          <span className="text-white font-semibold">
+                            {pushReadiness.audienceUsersWithPush}
+                          </span>{" "}
+                          ({pushReadiness.audienceReachPercent}%)
+                        </p>
+                        <p className="text-text-secondary">
+                          Est. devices to hit:{" "}
+                          <span className="text-emerald-400 font-semibold">
+                            {pushReadiness.audienceSubscriptions}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {pushReadiness.inactiveSubscriptions > 0 && (
+                      <p className="text-yellow-400 text-xs">
+                        {pushReadiness.inactiveSubscriptions} inactive subscription(s) — expired or
+                        unsubscribed devices.
+                      </p>
+                    )}
+
+                    {!pushReadiness.vapidConfigured && (
+                      <p className="text-red-400 text-xs">
+                        Add VAPID keys to `.env.local` and restart dev server. Run:{" "}
+                        <code className="text-red-300">npx web-push generate-vapid-keys</code>
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-text-muted text-sm">Could not load push stats.</p>
+                )}
+              </div>
+
+              <div className="bg-gradient-to-r from-brand/10 to-yellow-500/10 border border-brand/20 rounded-2xl p-5 space-y-4">
+                <div>
+                  <p className="text-white font-bold text-sm uppercase tracking-widest">
+                    Send campaign notification
+                  </p>
+                  <p className="text-text-muted text-xs mt-1">
+                    Sends to saved push subscribers even if app is closed. If push is unavailable,
+                    users still get it on next app open. Use {"{firstName}"} or {"{points}"} in the message.
+                  </p>
+                </div>
+
+                {campaignError && (
+                  <p className="text-red-400 text-sm">{campaignError}</p>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-text-muted text-xs uppercase tracking-widest block mb-2">
+                      Type
+                    </label>
+                    <select
+                      value={campaignKind}
+                      onChange={(e) => applyKindTemplate(e.target.value)}
+                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm"
+                    >
+                      {ENGAGEMENT_KIND_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-text-muted text-xs uppercase tracking-widest block mb-2">
+                      Audience
+                    </label>
+                    <select
+                      value={campaignAudience}
+                      onChange={(e) => setCampaignAudience(e.target.value)}
+                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm"
+                    >
+                      {Object.entries(audienceLabels).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <input
+                  value={campaignTitle}
+                  onChange={(e) => setCampaignTitle(e.target.value)}
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm"
+                  placeholder="Notification title"
+                />
+                <textarea
+                  value={campaignBody}
+                  onChange={(e) => setCampaignBody(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm resize-none"
+                  placeholder="Notification body"
+                />
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+                  <div className="flex-1">
+                    <label className="text-text-muted text-xs uppercase tracking-widest block mb-2">
+                      Expires in (hours)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={campaignExpiresHours}
+                      onChange={(e) => setCampaignExpiresHours(e.target.value)}
+                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={sendCampaign}
+                    disabled={sendingCampaign || !campaignTitle.trim() || !campaignBody.trim()}
+                    className="px-6 py-3 bg-brand text-white font-bold text-xs uppercase rounded-xl disabled:opacity-50"
+                  >
+                    {sendingCampaign ? "Sending…" : "Send campaign"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-surface-card border border-white/10 rounded-2xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-white/10">
+                  <p className="text-white font-bold text-sm uppercase tracking-widest">
+                    Recent campaigns
+                  </p>
+                </div>
+                {campaigns.length === 0 ? (
+                  <p className="p-5 text-text-muted text-sm">No campaigns yet.</p>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {campaigns.map((c) => (
+                      <div key={c.id} className="p-5 space-y-2">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-white font-semibold">{c.title}</p>
+                            <p className="text-text-secondary text-sm mt-1">{c.body}</p>
+                          </div>
+                          <span
+                            className={cn(
+                              "text-xs font-bold uppercase px-2 py-1 rounded-lg",
+                              c.status === "active" && "bg-emerald-500/10 text-emerald-400",
+                              c.status === "paused" && "bg-yellow-500/10 text-yellow-400",
+                              c.status === "ended" && "bg-white/5 text-text-muted"
+                            )}
+                          >
+                            {c.status}
+                          </span>
+                        </div>
+                        <p className="text-text-muted text-xs">
+                          {c.kind} · {audienceLabels[c.audience] || c.audience} ·{" "}
+                          {new Date(c.created_at).toLocaleString()}
+                          {c.expires_at
+                            ? ` · expires ${new Date(c.expires_at).toLocaleString()}`
+                            : ""}
+                        </p>
+                        {c.status !== "ended" && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {c.status === "paused" && (
+                              <button
+                                type="button"
+                                disabled={updatingCampaignId === c.id}
+                                onClick={() => updateCampaignStatus(c.id, "active")}
+                                className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase rounded-lg disabled:opacity-50"
+                              >
+                                Resume
+                              </button>
+                            )}
+                            {c.status === "active" && (
+                              <button
+                                type="button"
+                                disabled={updatingCampaignId === c.id}
+                                onClick={() => updateCampaignStatus(c.id, "paused")}
+                                className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-bold uppercase rounded-lg disabled:opacity-50"
+                              >
+                                Pause
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={updatingCampaignId === c.id}
+                              onClick={() => {
+                                if (confirm("End this campaign? Users who haven't seen it won't get it.")) {
+                                  void updateCampaignStatus(c.id, "ended");
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-white/5 border border-white/10 text-text-secondary text-xs font-bold uppercase rounded-lg hover:text-white disabled:opacity-50"
+                            >
+                              End
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </>
       )}

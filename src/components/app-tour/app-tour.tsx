@@ -14,6 +14,7 @@ import {
   getStepsForPath,
   isTourCompleted,
   markTourCompleted,
+  TOUR_COMPLETED_EVENT,
   TOUR_REPLAY_FLAG,
   TOUR_MENU_STATE_EVENT,
 } from "@/lib/app-tour";
@@ -193,6 +194,7 @@ export default function AppTour({ forceOpen, onForceOpenHandled }: AppTourProps)
       setStepIndex(0);
       setSpotlight(null);
       document.body.style.overflow = "";
+      window.dispatchEvent(new Event(TOUR_COMPLETED_EVENT));
     },
     [userKey]
   );

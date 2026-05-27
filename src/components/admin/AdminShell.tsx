@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Gift,
   CalendarCheck,
+  Bell,
   Shield,
   LogOut,
   Flame,
@@ -27,6 +28,7 @@ const nav = [
   { id: "community", label: "Community", icon: MessageSquare },
   { id: "giveaways", label: "Giveaways", icon: Gift },
   { id: "prebookings", label: "Pre-bookings", icon: CalendarCheck },
+  { id: "notifications", label: "Campaigns", icon: Bell },
 ];
 
 export default function AdminShell({
