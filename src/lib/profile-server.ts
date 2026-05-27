@@ -1,8 +1,9 @@
 import { getSupabaseAdmin } from "./supabase-admin";
-import { awardPointsSecure, hasPointAwardToday } from "./points-service";
+import { awardPointsSecure, hasPointAwardToday, utcDayDiff } from "./points-service";
 
 /**
  * Updates streak from the previous last_login, then last_login = now.
+ * Uses UTC calendar days (same as daily streak points), not hours since last open.
  * Daily login points: at most once per calendar day (UTC), action "streak".
  */
 export async function updateStreakServer(userId: string) {
@@ -17,16 +18,18 @@ export async function updateStreakServer(userId: string) {
 
   const previousLogin = new Date(profile.last_login || profile.created_at);
   const now = new Date();
-  const diffHours =
-    (now.getTime() - previousLogin.getTime()) / (1000 * 60 * 60);
+  const dayDiff = utcDayDiff(previousLogin, now);
 
   let newStreak = profile.current_streak ?? 0;
 
-  if (diffHours >= 20 && diffHours <= 48) {
-    newStreak += 1;
-  } else if (diffHours > 48) {
-    newStreak = 1;
-  } else if (newStreak === 0) {
+  if (dayDiff === 0) {
+    // Same UTC day — keep streak; ensure at least day 1
+    if (newStreak === 0) newStreak = 1;
+  } else if (dayDiff === 1) {
+    // Consecutive calendar day
+    newStreak = Math.max(newStreak, 1) + 1;
+  } else {
+    // Missed one or more days
     newStreak = 1;
   }
 

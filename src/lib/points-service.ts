@@ -27,6 +27,19 @@ export function startOfTodayUtc(): string {
   return start.toISOString();
 }
 
+export function startOfUtcDay(date: Date = new Date()): Date {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+/** Whole UTC calendar days between two timestamps (matches daily point awards). */
+export function utcDayDiff(from: Date, to: Date): number {
+  const fromStart = startOfUtcDay(from).getTime();
+  const toStart = startOfUtcDay(to).getTime();
+  return Math.round((toStart - fromStart) / (24 * 60 * 60 * 1000));
+}
+
 export async function hasPointAwardToday(
   userId: string,
   action: string
