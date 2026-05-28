@@ -39,6 +39,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ["web-push"],
   // PWA plugin registers webpack hooks; Next 16 defaults dev to Turbopack — use `npm run dev` (--webpack).
   images: {
     formats: ["image/avif", "image/webp"],

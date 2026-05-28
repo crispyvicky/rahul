@@ -1,7 +1,7 @@
 import { hasSupabase, supabase } from "./supabase";
 import type { DbUserProfile } from "./supabase";
 import { isUuidUserId } from "./api-guards";
-import { startOfTodayUtc } from "./points-service";
+import { startOfTodayUtc } from "./points-date-utils";
 
 function formatSupabaseError(err: unknown): string {
   if (err == null) return "unknown";

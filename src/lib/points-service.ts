@@ -1,7 +1,12 @@
+import "server-only";
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getSupabaseAdmin, hasSupabaseAdmin } from "./supabase-admin";
 import { isUuidUserId } from "./api-guards";
+import { startOfTodayUtc, startOfUtcDay, utcDayDiff } from "./points-date-utils";
+
+export { startOfTodayUtc, startOfUtcDay, utcDayDiff };
 
 /** How often each action may earn points */
 export type PointPolicy = "day" | "lifetime" | "none";
@@ -20,25 +25,6 @@ export type PointActionKey = keyof typeof POINT_ACTIONS;
 
 /** Cannot be claimed via /api/giveaway/claim — server-only */
 export const AUTO_ONLY_ACTIONS = new Set<PointActionKey>(["streak", "refer"]);
-
-export function startOfTodayUtc(): string {
-  const start = new Date();
-  start.setUTCHours(0, 0, 0, 0);
-  return start.toISOString();
-}
-
-export function startOfUtcDay(date: Date = new Date()): Date {
-  const d = new Date(date);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
-
-/** Whole UTC calendar days between two timestamps (matches daily point awards). */
-export function utcDayDiff(from: Date, to: Date): number {
-  const fromStart = startOfUtcDay(from).getTime();
-  const toStart = startOfUtcDay(to).getTime();
-  return Math.round((toStart - fromStart) / (24 * 60 * 60 * 1000));
-}
 
 export async function hasPointAwardToday(
   userId: string,
