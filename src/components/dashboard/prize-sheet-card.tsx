@@ -1,8 +1,9 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Gift, Trophy, ChevronRight, Sparkles } from "lucide-react";
+import { Gift, Trophy, ChevronRight, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import {
   PRIZE_SHEET,
   POINT_EARN_HINTS,
@@ -14,14 +15,89 @@ import { cn } from "@/lib/utils";
 type Props = {
   giveawayPoints: number;
   xpPoints: number;
+  userId?: string;
 };
 
-export default function PrizeSheetCard({ giveawayPoints, xpPoints }: Props) {
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export default function PrizeSheetCard({ giveawayPoints, xpPoints, userId }: Props) {
   const unlocked = getUnlockedTiers(giveawayPoints);
   const next = getNextPrizeTier(giveawayPoints);
   const progressToNext = next
     ? Math.min(100, Math.round((giveawayPoints / next.points) * 100))
     : 100;
+
+  const canRequest = userId && UUID_RE.test(userId);
+  const [statuses, setStatuses] = useState<Record<string, string>>({});
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactInstagram, setContactInstagram] = useState("");
+  const [redeemFormTier, setRedeemFormTier] = useState<string | null>(null);
+  const [requestingTier, setRequestingTier] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const loadStatuses = useCallback(async () => {
+    if (!canRequest) return;
+    try {
+      const res = await fetch(
+        `/api/prize-redemption/mine?userId=${encodeURIComponent(userId!)}`
+      );
+      const json = await res.json();
+      if (res.ok) {
+        setStatuses(json.statuses || {});
+        if (json.contact?.phone) setContactPhone(json.contact.phone);
+        if (json.contact?.instagram) setContactInstagram(json.contact.instagram);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [canRequest, userId]);
+
+  useEffect(() => {
+    void loadStatuses();
+  }, [loadStatuses]);
+
+  const submitRedeem = async (tierId: string) => {
+    if (!canRequest) return;
+    const phone = contactPhone.trim();
+    const instagram = contactInstagram.trim().replace(/^@+/, "");
+    if (!instagram) {
+      setToast("Enter your Instagram username.");
+      return;
+    }
+    if (phone.replace(/\D/g, "").length < 10) {
+      setToast("Enter a valid phone number (at least 10 digits).");
+      return;
+    }
+
+    setRequestingTier(tierId);
+    setToast(null);
+    try {
+      const res = await fetch("/api/prize-redemption/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          tierId,
+          phone,
+          instagram,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Request failed");
+      setStatuses((s) => ({ ...s, [tierId]: "pending" }));
+      setRedeemFormTier(null);
+      setToast(
+        json.alreadyRequested
+          ? "Already sent — Rahul will reach out soon."
+          : "Request sent! Rahul has your phone & Instagram."
+      );
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : "Could not send request");
+    } finally {
+      setRequestingTier(null);
+    }
+  };
 
   return (
     <motion.section
@@ -75,11 +151,14 @@ export default function PrizeSheetCard({ giveawayPoints, xpPoints }: Props) {
         <div className="flex gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-5 sm:gap-2 min-w-max sm:min-w-0">
           {PRIZE_SHEET.map((tier) => {
             const isUnlocked = giveawayPoints >= tier.points;
+            const redeemStatus = statuses[tier.id];
+            const isPending = redeemStatus === "pending";
+            const isFulfilled = redeemStatus === "fulfilled";
             return (
               <div
                 key={tier.id}
                 className={cn(
-                  "w-[9.5rem] sm:w-auto shrink-0 sm:shrink rounded-xl border p-3 transition-colors",
+                  "w-[9.5rem] sm:w-auto shrink-0 sm:shrink rounded-xl border p-3 transition-colors flex flex-col",
                   isUnlocked
                     ? "bg-yellow-500/10 border-yellow-500/30"
                     : "bg-white/[0.03] border-white/10 opacity-80"
@@ -110,16 +189,75 @@ export default function PrizeSheetCard({ giveawayPoints, xpPoints }: Props) {
                   {tier.points.toLocaleString()} pts
                   {isUnlocked && " ✓"}
                 </p>
+                {isUnlocked && canRequest && (
+                  <div className="mt-2 pt-2 border-t border-yellow-500/20">
+                    {isFulfilled ? (
+                      <p className="text-emerald-400 text-[9px] font-bold uppercase flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Delivered
+                      </p>
+                    ) : isPending ? (
+                      <p className="text-yellow-400/90 text-[9px] font-bold uppercase">
+                        Rahul notified
+                      </p>
+                    ) : redeemFormTier === tier.id ? (
+                      <div className="space-y-1.5">
+                        <input
+                          type="text"
+                          placeholder="@instagram"
+                          value={contactInstagram}
+                          onChange={(e) => setContactInstagram(e.target.value)}
+                          className="w-full px-2 py-1 rounded-md bg-black/30 border border-white/10 text-white text-[9px] placeholder:text-text-muted"
+                        />
+                        <input
+                          type="tel"
+                          placeholder="Phone"
+                          value={contactPhone}
+                          onChange={(e) => setContactPhone(e.target.value)}
+                          className="w-full px-2 py-1 rounded-md bg-black/30 border border-white/10 text-white text-[9px] placeholder:text-text-muted"
+                        />
+                        <button
+                          type="button"
+                          disabled={requestingTier === tier.id}
+                          onClick={() => void submitRedeem(tier.id)}
+                          className="w-full min-h-8 px-2 py-1 rounded-lg bg-brand text-white text-[9px] font-bold uppercase disabled:opacity-60"
+                        >
+                          {requestingTier === tier.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin mx-auto" />
+                          ) : (
+                            "Send"
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setRedeemFormTier(tier.id)}
+                        className="w-full min-h-8 px-2 py-1 rounded-lg bg-brand/20 border border-brand/40 text-brand text-[9px] font-bold uppercase tracking-wide hover:bg-brand/30 touch-manipulation"
+                      >
+                        Request prize
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
+      {toast && (
+        <p className="text-brand text-[10px] font-medium mt-3" role="status">
+          {toast}
+        </p>
+      )}
+
       {unlocked.length > 0 && (
         <p className="text-emerald-400/90 text-[10px] font-medium mt-3 flex items-center gap-1.5">
           <Trophy className="w-3.5 h-3.5 shrink-0" />
-          {unlocked.length} prize tier{unlocked.length === 1 ? "" : "s"} unlocked — claim on Giveaways when campaigns run.
+          {unlocked.length} prize tier{unlocked.length === 1 ? "" : "s"} unlocked
+          {canRequest
+            ? " — add phone + Instagram, then request so Rahul can deliver."
+            : " — sign in to request your physical prizes."}
         </p>
       )}
 

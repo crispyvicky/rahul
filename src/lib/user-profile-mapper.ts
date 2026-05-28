@@ -8,6 +8,7 @@ export function mapDbProfileToStore(p: DbUserProfile): UserProfile {
     email: p.email,
     avatarUrl: p.avatar_url || "",
     instagramHandle: p.instagram_handle || "",
+    phone: p.phone || "",
     isPremium: p.is_premium,
     premiumTier: p.premium_tier as UserProfile["premiumTier"],
     xpPoints: p.xp_points ?? 0,

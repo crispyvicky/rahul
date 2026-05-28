@@ -116,6 +116,13 @@ export async function awardPointsSecure(
   const { points } = POINT_ACTIONS[action];
   const db = getSupabaseAdmin();
 
+  const { data: beforeProfile } = await db
+    .from("user_profiles")
+    .select("giveaway_points")
+    .eq("id", userId)
+    .maybeSingle();
+  const pointsBefore = beforeProfile?.giveaway_points ?? 0;
+
   const { error: logError } = await db.from("point_logs").insert({
     user_id: userId,
     action,
@@ -151,6 +158,9 @@ export async function awardPointsSecure(
         .eq("id", userId);
     }
   }
+
+  const { recordPrizeTierUnlocks } = await import("./prize-redemption-alerts");
+  await recordPrizeTierUnlocks(userId, pointsBefore, pointsBefore + points);
 
   return { ok: true };
 }

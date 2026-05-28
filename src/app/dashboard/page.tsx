@@ -497,6 +497,7 @@ export default function DashboardPage() {
       <PrizeSheetCard
         giveawayPoints={currentUser.giveawayPoints}
         xpPoints={currentUser.xpPoints}
+        userId={currentUser.id}
       />
 
       {gymError && (

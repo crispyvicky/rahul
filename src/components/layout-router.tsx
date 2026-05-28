@@ -8,6 +8,7 @@ import Sidebar from "@/components/platform/sidebar";
 import Topbar from "@/components/platform/topbar";
 import PlatformTourHost from "@/components/app-tour/platform-tour-host";
 import CampaignNotificationHost from "@/components/platform/campaign-notification-host";
+import PrizeUnlockNotificationHost from "@/components/platform/prize-unlock-notification-host";
 import PushSubscriptionHost from "@/components/platform/push-subscription-host";
 import ServiceWorkerRegister from "@/components/platform/service-worker-register";
 import NotificationPermissionPrompt from "@/components/platform/notification-permission-prompt";
@@ -64,6 +65,7 @@ export default function LayoutRouter({
         <AppSessionResumeHost scrollRootId="rf-platform-main" />
         <ServiceWorkerRegister />
         <CampaignNotificationHost />
+        <PrizeUnlockNotificationHost />
         <PushSubscriptionHost />
         <NotificationPermissionPrompt />
         <PlatformTourHost />

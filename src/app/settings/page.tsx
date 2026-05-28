@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [name, setName] = useState(currentUser.name);
   const [email] = useState(currentUser.email);
   const [instagram, setInstagram] = useState(currentUser.instagramHandle);
+  const [phone, setPhone] = useState(currentUser.phone || "");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -44,7 +45,7 @@ export default function SettingsPage() {
     setError(null);
 
     if (!isUuidUserId(currentUser.id)) {
-      updateProfile({ name, instagramHandle: instagram });
+      updateProfile({ name, instagramHandle: instagram, phone });
       saveVoiceShoutoutSettings({
         enabled: voiceEnabled,
         voicePreference,
@@ -67,6 +68,7 @@ export default function SettingsPage() {
           userId: currentUser.id,
           name,
           instagram_handle: instagram,
+          phone,
         }),
       });
       const json = await res.json();
@@ -77,7 +79,7 @@ export default function SettingsPage() {
       if (json.profile) {
         login(mapDbProfileToStore(json.profile));
       } else {
-        updateProfile({ name, instagramHandle: instagram });
+        updateProfile({ name, instagramHandle: instagram, phone });
       }
       saveVoiceShoutoutSettings({
         enabled: voiceEnabled,
@@ -133,6 +135,7 @@ export default function SettingsPage() {
             { label: "Name", value: name, setter: setName, type: "text", disabled: false },
             { label: "Email", value: email, setter: () => {}, type: "email", disabled: true },
             { label: "Instagram", value: instagram, setter: setInstagram, type: "text", disabled: false },
+            { label: "Phone (prizes & contact)", value: phone, setter: setPhone, type: "tel", disabled: false },
           ].map((field) => (
             <div key={field.label} className="space-y-1.5">
               <label className="text-text-muted text-[10px] font-bold uppercase tracking-[0.2em]">

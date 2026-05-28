@@ -7,6 +7,7 @@ import {
   POINT_ACTIONS,
   type PointActionKey,
 } from "./points-service";
+import { getPendingRedemptionCount } from "./prize-redemption-alerts";
 
 const ACTION_POINTS: Record<string, number> = {
   follow: 200,
@@ -45,10 +46,12 @@ export async function getAdminStats() {
   ]);
 
   const pointsIssuedToday = (pointsToday || []).reduce((s, r) => s + (r.points || 0), 0);
+  const pendingRedemptions = await getPendingRedemptionCount();
 
   return {
     userCount: userCount ?? 0,
     pendingClaims: pendingClaims ?? 0,
+    pendingRedemptions,
     communityPosts: communityPosts ?? 0,
     pointsIssuedToday,
     activeGiveaway: giveaway,
@@ -230,6 +233,13 @@ export async function awardPointsAdmin(
   description: string
 ) {
   const db = getSupabaseAdmin();
+  const { data: beforeProfile } = await db
+    .from("user_profiles")
+    .select("giveaway_points")
+    .eq("id", userId)
+    .maybeSingle();
+  const pointsBefore = beforeProfile?.giveaway_points ?? 0;
+
   await db.from("point_logs").insert({
     user_id: userId,
     action,
@@ -258,6 +268,11 @@ export async function awardPointsAdmin(
         })
         .eq("id", userId);
     }
+  }
+
+  if (points > 0) {
+    const { recordPrizeTierUnlocks } = await import("./prize-redemption-alerts");
+    await recordPrizeTierUnlocks(userId, pointsBefore, pointsBefore + points);
   }
 }
 

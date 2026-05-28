@@ -2,6 +2,7 @@ export type EngagementNotificationKind =
   | "gym_nudge"
   | "points_earned"
   | "points_pending"
+  | "prize_unlocked"
   | "giveaway_live"
   | "giveaway_ending"
   | "leaderboard_push";
@@ -49,6 +50,12 @@ export const ENGAGEMENT_KIND_OPTIONS: {
     sampleBody: "Your proof is under review. Approval = instant points boost.",
   },
   {
+    value: "prize_unlocked",
+    label: "Prize tier unlocked",
+    sampleTitle: "🎁 {prizeName} unlocked!",
+    sampleBody: "Hey {firstName}, you hit {points} pts. Open the prize sheet to claim.",
+  },
+  {
     value: "custom",
     label: "Custom message",
     sampleTitle: "RahulFitzz update",
@@ -64,6 +71,7 @@ type NotificationTemplate = {
 type TemplateParams = {
   firstName?: string;
   points?: number;
+  prizeName?: string;
 };
 
 export type NotificationPreferences = {
@@ -94,6 +102,20 @@ const TEMPLATES: Record<EngagementNotificationKind, NotificationTemplate[]> = {
     { title: "Claim submitted", body: "Your proof is under review. Approval = instant points boost." },
     { title: "Pending review", body: "We got your claim. Sit tight — points should hit soon." },
   ],
+  prize_unlocked: [
+    {
+      title: "🎁 {prizeName} unlocked!",
+      body: "Hey {firstName}, you hit {points} pts. Open the prize sheet to request your gear.",
+    },
+    {
+      title: "New prize tier 🏆",
+      body: "{prizeName} is yours at {points} points. Tap the dashboard to claim.",
+    },
+    {
+      title: "You earned a real reward",
+      body: "{firstName}, {prizeName} unlocked. Request delivery before stock runs out.",
+    },
+  ],
   giveaway_live: [
     { title: "Giveaway is live 🎁", body: "Your next reward could be one action away. Go claim now." },
     { title: "Leaderboard battle ON", body: "Points race is active. Enter now and push top spots." },
@@ -111,7 +133,8 @@ const TEMPLATES: Record<EngagementNotificationKind, NotificationTemplate[]> = {
 function fillTemplate(template: string, params: TemplateParams) {
   return template
     .replaceAll("{firstName}", params.firstName || "Athlete")
-    .replaceAll("{points}", String(params.points ?? 0));
+    .replaceAll("{points}", String(params.points ?? 0))
+    .replaceAll("{prizeName}", params.prizeName || "a prize");
 }
 
 export function loadNotificationPreferences(): NotificationPreferences {

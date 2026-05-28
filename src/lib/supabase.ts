@@ -41,6 +41,7 @@ export interface DbUserProfile {
   email: string;
   avatar_url: string;
   instagram_handle: string;
+  phone?: string | null;
   is_premium: boolean;
   premium_tier: "free" | "warrior" | "elite" | "custom";
   xp_points: number;

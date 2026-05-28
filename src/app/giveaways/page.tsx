@@ -383,6 +383,7 @@ export default function GiveawayPage() {
       <PrizeSheetCard
         giveawayPoints={myPoints}
         xpPoints={data?.xpPoints ?? user?.xpPoints ?? 0}
+        userId={user?.id}
       />
 
       <div className="bg-surface-card border border-brand/10 rounded-2xl p-5">

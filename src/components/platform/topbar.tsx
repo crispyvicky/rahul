@@ -6,12 +6,14 @@ import { calculateLevel, getStreakEmoji } from "@/lib/utils";
 import Link from "next/link";
 import { Flame, Bell, Zap, Shield } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
 import {
   loadNotificationPreferences,
+  NOTIFICATION_PERMISSION_EVENT,
   requestNotificationPermission,
   saveNotificationPreferences,
-  sendEngagementNotification,
+  sendCustomNotification,
   dispatchNotificationPermissionUpdated,
 } from "@/lib/engagement-notifications";
 
@@ -20,6 +22,17 @@ export default function Topbar() {
   const { user, login } = useUserStore();
   const syncedRef = useRef(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [browserPermission, setBrowserPermission] = useState<
+    "default" | "granted" | "denied" | "unsupported"
+  >("unsupported");
+
+  const refreshPermission = () => {
+    if (typeof Notification === "undefined") {
+      setBrowserPermission("unsupported");
+      return;
+    }
+    setBrowserPermission(Notification.permission);
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -74,6 +87,12 @@ export default function Topbar() {
   useEffect(() => {
     const prefs = loadNotificationPreferences();
     setNotificationsEnabled(prefs.enabled);
+    refreshPermission();
+    const onPermissionChange = () => refreshPermission();
+    window.addEventListener(NOTIFICATION_PERMISSION_EVENT, onPermissionChange);
+    return () => {
+      window.removeEventListener(NOTIFICATION_PERMISSION_EVENT, onPermissionChange);
+    };
   }, []);
 
   const displayName = session?.user?.name || user?.name || "Athlete";
@@ -128,30 +147,69 @@ export default function Topbar() {
         <button
           type="button"
           onClick={async () => {
-            // Default is subscribed; bell acts as permission/preview control.
-            const nextEnabled = true;
-            setNotificationsEnabled(nextEnabled);
-            saveNotificationPreferences({ enabled: nextEnabled });
-            void requestNotificationPermission().then(() => {
-              dispatchNotificationPermissionUpdated();
-            });
-            if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-              await sendEngagementNotification("gym_nudge", {
-                firstName: displayName.split(" ")[0] || "Athlete",
-              });
+            if (typeof Notification === "undefined") {
+              toast.error("Notifications are not supported in this browser.");
+              return;
+            }
+
+            saveNotificationPreferences({ enabled: true });
+            setNotificationsEnabled(true);
+
+            const permission = await requestNotificationPermission();
+            refreshPermission();
+            dispatchNotificationPermissionUpdated();
+
+            const firstName = displayName.split(" ")[0] || "Athlete";
+
+            if (permission === "denied") {
+              toast.error(
+                "Notifications are blocked. Turn them on in your browser or phone settings.",
+                { duration: 5000 }
+              );
+              return;
+            }
+
+            if (permission !== "granted") {
+              toast("Tap Allow in the popup to get gym & giveaway alerts.", { icon: "🔔" });
+              return;
+            }
+
+            const shown = await sendCustomNotification(
+              "Notifications are on 🔔",
+              `Hey ${firstName}, you'll get giveaway drops, points, and gym nudges right here.`,
+              `rf-bell-preview-${Date.now()}`
+            );
+
+            if (shown) {
+              toast.success("Preview sent — you'll get alerts like this!");
+            } else {
+              toast.success("Notifications enabled. Check your notification center.");
             }
           }}
-          className="relative min-h-11 min-w-11 h-11 w-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-text-secondary hover:text-white hover:bg-white/10 transition-all touch-manipulation"
-          aria-label="Notifications"
+          className={`relative min-h-11 min-w-11 h-11 w-11 rounded-xl flex items-center justify-center transition-all touch-manipulation ${
+            browserPermission === "granted"
+              ? "bg-white/5 border border-white/10 text-text-secondary hover:text-white hover:bg-white/10"
+              : "bg-brand/15 border border-brand/40 text-brand hover:bg-brand/25 animate-pulse"
+          }`}
+          aria-label={
+            browserPermission === "granted"
+              ? "Notifications on"
+              : "Tap to allow notifications"
+          }
           title={
-            notificationsEnabled
-              ? "Notifications enabled"
-              : "Enable notifications"
+            browserPermission === "granted"
+              ? "Notifications on — gym & giveaway alerts"
+              : browserPermission === "denied"
+                ? "Notifications blocked — enable in browser settings"
+                : "Tap to allow notifications"
           }
         >
           <Bell className="w-4 h-4" />
-          {notificationsEnabled && (
+          {browserPermission === "granted" && (
             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-emerald-400" />
+          )}
+          {browserPermission === "default" && (
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-yellow-400" />
           )}
         </button>
 

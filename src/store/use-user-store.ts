@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   avatarUrl: string;
   instagramHandle: string;
+  phone: string;
   isPremium: boolean;
   premiumTier: "free" | "warrior" | "elite" | "custom";
   xpPoints: number;
@@ -46,6 +47,7 @@ export const GUEST_USER: UserProfile = {
   email: "",
   avatarUrl: "",
   instagramHandle: "",
+  phone: "",
   isPremium: false,
   premiumTier: "free",
   xpPoints: 0,

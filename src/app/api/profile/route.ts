@@ -5,7 +5,7 @@ import { isUuidUserId } from "@/lib/api-guards";
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, name, instagram_handle } = body;
+    const { userId, name, instagram_handle, phone } = body;
 
     if (!isUuidUserId(userId)) {
       return NextResponse.json({ error: "Sign in with Google to save profile" }, { status: 403 });
@@ -14,7 +14,10 @@ export async function PATCH(req: NextRequest) {
     const updates: Record<string, string> = {};
     if (typeof name === "string" && name.trim()) updates.name = name.trim();
     if (typeof instagram_handle === "string") {
-      updates.instagram_handle = instagram_handle.trim();
+      updates.instagram_handle = instagram_handle.trim().replace(/^@+/, "");
+    }
+    if (typeof phone === "string") {
+      updates.phone = phone.trim();
     }
 
     const profile = await updateUserProfile(userId, updates as never);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AdminShell from "./AdminShell";
 import { cn } from "@/lib/utils";
 import { DEFAULT_GRAND_PRIZE } from "@/lib/prize-sheet";
+import { getRedemptionContactDisplay } from "@/lib/prize-redemption-contact-display";
 import { ENGAGEMENT_KIND_OPTIONS } from "@/lib/engagement-notifications";
 import {
   Loader2,
@@ -20,6 +21,7 @@ type Tab =
   | "users"
   | "logs"
   | "claims"
+  | "redemptions"
   | "community"
   | "giveaways"
   | "prebookings"
@@ -34,6 +36,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
+  const [redemptions, setRedemptions] = useState<any[]>([]);
+  const [redemptionFilter, setRedemptionFilter] = useState<"pending" | "all" | "fulfilled">("pending");
   const [posts, setPosts] = useState<any[]>([]);
   const [giveaways, setGiveaways] = useState<any[]>([]);
   const [winners, setWinners] = useState<any[]>([]);
@@ -61,6 +65,8 @@ export default function AdminDashboard() {
   const [pointReason, setPointReason] = useState("Admin adjustment");
   const [adjustingPoints, setAdjustingPoints] = useState(false);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [reviewingRedemptionId, setReviewingRedemptionId] = useState<string | null>(null);
+  const [redemptionError, setRedemptionError] = useState<string | null>(null);
   const [claimActionError, setClaimActionError] = useState<string | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [communityError, setCommunityError] = useState<string | null>(null);
@@ -112,6 +118,12 @@ export default function AdminDashboard() {
     setClaims(d.claims || []);
   }, []);
 
+  const loadRedemptions = useCallback(async (filter = redemptionFilter) => {
+    const status = filter === "all" ? "all" : filter;
+    const d = await fetchJson(`/api/admin/redemptions?status=${status}`);
+    setRedemptions(d.alerts || []);
+  }, [redemptionFilter]);
+
   const loadCommunity = useCallback(async () => {
     const d = await fetchJson("/api/admin/community");
     setPosts(d.posts || []);
@@ -153,6 +165,7 @@ export default function AdminDashboard() {
       else if (tab === "users") await loadUsers();
       else if (tab === "logs") await loadLogs();
       else if (tab === "claims") await loadClaims();
+      else if (tab === "redemptions") await loadRedemptions();
       else if (tab === "community") await loadCommunity();
       else if (tab === "giveaways") {
         await loadGiveaways();
@@ -175,6 +188,7 @@ export default function AdminDashboard() {
     loadUsers,
     loadLogs,
     loadClaims,
+    loadRedemptions,
     loadCommunity,
     loadGiveaways,
     loadPrebookings,
@@ -384,6 +398,30 @@ export default function AdminDashboard() {
   };
 
   const pendingCount = claims.filter((c) => c.status === "pending").length;
+  const pendingRedemptionCount =
+    stats?.pendingRedemptions ??
+    redemptions.filter((r) => r.status === "pending").length;
+
+  const reviewRedemption = async (
+    id: string,
+    status: "fulfilled" | "dismissed"
+  ) => {
+    setReviewingRedemptionId(id);
+    setRedemptionError(null);
+    try {
+      await fetchJson(`/api/admin/redemptions/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      await loadRedemptions();
+      if (tab === "overview") await loadOverview();
+    } catch (e) {
+      setRedemptionError(e instanceof Error ? e.message : "Failed to update");
+    } finally {
+      setReviewingRedemptionId(null);
+    }
+  };
 
   const exportLeaderboardCsv = () => {
     const headers = ["Rank", "Name", "Email", "Giveaway Points", "Streak", "XP"];
@@ -435,7 +473,12 @@ export default function AdminDashboard() {
   };
 
   return (
-    <AdminShell active={tab} onNav={(id) => setTab(id as Tab)} pendingClaims={pendingCount}>
+    <AdminShell
+      active={tab}
+      onNav={(id) => setTab(id as Tab)}
+      pendingClaims={pendingCount}
+      pendingRedemptions={pendingRedemptionCount}
+    >
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-white text-2xl font-black uppercase tracking-tighter font-heading">
           {tab.replace("-", " ")}
@@ -472,6 +515,7 @@ export default function AdminDashboard() {
                 {[
                   { label: "Total users", value: stats.userCount },
                   { label: "Pending claims", value: stats.pendingClaims },
+                  { label: "Prize redemptions", value: stats.pendingRedemptions ?? 0 },
                   { label: "Community posts", value: stats.communityPosts ?? 0 },
                   { label: "Points today", value: stats.pointsIssuedToday },
                   {
@@ -495,6 +539,15 @@ export default function AdminDashboard() {
                   className="w-full p-4 bg-brand/10 border border-brand/30 rounded-xl text-brand font-bold text-sm text-left"
                 >
                   {pendingCount} claim(s) awaiting review →
+                </button>
+              )}
+              {pendingRedemptionCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTab("redemptions")}
+                  className="w-full p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-yellow-400 font-bold text-sm text-left"
+                >
+                  {pendingRedemptionCount} prize redemption(s) to fulfill →
                 </button>
               )}
             </div>
@@ -745,6 +798,129 @@ export default function AdminDashboard() {
                     )}
                   </div>
                 ))
+              )}
+            </div>
+          )}
+
+          {tab === "redemptions" && (
+            <div className="space-y-4">
+              {redemptionError && (
+                <p className="text-brand text-sm p-3 bg-brand/10 border border-brand/30 rounded-xl">
+                  {redemptionError}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {(["pending", "fulfilled", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => {
+                      setRedemptionFilter(f);
+                      void loadRedemptions(f);
+                    }}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-xs font-bold uppercase border",
+                      redemptionFilter === f
+                        ? "bg-yellow-500 text-black border-yellow-500"
+                        : "bg-white/5 text-text-secondary border-white/10"
+                    )}
+                  >
+                    {f === "all" ? "All" : f}
+                  </button>
+                ))}
+              </div>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Users unlock prizes on the prize sheet (300+ pts). When they cross a tier or tap
+                Request prize, you see them here — mark fulfilled after you send the gear.
+              </p>
+              {redemptions.length === 0 ? (
+                <p className="text-text-muted text-sm">No redemptions to show.</p>
+              ) : (
+                redemptions.map((r) => {
+                  const contact = getRedemptionContactDisplay(r);
+                  return (
+                  <div
+                    key={r.id}
+                    className="bg-surface-card border border-white/10 rounded-2xl p-5 flex flex-wrap items-center gap-4"
+                  >
+                    <div className="flex-1 min-w-[200px]">
+                      <p className="text-white font-bold">{r.user_profiles?.name}</p>
+                      <p className="text-text-muted text-xs">{r.user_profiles?.email}</p>
+                      <p className="text-yellow-400 text-sm font-bold mt-2">
+                        {r.prize_name} · {r.points_required.toLocaleString()} pts tier
+                      </p>
+                      <p className="text-text-muted text-xs mt-1">
+                        User has {r.user_profiles?.giveaway_points?.toLocaleString() ?? r.user_points_at_unlock} pts
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {contact.instagram ? (
+                          <a
+                            href={`https://instagram.com/${contact.instagram}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-brand text-xs font-bold no-underline hover:bg-white/10"
+                          >
+                            IG @{contact.instagram}
+                          </a>
+                        ) : (
+                          <span className="text-yellow-400/80 text-xs font-medium">No Instagram on file</span>
+                        )}
+                        {contact.phone ? (
+                          <a
+                            href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold no-underline hover:bg-emerald-500/20"
+                          >
+                            📞 {contact.phone}
+                          </a>
+                        ) : (
+                          <span className="text-yellow-400/80 text-xs font-medium">No phone on file</span>
+                        )}
+                      </div>
+                      {r.user_note && (
+                        <p className="text-text-secondary text-xs mt-2">Note: {r.user_note}</p>
+                      )}
+                      <p
+                        className={cn(
+                          "text-[10px] font-bold uppercase mt-2",
+                          r.status === "pending" && "text-yellow-400",
+                          r.status === "fulfilled" && "text-emerald-400",
+                          r.status === "dismissed" && "text-text-muted"
+                        )}
+                      >
+                        {r.status}
+                        {r.fulfilled_by && r.status === "fulfilled"
+                          ? ` · by ${r.fulfilled_by}`
+                          : ""}
+                      </p>
+                    </div>
+                    {r.status === "pending" && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={reviewingRedemptionId === r.id}
+                          onClick={() => void reviewRedemption(r.id, "fulfilled")}
+                          className="min-h-11 px-4 py-2 bg-emerald-600 rounded-xl text-white text-xs font-bold uppercase flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {reviewingRedemptionId === r.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Check className="w-4 h-4" />
+                          )}
+                          Fulfilled
+                        </button>
+                        <button
+                          type="button"
+                          disabled={reviewingRedemptionId === r.id}
+                          onClick={() => void reviewRedemption(r.id, "dismissed")}
+                          className="min-h-11 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-text-secondary text-xs font-bold uppercase flex items-center gap-2 disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" /> Dismiss
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+                })
               )}
             </div>
           )}
