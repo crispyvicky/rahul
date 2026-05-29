@@ -39,8 +39,12 @@ export async function compressImageForUpload(
   const { maxWidth, maxHeight, maxBytes } = { ...DEFAULTS, ...opts };
   let quality = opts?.quality ?? DEFAULTS.quality;
 
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Please choose an image file (JPG, PNG, or WebP).");
+  const isImage =
+    file.type.startsWith("image/") ||
+    file.type === "" ||
+    /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name);
+  if (!isImage) {
+    throw new Error("Please choose an image file (JPG, PNG, WebP, or a photo from your gallery).");
   }
 
   if (file.size <= maxBytes && file.type === "image/jpeg") {

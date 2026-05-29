@@ -135,7 +135,7 @@ export async function getPendingCampaignsForUser(userId: string) {
     await Promise.all([
       db
         .from("user_profiles")
-        .select("id, name, giveaway_points, current_streak, last_login")
+        .select("id, name, giveaway_points, current_streak, last_login, notifications_enabled_at")
         .eq("id", userId)
         .maybeSingle(),
       db
@@ -158,11 +158,17 @@ export async function getPendingCampaignsForUser(userId: string) {
 
   if (!profile) return [];
 
+  const enabledAt = (profile as { notifications_enabled_at?: string | null })
+    .notifications_enabled_at;
+  if (!enabledAt) return [];
+
+  const enabledMs = new Date(enabledAt).getTime();
   const seenIds = new Set((seen || []).map((s) => s.campaign_id));
   const top20Ids = new Set((topRows || []).map((r) => r.id));
 
   return (campaigns || [])
     .filter((c) => !seenIds.has(c.id))
+    .filter((c) => new Date(c.created_at as string).getTime() > enabledMs)
     .filter((c) => matchesAudience(profile as UserAudienceRow, c.audience as CampaignAudience, top20Ids))
     .map((c) => ({
       id: c.id as string,

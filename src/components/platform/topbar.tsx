@@ -13,9 +13,14 @@ import {
   NOTIFICATION_PERMISSION_EVENT,
   requestNotificationPermission,
   saveNotificationPreferences,
-  sendCustomNotification,
   dispatchNotificationPermissionUpdated,
 } from "@/lib/engagement-notifications";
+import {
+  NOTIFICATION_BACKLOG_DELAY_MS,
+  NOTIFICATION_WELCOME_DELAY_MS,
+  setNotificationDeliveryGate,
+} from "@/lib/notification-client";
+import { isUuidUserId } from "@/lib/api-guards";
 
 export default function Topbar() {
   const { data: session } = useSession();
@@ -157,6 +162,17 @@ export default function Topbar() {
 
             const permission = await requestNotificationPermission();
             refreshPermission();
+
+            if (
+              permission === "granted" &&
+              user?.id &&
+              isUuidUserId(user.id)
+            ) {
+              setNotificationDeliveryGate(
+                user.id,
+                NOTIFICATION_WELCOME_DELAY_MS + NOTIFICATION_BACKLOG_DELAY_MS
+              );
+            }
             dispatchNotificationPermissionUpdated();
 
             const firstName = displayName.split(" ")[0] || "Athlete";
@@ -174,17 +190,10 @@ export default function Topbar() {
               return;
             }
 
-            const shown = await sendCustomNotification(
-              "Notifications are on 🔔",
-              `Hey ${firstName}, you'll get giveaway drops, points, and gym nudges right here.`,
-              `rf-bell-preview-${Date.now()}`
+            toast.success(
+              `Welcome ${firstName}! Your first alert is coming in a few seconds.`,
+              { duration: 4000 }
             );
-
-            if (shown) {
-              toast.success("Preview sent — you'll get alerts like this!");
-            } else {
-              toast.success("Notifications enabled. Check your notification center.");
-            }
           }}
           className={`relative min-h-11 min-w-11 h-11 w-11 rounded-xl flex items-center justify-center transition-all touch-manipulation ${
             browserPermission === "granted"

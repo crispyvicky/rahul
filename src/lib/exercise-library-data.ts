@@ -566,102 +566,200 @@ export const exercisePool: Record<string, ExercisePoolItem[]> = {
       ]
     },
   ],
-  arms: [
-    { 
-      name: "Barbell Bicep Curls", 
-      targetSets: 3, 
-      targetReps: "10-12", 
-      tip: "Pin elbows to sides, curl upwards, resist lower negative", 
-      group: "arms",
+  biceps: [
+    {
+      name: "Barbell Bicep Curls",
+      targetSets: 3,
+      targetReps: "10-12",
+      tip: "Pin elbows to sides, curl upwards, resist the negative",
+      group: "biceps",
       steps: [
         "Grip barbell with shoulder-width underhand grip, stand tall.",
         "Keep elbows pinned to sides, curl bar upwards toward chest.",
-        "Squeeze biceps, then lower bar slowly over 3 seconds to complete stretch."
-      ]
+        "Squeeze biceps, then lower bar slowly over 3 seconds."
+      ],
     },
-    { 
-      name: "Close Grip Bench Press", 
-      targetSets: 4, 
-      targetReps: "8-10", 
-      tip: "Shoulder-width grip, lower bar to sternum, lock triceps", 
-      group: "arms",
-      steps: [
-        "Lie on flat bench, grip bar with shoulder-width grip.",
-        "Lower bar slowly to mid-sternum, keeping elbows tucked close to sides.",
-        "Press bar up forcefully to fully lock out triceps."
-      ]
-    },
-    { 
-      name: "Overhead Dumbbell Extension", 
-      targetSets: 3, 
-      targetReps: "10-12", 
-      tip: "Hold single heavy dumbbell in both hands, extend overhead", 
-      group: "arms",
-      steps: [
-        "Hold a single heavy dumbbell overhead with both hands.",
-        "Keep elbows pointing forward, lower the dumbbell behind your head under control.",
-        "Press the weight back up to lock out triceps overhead."
-      ]
-    },
-    { 
-      name: "EZ-Bar Preacher Curls", 
-      targetSets: 3, 
-      targetReps: "10-12", 
-      tip: "Keep armpit flat against bench pad, full contraction", 
-      group: "arms",
+    {
+      name: "EZ-Bar Preacher Curls",
+      targetSets: 3,
+      targetReps: "10-12",
+      tip: "Keep armpit flat against bench pad, full contraction",
+      group: "biceps",
       steps: [
         "Position yourself on preacher bench, back of arms flat against pad.",
-        "Grip EZ-Bar underhand, curl bar upwards toward chin.",
-        "Squeeze biceps at top, lower bar slowly to soft lockout stretch."
-      ]
+        "Grip EZ-bar underhand, curl bar upwards toward chin.",
+        "Squeeze biceps at top, lower bar slowly to a soft stretch."
+      ],
     },
-    { 
-      name: "Rope Tricep Pushdowns", 
-      targetSets: 3, 
-      targetReps: "12-15", 
-      tip: "Keep elbows glued, flare rope ends apart at bottom pull", 
-      group: "arms",
+    {
+      name: "Hammer Dumbbell Curls",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Neutral grip — targets brachialis and forearms",
+      group: "biceps",
       steps: [
-        "Grip rope ends at cable station, stand with slight forward hinge.",
-        "Push cable down to full arm extension, keeping elbows static at sides.",
-        "Flare rope ends apart at bottom to maximize tricep contraction."
-      ]
+        "Hold dumbbells with palms facing each other.",
+        "Curl weights up without rotating wrists, elbows tucked.",
+        "Lower slowly back to your sides."
+      ],
     },
-    { 
-      name: "Hammer Dumbbell Curls", 
-      targetSets: 3, 
-      targetReps: "12-15", 
-      tip: "Thumbs pointed upwards, targets forearm and brachialis", 
-      group: "arms",
+    {
+      name: "Bicep Concentration Curls",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Brace elbow on inner thigh, squeeze at the top",
+      group: "biceps",
       steps: [
-        "Hold dumbbells with neutral grip (palms facing each other).",
-        "Curl weights upwards without rotating wrists, keeping elbows tucked.",
-        "Lower slowly back to sides."
-      ]
+        "Sit on a bench, lean forward, arm hanging straight down.",
+        "Brace elbow against inner thigh.",
+        "Curl dumbbell toward shoulder without swinging."
+      ],
     },
-    { 
-      name: "Bicep Concentration Curls", 
-      targetSets: 3, 
-      targetReps: "12-15", 
-      tip: "Sit down, brace elbow against inner thigh, squeeze bicep", 
-      group: "arms",
+    {
+      name: "Incline Dumbbell Curls",
+      targetSets: 3,
+      targetReps: "10-12",
+      tip: "Set bench to 45°, let arms hang for a deep stretch",
+      group: "biceps",
       steps: [
-        "Sit on flat bench, lean forward, hold dumbbell with arm hanging straight down.",
-        "Brace elbow against your inner thigh.",
-        "Curl dumbbell upwards towards your shoulder, keeping arm static."
-      ]
+        "Lie on incline bench holding dumbbells at your sides.",
+        "Curl both weights up while keeping elbows slightly behind torso.",
+        "Lower under control to full stretch at the bottom."
+      ],
     },
-    { 
-      name: "Tricep Kickbacks (Cable)", 
-      targetSets: 3, 
-      targetReps: "12-15", 
-      tip: "Keep upper arm static, extend cable straight back", 
-      group: "arms",
+    {
+      name: "Cable Bicep Curl",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Constant tension — don't let stack touch between reps",
+      group: "biceps",
       steps: [
-        "Hinge forward at cable station, hold cable wire with neutral grip.",
-        "Raise elbow high so upper arm is parallel to floor.",
-        "Extend arm straight back, squeezing outer tricep head."
-      ]
+        "Attach straight bar to low cable, stand facing the stack.",
+        "Curl bar up with elbows fixed at your sides.",
+        "Squeeze hard at top, resist on the way down."
+      ],
+    },
+    {
+      name: "Reverse Grip EZ-Bar Curls",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Overhand grip targets outer bicep and forearms",
+      group: "biceps",
+      steps: [
+        "Hold EZ-bar with overhand shoulder-width grip.",
+        "Curl bar up keeping wrists straight and elbows tucked.",
+        "Lower slowly — avoid using momentum."
+      ],
+    },
+    {
+      name: "21s Bicep Curls",
+      targetSets: 3,
+      targetReps: "21",
+      tip: "7 bottom half + 7 top half + 7 full reps per set",
+      group: "biceps",
+      steps: [
+        "Use a manageable weight on EZ-bar or dumbbells.",
+        "Perform 7 reps from bottom to midpoint only.",
+        "Then 7 reps from midpoint to top, then 7 full-range curls."
+      ],
+    },
+  ],
+  triceps: [
+    {
+      name: "Close Grip Bench Press",
+      targetSets: 4,
+      targetReps: "8-10",
+      tip: "Shoulder-width grip, lower to sternum, lock out triceps",
+      group: "triceps",
+      steps: [
+        "Lie on flat bench, grip bar shoulder-width.",
+        "Lower bar to mid-sternum with elbows tucked.",
+        "Press up forcefully to full tricep lockout."
+      ],
+    },
+    {
+      name: "Overhead Dumbbell Extension",
+      targetSets: 3,
+      targetReps: "10-12",
+      tip: "Keep elbows forward, stretch long head of triceps",
+      group: "triceps",
+      steps: [
+        "Hold one dumbbell overhead with both hands.",
+        "Lower weight behind head under control.",
+        "Extend back up without flaring elbows out."
+      ],
+    },
+    {
+      name: "Rope Tricep Pushdowns",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Flare rope apart at bottom for max contraction",
+      group: "triceps",
+      steps: [
+        "Grip rope at cable station, slight forward hinge.",
+        "Push down to full extension, elbows at sides.",
+        "Spread rope ends apart at the bottom."
+      ],
+    },
+    {
+      name: "Tricep Kickbacks (Cable)",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Upper arm parallel to floor, extend fully back",
+      group: "triceps",
+      steps: [
+        "Hinge forward at cable, neutral grip on handle.",
+        "Pin upper arm parallel to floor.",
+        "Extend arm straight back, squeeze tricep."
+      ],
+    },
+    {
+      name: "Skull Crushers (EZ-Bar)",
+      targetSets: 3,
+      targetReps: "10-12",
+      tip: "Lower bar to forehead, elbows stay in place",
+      group: "triceps",
+      steps: [
+        "Lie on bench, hold EZ-bar with arms extended.",
+        "Bend elbows to lower bar toward forehead.",
+        "Press back up using triceps only."
+      ],
+    },
+    {
+      name: "Tricep Dips",
+      targetSets: 3,
+      targetReps: "10-12",
+      tip: "Torso upright, elbows back — not chest-forward dips",
+      group: "triceps",
+      steps: [
+        "Grip parallel bars, start at straight arms.",
+        "Keep torso upright, bend elbows straight back.",
+        "Press up until arms lock out."
+      ],
+    },
+    {
+      name: "Single-Arm Cable Pushdown",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "One arm at a time — control rotation at wrist",
+      group: "triceps",
+      steps: [
+        "Stand sideways to cable, grip handle with one hand.",
+        "Push down to lockout keeping elbow at your side.",
+        "Complete all reps, then switch arms."
+      ],
+    },
+    {
+      name: "Bench Dips",
+      targetSets: 3,
+      targetReps: "12-15",
+      tip: "Feet on floor or elevated — add plate on lap for load",
+      group: "triceps",
+      steps: [
+        "Hands on bench behind you, legs extended forward.",
+        "Lower body by bending elbows to 90°.",
+        "Press through palms to straight arms."
+      ],
     },
   ],
   core: [

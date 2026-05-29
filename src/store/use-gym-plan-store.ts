@@ -7,6 +7,11 @@ import {
   pickRandomSwap,
 } from "@/lib/exercise-library";
 import type { DayPlan, SetLog, WeeklySchedule } from "@/lib/gym-plan-types";
+import {
+  migrateGymSchedule,
+  migrateWeeklyPlan,
+  UPPER_BODY_MUSCLE_IDS,
+} from "@/lib/gym-muscle-groups";
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -30,7 +35,7 @@ function getDynamicWarmups(muscles: string[]): ExercisePoolItem[] {
   if (muscles.length === 0) return [];
   const isLower = muscles.includes("legs");
   const isUpper = muscles.some((m) =>
-    ["chest", "back", "shoulders", "arms"].includes(m)
+    (UPPER_BODY_MUSCLE_IDS as readonly string[]).includes(m)
   );
   let warmups: ExercisePoolItem[] = [...warmupPool.general];
   if (isUpper) warmups = [...warmups, ...warmupPool.upper];
@@ -43,7 +48,7 @@ function getDynamicCooldowns(muscles: string[]): ExercisePoolItem[] {
   if (muscles.length === 0) return [];
   const isLower = muscles.includes("legs");
   const isUpper = muscles.some((m) =>
-    ["chest", "back", "shoulders", "arms"].includes(m)
+    (UPPER_BODY_MUSCLE_IDS as readonly string[]).includes(m)
   );
   let cooldowns: ExercisePoolItem[] = [];
   if (isUpper) cooldowns = [...cooldowns, ...cooldownPool.upper];
@@ -93,11 +98,11 @@ function loadLocalFallback(): {
   sets: Record<string, SetLog[]>;
 } {
   const defaultSchedule: WeeklySchedule = {
-    Monday: ["chest", "arms"],
+    Monday: ["chest", "biceps"],
     Tuesday: ["back", "core"],
     Wednesday: ["legs"],
     Thursday: [],
-    Friday: ["shoulders", "arms"],
+    Friday: ["shoulders", "triceps"],
     Saturday: ["chest", "back"],
     Sunday: [],
   };
@@ -108,9 +113,13 @@ function loadLocalFallback(): {
     const schedule = localStorage.getItem(LS_SCHEDULE);
     const plan = localStorage.getItem(LS_PLAN);
     const logs = localStorage.getItem(LS_LOGS);
+    const parsedSchedule = migrateGymSchedule(
+      schedule ? JSON.parse(schedule) : defaultSchedule
+    );
+    const parsedPlan = migrateWeeklyPlan(plan ? JSON.parse(plan) : null);
     return {
-      schedule: schedule ? JSON.parse(schedule) : defaultSchedule,
-      weeklyPlan: plan ? JSON.parse(plan) : null,
+      schedule: parsedSchedule,
+      weeklyPlan: parsedPlan,
       sets: logs ? JSON.parse(logs) : {},
     };
   } catch {
@@ -244,15 +253,17 @@ export const useGymPlanStore = create<GymPlanState>((set, get) => ({
       if (generation !== hydrateGeneration) return;
 
       if (data) {
+        const schedule = migrateGymSchedule(data.schedule ?? local.schedule);
+        const weeklyPlan = migrateWeeklyPlan(data.plan);
         set({
-          weeklyPlan: data.plan,
-          schedule: data.schedule ?? local.schedule,
+          weeklyPlan,
+          schedule,
           sets: data.sets ?? {},
           weeklyPlanId: data.weeklyPlanId,
           isHydrated: true,
           isLoading: false,
         });
-        cacheLocally(data.schedule ?? local.schedule, data.plan, data.sets ?? {});
+        cacheLocally(schedule, weeklyPlan, data.sets ?? {});
         return;
       }
     }

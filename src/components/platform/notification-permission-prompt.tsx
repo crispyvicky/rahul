@@ -14,6 +14,11 @@ import {
   requestNotificationPermission,
   saveNotificationPreferences,
 } from "@/lib/engagement-notifications";
+import {
+  NOTIFICATION_BACKLOG_DELAY_MS,
+  NOTIFICATION_WELCOME_DELAY_MS,
+  setNotificationDeliveryGate,
+} from "@/lib/notification-client";
 
 export default function NotificationPermissionPrompt() {
   const { data: session, status } = useSession();
@@ -71,6 +76,12 @@ export default function NotificationPermissionPrompt() {
       saveNotificationPreferences({ enabled: true });
       const permission = await requestNotificationPermission();
       markNotificationPromptSeen(userId);
+      if (permission === "granted") {
+        setNotificationDeliveryGate(
+          userId,
+          NOTIFICATION_WELCOME_DELAY_MS + NOTIFICATION_BACKLOG_DELAY_MS
+        );
+      }
       dispatchNotificationPermissionUpdated();
       setOpen(false);
       if (permission === "granted") {

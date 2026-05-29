@@ -15,14 +15,9 @@ import { getExerciseYoutubeUrl } from "@/lib/exercise-youtube";
 import { useAppSessionResume } from "@/hooks/use-app-session-resume";
 import toast from "react-hot-toast";
 
-const muscleGroups = [
-  { id: "chest", label: "Chest", emoji: "🔥" },
-  { id: "back", label: "Back", emoji: "💪" },
-  { id: "shoulders", label: "Shoulders", emoji: "⚡" },
-  { id: "legs", label: "Legs", emoji: "🦵" },
-  { id: "arms", label: "Arms", emoji: "💪" },
-  { id: "core", label: "Core", emoji: "🎯" },
-];
+import { GYM_MUSCLE_GROUPS, getMuscleLabel } from "@/lib/gym-muscle-groups";
+
+const muscleGroups = GYM_MUSCLE_GROUPS;
 
 export default function GymModePage() {
   const { data: session } = useSession();
@@ -317,7 +312,7 @@ export default function GymModePage() {
 
   // 3. MAIN WORKOUT TRACKER VIEW (State B - Active Plan)
   const currentDayPlan = weeklyPlan[activeDayIndex];
-  const activeMuscleNames = currentDayPlan.muscleGroups.map(id => muscleGroups.find(g => g.id === id)?.label || id).join(" & ");
+  const activeMuscleNames = currentDayPlan.muscleGroups.map((id) => getMuscleLabel(id)).join(" & ");
   const isRestDay = currentDayPlan.muscleGroups.length === 0;
 
   // Active workout arrays based on active tab selection

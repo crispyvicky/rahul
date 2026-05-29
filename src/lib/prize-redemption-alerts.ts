@@ -142,13 +142,24 @@ export type UnseenPrizeUnlock = {
 export async function listUnseenInAppPrizeUnlocks(userId: string) {
   if (!hasSupabaseAdmin()) return [] as UnseenPrizeUnlock[];
   const db = getSupabaseAdmin();
+
+  const { data: profile } = await db
+    .from("user_profiles")
+    .select("notifications_enabled_at")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const enabledAt = profile?.notifications_enabled_at;
+  if (!enabledAt) return [] as UnseenPrizeUnlock[];
+
   const { data } = await db
     .from("prize_redemption_alerts")
     .select("id, tier_id, prize_name, points_required")
     .eq("user_id", userId)
     .is("in_app_notified_at", null)
+    .gt("created_at", enabledAt)
     .order("created_at", { ascending: true })
-    .limit(10);
+    .limit(3);
   return (data || []) as UnseenPrizeUnlock[];
 }
 

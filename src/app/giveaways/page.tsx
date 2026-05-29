@@ -116,10 +116,36 @@ export default function GiveawayPage() {
   }, [load]);
 
   useEffect(() => {
+    if (!user) return;
+    setFollowClaimDetails((prev) => ({
+      instagramUsername: prev.instagramUsername || user.instagramHandle || "",
+      phone: prev.phone || user.phone || "",
+    }));
+  }, [user?.id, user?.instagramHandle, user?.phone]);
+
+  useEffect(() => {
     return () => {
       Object.values(proofPreviews).forEach((url) => URL.revokeObjectURL(url));
     };
   }, [proofPreviews]);
+
+  /** Server profile id (must match session email) for claims/uploads */
+  const resolveClaimUserId = async (): Promise<string | null> => {
+    if (!session?.user?.email) return null;
+    try {
+      const res = await fetch("/api/auth/sync-profile", { method: "POST" });
+      const json = await res.json();
+      if (res.ok && json.profile?.id && isUuidUserId(json.profile.id)) {
+        if (user?.id !== json.profile.id) {
+          login(mapDbProfileToStore(json.profile));
+        }
+        return json.profile.id as string;
+      }
+    } catch {
+      /* fall through */
+    }
+    return user?.id && isUuidUserId(user.id) ? user.id : null;
+  };
 
   useEffect(() => {
     if (!session?.user?.email || syncedOnPage.current) return;
@@ -144,6 +170,12 @@ export default function GiveawayPage() {
       setError("Sign in with Google to earn and track points.");
       return;
     }
+    const claimUserId = await resolveClaimUserId();
+    if (!claimUserId) {
+      setError("Could not verify your account. Refresh the page and sign in again.");
+      return;
+    }
+
     setClaiming(action);
     setError(null);
     setSuccessMsg(null);
@@ -174,15 +206,16 @@ export default function GiveawayPage() {
         }
         const fd = new FormData();
         fd.append("file", file);
-        fd.append("userId", user!.id);
+        fd.append("userId", claimUserId);
         const up = await fetch("/api/claim-proof/upload", { method: "POST", body: fd });
-        const uploadJson = await up.json();
+        const uploadJson = await up.json().catch(() => ({}));
         if (!up.ok || !uploadJson.proofUrl) {
           setError(
             uploadJson.error ||
-              "Screenshot upload failed. Run supabase/claim_storage.sql in Supabase, then try again."
+              (up.status === 403
+                ? "Session expired — refresh and sign in again."
+                : "Screenshot upload failed. Try a smaller screenshot or sign in again.")
           );
-          setClaiming(null);
           return;
         }
         proofUrl = uploadJson.proofUrl;
@@ -192,7 +225,7 @@ export default function GiveawayPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user!.id,
+          userId: claimUserId,
           action,
           proofUrl,
           instagramUsername:
@@ -202,9 +235,9 @@ export default function GiveawayPage() {
           phone: action === "follow" ? followClaimDetails.phone.trim() : undefined,
         }),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json.error || "Could not claim points");
+        setError(json.error || "Could not submit claim. Try again.");
         return;
       }
       if (!json.pending) {
@@ -268,14 +301,27 @@ export default function GiveawayPage() {
     }
   };
 
-  const handleAction = async (action: string) => {
-    if (action === "follow" || action === "share_story") {
-      if (!proofFiles[action]) {
-        setError("Upload your screenshot first, then tap Submit for review.");
-        openIgTask(action);
+  const submitProofClaim = async (action: string) => {
+    if (!proofFiles[action]) {
+      setError("Upload your screenshot first, then tap Submit.");
+      return;
+    }
+    if (action === "follow") {
+      if (!followClaimDetails.instagramUsername.trim()) {
+        setError("Enter your Instagram username above.");
         return;
       }
-      await claim(action);
+      if (followClaimDetails.phone.trim().replace(/\D/g, "").length < 10) {
+        setError("Enter a valid phone number (at least 10 digits).");
+        return;
+      }
+    }
+    await claim(action);
+  };
+
+  const handleAction = async (action: string) => {
+    if (action === "follow" || action === "share_story") {
+      await submitProofClaim(action);
       return;
     }
     if (action === "refer") {
@@ -503,7 +549,7 @@ export default function GiveawayPage() {
                         </span>
                         <input
                           type="file"
-                          accept="image/jpeg,image/png,image/webp"
+                          accept="image/*"
                           disabled={compressingProof === action.action}
                           className="mt-1 block w-full text-xs text-text-muted file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-brand/20 file:text-brand disabled:opacity-50"
                           onChange={async (e) => {
@@ -566,12 +612,12 @@ export default function GiveawayPage() {
                 ) : action.action === "streak" ? (
                   <span className="text-text-muted text-[10px] font-bold uppercase shrink-0">On login</span>
                 ) : action.action === "follow" || action.action === "share_story" ? (
-                  <div className="flex flex-col gap-1.5 shrink-0">
+                  <div className="flex flex-col gap-1.5 shrink-0 relative z-10">
                     <button
                       type="button"
-                      disabled={!canEarn}
+                      disabled={!canEarn || !!claiming}
                       onClick={() => openIgTask(action.action)}
-                      className="px-3 py-2 bg-white/5 border border-white/10 text-text-secondary font-bold text-[10px] uppercase rounded-lg"
+                      className="min-h-11 px-3 py-2 bg-white/5 border border-white/10 text-text-secondary font-bold text-[10px] uppercase rounded-lg touch-manipulation"
                     >
                       Open IG
                     </button>
@@ -580,20 +626,34 @@ export default function GiveawayPage() {
                       disabled={
                         !!claiming ||
                         !canEarn ||
-                        !proofFiles[action.action] ||
-                        (action.action === "follow" &&
-                          (!followClaimDetails.instagramUsername.trim() ||
-                            followClaimDetails.phone.trim().replace(/\D/g, "").length < 10))
+                        compressingProof === action.action
                       }
-                      onClick={() => handleAction(action.action)}
-                      className="px-4 py-2 bg-brand/10 border border-brand/20 text-brand font-bold text-[10px] uppercase rounded-lg flex items-center gap-1 disabled:opacity-50"
+                      onClick={() => void submitProofClaim(action.action)}
+                      className="min-h-11 px-4 py-2.5 bg-brand text-white font-bold text-[10px] uppercase rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
                     >
                       {claiming === action.action ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : compressingProof === action.action ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing…
+                        </>
                       ) : (
                         "Submit"
                       )}
                     </button>
+                    {action.action === "follow" &&
+                      proofFiles[action.action] &&
+                      (!followClaimDetails.instagramUsername.trim() ||
+                        followClaimDetails.phone.trim().replace(/\D/g, "").length < 10) && (
+                        <p className="text-yellow-400/90 text-[9px] max-w-[8.5rem] leading-snug">
+                          Add IG username + phone above, then Submit
+                        </p>
+                      )}
+                    {action.action === "share_story" && !proofFiles[action.action] && (
+                      <p className="text-yellow-400/90 text-[9px] max-w-[8.5rem] leading-snug">
+                        Upload screenshot first
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <button
