@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUserStore } from "@/store/use-user-store";
 import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
+import { GIVEAWAY_POINT_ACTIONS } from "@/lib/giveaway-points-config";
 
 const REF_KEY = "rahulfitzz_ref";
 
@@ -206,7 +207,9 @@ function SignupForm() {
                 className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-brand transition-all uppercase"
               />
               {refFromUrl && (
-                <p className="text-emerald-400/90 text-xs">Referrer gets +150 pts when you join.</p>
+                <p className="text-emerald-400/90 text-xs">
+                  Referrer gets +{GIVEAWAY_POINT_ACTIONS.refer.points} pts when you join.
+                </p>
               )}
             </motion.div>
 

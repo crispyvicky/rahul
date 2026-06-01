@@ -19,6 +19,7 @@ import { Features } from "@/components/benefits-cards";
 import { features } from "@/rawData";
 import { getAppEntryHref } from "@/lib/app-entry";
 import { cn } from "@/lib/utils";
+import { SOCIAL_REACH_DISPLAY } from "@/lib/social-reach";
 
 const childVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -83,7 +84,7 @@ const WHO_ITS_FOR = [
   "Intermediate lifters stuck on plateaus",
   "Busy professionals in Hyderabad & India",
   "Athletes chasing aesthetic + performance",
-  "Brands seeking authentic fitness reach (165K+)",
+  `Brands seeking authentic fitness reach (${SOCIAL_REACH_DISPLAY.total})`,
 ];
 
 export default function BenefitsPageContent() {

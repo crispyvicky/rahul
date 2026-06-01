@@ -3,6 +3,7 @@ import logo from "../assets/img/RF.png";
 import contact from "../assets/img/contact.avif";
 import ContactForm from "./contact-form";
 import { motion } from "framer-motion";
+import { SOCIAL_REACH_DISPLAY } from "@/lib/social-reach";
 
 function Contact() {
   return (
@@ -22,7 +23,7 @@ function Contact() {
             </h1>
 
             <p className="text-xl text-[#96979c] font-light leading-relaxed max-w-lg mb-8 border-l-2 border-[#eb0000]/50 pl-6">
-              Experience the power of a combined 321K+ reach across Instagram, YouTube, and Facebook. Whether it’s high-production content or a global brand partnership, let’s engineer an impact that lasts.
+              Experience the power of a combined {SOCIAL_REACH_DISPLAY.total} reach across Instagram, YouTube, and Facebook. Whether it’s high-production content or a global brand partnership, let’s engineer an impact that lasts.
             </p>
 
             <div className="flex items-center gap-4 text-white/50 text-xs tracking-widest uppercase font-bold">

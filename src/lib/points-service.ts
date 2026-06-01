@@ -5,23 +5,14 @@ import { auth } from "@/auth";
 import { getSupabaseAdmin, hasSupabaseAdmin } from "./supabase-admin";
 import { isUuidUserId } from "./api-guards";
 import { startOfTodayUtc, startOfUtcDay, utcDayDiff } from "./points-date-utils";
+import {
+  GIVEAWAY_POINT_ACTIONS as POINT_ACTIONS,
+  type GiveawayPointActionKey as PointActionKey,
+  type PointPolicy,
+} from "./giveaway-points-config";
 
 export { startOfTodayUtc, startOfUtcDay, utcDayDiff };
-
-/** How often each action may earn points */
-export type PointPolicy = "day" | "lifetime" | "none";
-
-export const POINT_ACTIONS = {
-  follow: { points: 200, policy: "lifetime" as PointPolicy },
-  share_story: { points: 100, policy: "lifetime" as PointPolicy },
-  refer: { points: 150, policy: "none" as PointPolicy },
-  streak: { points: 10, policy: "day" as PointPolicy },
-  workout: { points: 25, policy: "day" as PointPolicy },
-  checkin: { points: 15, policy: "day" as PointPolicy },
-  share_post: { points: 75, policy: "day" as PointPolicy },
-} as const;
-
-export type PointActionKey = keyof typeof POINT_ACTIONS;
+export { POINT_ACTIONS, type PointActionKey, type PointPolicy };
 
 /** Cannot be claimed via /api/giveaway/claim — server-only */
 export const AUTO_ONLY_ACTIONS = new Set<PointActionKey>(["streak", "refer"]);

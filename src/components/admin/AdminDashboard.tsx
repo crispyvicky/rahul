@@ -688,7 +688,7 @@ export default function AdminDashboard() {
                 </button>
               </div>
               <p className="text-text-muted text-xs leading-relaxed">
-                Instagram follow (+200) and story (+100) claims need a screenshot. Referrals (+150) are
+                Instagram follow (+100) and story (+50) claims need a screenshot. Referrals (+125) are
                 automatic when a friend signs up with your link — no screenshot in this list.
               </p>
               {claims.length === 0 ? (
@@ -830,7 +830,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
               <p className="text-text-muted text-xs leading-relaxed">
-                Users unlock prizes on the prize sheet (300+ pts). When they cross a tier or tap
+                Users unlock prizes on the prize sheet (650+ pts for first prize). When they cross a tier or tap
                 Request prize, you see them here — mark fulfilled after you send the gear.
               </p>
               {redemptions.length === 0 ? (

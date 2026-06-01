@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SOCIAL_REACH_DISPLAY } from "./social-reach";
 
 /** Canonical production URL — override in .env.local for previews. */
 export const SITE_URL =
@@ -9,7 +10,7 @@ export const SITE = {
   name: "RahulFitzz",
   tagline: "Elite Fitness Influencer & Coach",
   description:
-    "RahulFitzz — Hyderabad-based fitness influencer, coach, and brand partner. 165K+ reach, transformation programs, gym pre-booking, giveaways, and elite training content.",
+    `RahulFitzz — Hyderabad-based fitness influencer, coach, and brand partner. ${SOCIAL_REACH_DISPLAY.total} reach, transformation programs, gym pre-booking, giveaways, and elite training content.`,
   locale: "en_IN",
   email: "collab@rahulfitzz.com",
   city: "Hyderabad",
@@ -114,7 +115,7 @@ export const HOME_FAQS = [
   {
     question: "Can brands collaborate with RahulFitzz?",
     answer:
-      "Yes — email collab@rahulfitzz.com for partnerships across 136K+ IG, 97K+ YT, and 70K+ FB reach.",
+      `Yes — email collab@rahulfitzz.com for partnerships across ${SOCIAL_REACH_DISPLAY.instagram} IG, ${SOCIAL_REACH_DISPLAY.youtube} YT, and ${SOCIAL_REACH_DISPLAY.facebook} FB reach.`,
   },
 ] as const;
 

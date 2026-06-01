@@ -8,10 +8,11 @@ import {
   type PointActionKey,
 } from "./points-service";
 import { getPendingRedemptionCount } from "./prize-redemption-alerts";
+import { GIVEAWAY_POINT_ACTIONS } from "./giveaway-points-config";
 
 const ACTION_POINTS: Record<string, number> = {
-  follow: 200,
-  share_story: 100,
+  follow: GIVEAWAY_POINT_ACTIONS.follow.points,
+  share_story: GIVEAWAY_POINT_ACTIONS.share_story.points,
 };
 
 export async function getAdminStats() {

@@ -9,6 +9,7 @@ import { useUserStore } from "@/store/use-user-store";
 import { getAppEntryHref } from "@/lib/app-entry";
 import JoinNowHighlight from "@/components/join-now-highlight";
 import HeroCutoutImage from "@/components/hero-cutout-image";
+import { SOCIAL_REACH_DISPLAY } from "@/lib/social-reach";
 
 // Cinematic Text Reveal Variants
 const textVariant = {
@@ -211,17 +212,17 @@ export default function Banner() {
             {/* Desktop Layout (Standard flex row) */}
             <div className="hidden sm:flex flex-row items-center justify-start gap-10 px-4">
               <a href="https://www.instagram.com/rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">146K+ IG</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">{SOCIAL_REACH_DISPLAY.instagram} IG</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Reach</div>
               </a>
               <div className="w-[1px] h-10 bg-white/10" />
               <a href="https://www.youtube.com/@rahulfitzz" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">99K+ YT</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">{SOCIAL_REACH_DISPLAY.youtube} YT</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Subs</div>
               </a>
               <div className="w-[1px] h-10 bg-white/10" />
               <a href="https://www.facebook.com/profile.php?id=61586274037649" target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1 hover:scale-105 transition-transform group">
-                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">76K+ FB</div>
+                <div className="text-white font-black font-heading text-2xl tracking-tighter uppercase whitespace-nowrap group-hover:text-[#eb0000] transition-colors">{SOCIAL_REACH_DISPLAY.facebook} FB</div>
                 <div className="text-white/50 text-[9px] uppercase tracking-[0.4em] font-bold group-hover:text-white transition-colors">Elite Forces</div>
               </a>
             </div>
@@ -235,7 +236,7 @@ export default function Banner() {
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
-                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">146K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">{SOCIAL_REACH_DISPLAY.instagram}</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">IG</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Reach</span>
               </a>
@@ -246,7 +247,7 @@ export default function Banner() {
                   <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
                   <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
                 </svg>
-                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">99K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">{SOCIAL_REACH_DISPLAY.youtube}</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">YT</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Subs</span>
               </a>
@@ -256,7 +257,7 @@ export default function Banner() {
                 <svg className="w-5 h-5 text-[#eb0000]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
-                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">76K+</span>
+                <span className="text-white font-black font-heading text-sm tracking-tighter mt-2">{SOCIAL_REACH_DISPLAY.facebook}</span>
                 <span className="text-white/70 text-[9px] font-bold tracking-wider mt-0.5">FB</span>
                 <span className="text-[#96979c] text-[6.5px] font-medium tracking-tight mt-0.5 uppercase">Elite Forces</span>
               </a>

@@ -2,6 +2,7 @@ import React from "react";
 import Vertical_Slider from "./slider";
 import { motion } from "framer-motion";
 import { Shield, Zap, Target } from "lucide-react";
+import { SOCIAL_REACH_TOTAL_FULL } from "@/lib/social-reach";
 
 export default function Personalized_Hub() {
   return (
@@ -27,7 +28,7 @@ export default function Personalized_Hub() {
                 <span className="text-[#eb0000]">COMMAND CENTER</span>
               </h2>
               <p className="text-[#96979c] text-lg md:text-xl font-light leading-relaxed mb-12 border-l-2 border-[#eb0000] pl-8">
-                Where 165,000+ athletes converge. My digital ecosystem is engineered for high-level engagement,
+                Where {SOCIAL_REACH_TOTAL_FULL} athletes converge. My digital ecosystem is engineered for high-level engagement,
                 providing brands with unparalleled access to a dedicated performance audience across Instagram and YouTube.
               </p>
             </motion.div>

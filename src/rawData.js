@@ -77,7 +77,7 @@ export const faqs = [
   {
     question: "Can brands collaborate with RahulFitzz?",
     answer:
-      "Avunu — fitness, nutrition, apparel brands ki collab cheyochu. collab@rahulfitzz.com ki mail chey. 136K+ Instagram, 97K+ YouTube, 70K+ Facebook reach undi — sponsored content, campaigns, and long-term partnerships ki open.",
+      "Avunu — fitness, nutrition, apparel brands ki collab cheyochu. collab@rahulfitzz.com ki mail chey. 152K+ Instagram, 100K+ YouTube, 81K+ Facebook reach undi — sponsored content, campaigns, and long-term partnerships ki open.",
   },
 ];
 

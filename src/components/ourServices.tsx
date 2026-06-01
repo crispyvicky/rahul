@@ -1,5 +1,6 @@
 import React from "react";
 import { activities } from "../rawData";
+import { SOCIAL_REACH_DISPLAY } from "@/lib/social-reach";
 import { motion } from "framer-motion";
 
 export default function Services() {
@@ -28,7 +29,7 @@ export default function Services() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-[#96979c] text-lg md:text-xl font-light leading-relaxed max-w-4xl mx-auto"
         >
-          Leveraging a combined network of 165K+ dedicated followers, I bridge the gap between world-class fitness and elite brand storytelling.
+          Leveraging a combined network of {SOCIAL_REACH_DISPLAY.total} dedicated followers, I bridge the gap between world-class fitness and elite brand storytelling.
           This isn’t just content—it’s a global movement.
         </motion.p>
       </div>

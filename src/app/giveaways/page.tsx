@@ -16,16 +16,69 @@ import { compressImageForUpload } from "@/lib/compress-image";
 import { mapDbProfileToStore } from "@/lib/user-profile-mapper";
 import PrizeSheetCard from "@/components/dashboard/prize-sheet-card";
 import { sendEngagementNotification } from "@/lib/engagement-notifications";
+import { GIVEAWAY_POINT_ACTIONS, IG_ONE_TIME_POINTS_TOTAL } from "@/lib/giveaway-points-config";
+import { PRIZE_SHEET } from "@/lib/prize-sheet";
 
 const POINT_ACTIONS = [
-  { icon: Instagram, label: "Follow @rahulfitzz on Instagram", points: 200, oneTime: true, action: "follow", cta: "Follow & Claim" },
-  { icon: Share2, label: "Share platform on Instagram Story", points: 100, oneTime: true, action: "share_story", cta: "Share & Claim" },
-  { icon: UserPlus, label: "Refer a friend (per signup)", points: 150, oneTime: false, action: "refer", cta: "Invite" },
-  { icon: Flame, label: "Daily login streak", points: 10, oneTime: false, action: "streak", cta: "Auto" },
-  { icon: Dumbbell, label: "Complete today’s workout in Gym Mode", points: 25, oneTime: false, action: "workout", cta: "Gym Mode" },
-  { icon: Target, label: "Challenge check-in", points: 15, oneTime: false, action: "checkin", cta: "Challenges" },
-  { icon: Share2, label: "Post a transformation in Community", points: 75, oneTime: false, action: "share_post", cta: "Community" },
+  {
+    icon: Instagram,
+    label: "Follow @rahulfitzz on Instagram",
+    points: GIVEAWAY_POINT_ACTIONS.follow.points,
+    oneTime: true,
+    action: "follow",
+    cta: "Follow & Claim",
+  },
+  {
+    icon: Share2,
+    label: "Share platform on Instagram Story",
+    points: GIVEAWAY_POINT_ACTIONS.share_story.points,
+    oneTime: true,
+    action: "share_story",
+    cta: "Share & Claim",
+  },
+  {
+    icon: UserPlus,
+    label: "Refer a friend (per signup)",
+    points: GIVEAWAY_POINT_ACTIONS.refer.points,
+    oneTime: false,
+    action: "refer",
+    cta: "Invite",
+  },
+  {
+    icon: Flame,
+    label: "Daily login streak",
+    points: GIVEAWAY_POINT_ACTIONS.streak.points,
+    oneTime: false,
+    action: "streak",
+    cta: "Auto",
+  },
+  {
+    icon: Dumbbell,
+    label: "Complete today’s workout in Gym Mode",
+    points: GIVEAWAY_POINT_ACTIONS.workout.points,
+    oneTime: false,
+    action: "workout",
+    cta: "Gym Mode",
+  },
+  {
+    icon: Target,
+    label: "Challenge check-in",
+    points: GIVEAWAY_POINT_ACTIONS.checkin.points,
+    oneTime: false,
+    action: "checkin",
+    cta: "Challenges",
+  },
+  {
+    icon: Share2,
+    label: "Post a transformation in Community",
+    points: GIVEAWAY_POINT_ACTIONS.share_post.points,
+    oneTime: false,
+    action: "share_post",
+    cta: "Community",
+  },
 ] as const;
+
+const FIRST_PRIZE_POINTS = PRIZE_SHEET[0]?.points ?? 650;
 
 type GiveawayData = {
   giveaway: { title: string; description: string; prize: string; ends_at: string } | null;
@@ -436,7 +489,9 @@ export default function GiveawayPage() {
         <div className="flex items-center gap-2 mb-3">
           <UserPlus className="w-4 h-4 text-brand" />
           <h3 className="text-white font-bold text-sm uppercase tracking-widest">Your Referral Link</h3>
-          <span className="text-brand text-[10px] font-bold bg-brand/10 px-2 py-0.5 rounded-full">+150 pts each signup</span>
+          <span className="text-brand text-[10px] font-bold bg-brand/10 px-2 py-0.5 rounded-full">
+            +{GIVEAWAY_POINT_ACTIONS.refer.points} pts each signup
+          </span>
         </div>
         <div className="flex gap-2">
           <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-text-secondary text-xs truncate font-mono">
@@ -478,6 +533,10 @@ export default function GiveawayPage() {
 
       {tab === "earn" && (
         <div className="space-y-3">
+          <p className="text-text-secondary text-xs leading-relaxed px-1">
+            Follow + story = {IG_ONE_TIME_POINTS_TOTAL} pts one-time. First prize (shaker) unlocks at{" "}
+            {FIRST_PRIZE_POINTS.toLocaleString()} pts — keep your streak, gym workouts, and referrals going.
+          </p>
           {POINT_ACTIONS.map((action, i) => {
             const done = isCompleted(action.action);
             const pending = isPending(action.action);

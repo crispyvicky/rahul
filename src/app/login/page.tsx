@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useUserStore, DEMO_USER } from "@/store/use-user-store";
+import { SOCIAL_REACH_DISPLAY, SOCIAL_REACH_TOTAL_FULL } from "@/lib/social-reach";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -63,12 +64,12 @@ export default function LoginPage() {
             Dominate.
           </h1>
           <p className="text-text-secondary text-lg font-light leading-relaxed">
-            Join 165,000+ athletes in the most elite fitness ecosystem.
+            Join {SOCIAL_REACH_TOTAL_FULL} athletes in the most elite fitness ecosystem.
             AI-powered coaching, real-time tracking, and a community that pushes limits.
           </p>
           <div className="flex gap-8 mt-12">
             <div>
-              <p className="text-white text-2xl font-black">136K+</p>
+              <p className="text-white text-2xl font-black">{SOCIAL_REACH_DISPLAY.instagram}</p>
               <p className="text-text-secondary text-xs uppercase tracking-widest">IG Athletes</p>
             </div>
             <div>

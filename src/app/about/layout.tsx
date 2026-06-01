@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { buildPageMetadata } from "@/lib/seo";
+import { SOCIAL_REACH_DISPLAY } from "@/lib/social-reach";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "About RahulFitzz — Fitness Influencer Hyderabad",
   description:
-    "Meet RahulFitzz — Hyderabad-based fitness influencer and coach. 165K+ reach, transformation philosophy, and elite training blueprint.",
+    `Meet RahulFitzz — Hyderabad-based fitness influencer and coach. ${SOCIAL_REACH_DISPLAY.total} reach, transformation philosophy, and elite training blueprint.`,
   path: "/about",
   keywords: ["about RahulFitzz", "fitness influencer Hyderabad bio"],
 });
