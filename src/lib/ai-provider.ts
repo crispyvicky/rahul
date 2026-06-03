@@ -3,7 +3,13 @@ import { GoogleGenAI, createPartFromBase64 } from "@google/genai";
 export type AiProviderName = "mimo" | "google";
 
 const DEFAULT_MIMO_BASE = "https://token-plan-sgp.xiaomimimo.com/v1";
+const DEFAULT_GC_BASE = "https://api.generalcompute.com/v1";
 const DEFAULT_MIMO_MODEL = "mimo-v2.5";
+const DEFAULT_GC_MODEL = "minimax-m2.7";
+
+function isGeneralComputeKey(apiKey: string): boolean {
+  return apiKey.startsWith("gc_");
+}
 const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 type MimoMessage =
@@ -56,14 +62,19 @@ export function resolveAiProvider(): AiProviderName {
 }
 
 function getMimoBaseUrl(): string {
-  return (
-    process.env.MIMO_API_BASE_URL?.trim().replace(/\/$/, "") ||
-    DEFAULT_MIMO_BASE
-  );
+  const fromEnv = process.env.MIMO_API_BASE_URL?.trim().replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
+  const key = process.env.MIMO_API_KEY?.trim() || "";
+  if (isGeneralComputeKey(key)) return DEFAULT_GC_BASE;
+  return DEFAULT_MIMO_BASE;
 }
 
 function getMimoModelId(): string {
-  return process.env.MIMO_MODEL_ID?.trim() || DEFAULT_MIMO_MODEL;
+  const fromEnv = process.env.MIMO_MODEL_ID?.trim();
+  if (fromEnv) return fromEnv;
+  const key = process.env.MIMO_API_KEY?.trim() || "";
+  if (isGeneralComputeKey(key)) return DEFAULT_GC_MODEL;
+  return DEFAULT_MIMO_MODEL;
 }
 
 function getGeminiModelId(): string {
@@ -143,7 +154,8 @@ async function mimoChatCompletion(
 
   if (!res.ok) {
     const msg = data.error?.message || res.statusText;
-    throw new Error(`MiMo API ${res.status}: ${msg}`);
+    const base = getMimoBaseUrl();
+    throw new Error(`AI API ${res.status}: ${msg} (endpoint: ${base})`);
   }
 
   const message = data.choices?.[0]?.message;
@@ -256,7 +268,14 @@ export function formatAiError(error: unknown): string {
   if (raw.includes("BILLING") || raw.includes("billing")) {
     return "Google Vertex needs billing, or set MIMO_API_KEY to use Xiaomi MiMo instead.";
   }
-  if (raw.includes("MIMO_API_KEY") || raw.includes("MiMo API")) {
+  if (raw.includes("401") && raw.includes("Invalid API Key")) {
+    return (
+      "Invalid API key for this provider. General Compute keys (gc_…) need " +
+      "MIMO_API_BASE_URL=https://api.generalcompute.com/v1 and MIMO_MODEL_ID=minimax-m2.7. " +
+      "Restart npm run dev after changing .env.local, or update all four AI vars on Vercel and redeploy."
+    );
+  }
+  if (raw.includes("MIMO_API_KEY") || raw.includes("AI API") || raw.includes("MiMo API")) {
     return raw;
   }
   if (raw.includes("PERMISSION") || raw.includes("API key")) {
