@@ -9,6 +9,7 @@ import {
 } from "./points-service";
 import { getPendingRedemptionCount } from "./prize-redemption-alerts";
 import { GIVEAWAY_POINT_ACTIONS } from "./giveaway-points-config";
+import { awardReferrerOnFollowApproved } from "./referral-service";
 
 const ACTION_POINTS: Record<string, number> = {
   follow: GIVEAWAY_POINT_ACTIONS.follow.points,
@@ -343,6 +344,14 @@ export async function approveClaim(claimId: string, reviewedBy: string) {
   const eligible = await canAwardPoints(claim.user_id, action);
   if (eligible.allowed) {
     await awardPointsSecure(claim.user_id, action, `Approved: ${claim.action}`);
+  }
+
+  if (action === "follow") {
+    try {
+      await awardReferrerOnFollowApproved(claim.user_id);
+    } catch (e) {
+      console.warn("[approveClaim] referral reward failed", e);
+    }
   }
 
   const { data: profile } = await db

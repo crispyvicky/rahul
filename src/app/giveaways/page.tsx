@@ -38,7 +38,7 @@ const POINT_ACTIONS = [
   },
   {
     icon: UserPlus,
-    label: "Refer a friend (per signup)",
+    label: "Refer a friend (when they follow IG)",
     points: GIVEAWAY_POINT_ACTIONS.refer.points,
     oneTime: false,
     action: "refer",
@@ -124,7 +124,7 @@ export default function GiveawayPage() {
   const referralCode = data?.referralCode || user?.referralCode || "";
   const referralLink =
     typeof window !== "undefined" && referralCode
-      ? `${window.location.origin}/signup?ref=${referralCode}`
+      ? `${window.location.origin}/login?ref=${referralCode}`
       : "";
 
   const userId = user?.id;
@@ -487,7 +487,7 @@ export default function GiveawayPage() {
           <UserPlus className="w-4 h-4 text-brand" />
           <h3 className="text-white font-bold text-sm uppercase tracking-widest">Your Referral Link</h3>
           <span className="text-brand text-[10px] font-bold bg-brand/10 px-2 py-0.5 rounded-full">
-            +{GIVEAWAY_POINT_ACTIONS.refer.points} pts each signup
+            +{GIVEAWAY_POINT_ACTIONS.refer.points} pts when friend follows IG
           </span>
         </div>
         <div className="flex gap-2">

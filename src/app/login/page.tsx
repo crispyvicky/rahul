@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Flame, ArrowRight, Mail, Lock } from "lucide-react";
 import Link from "next/link";
@@ -9,14 +9,28 @@ import { signIn } from "next-auth/react";
 import { useUserStore, DEMO_USER } from "@/store/use-user-store";
 import { SOCIAL_REACH_DISPLAY, SOCIAL_REACH_TOTAL_FULL } from "@/lib/social-reach";
 
+const REF_KEY = "rahulfitzz_ref";
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
   const router = useRouter();
   const { login } = useUserStore();
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref")?.trim();
+    if (ref) {
+      const normalized = ref.toUpperCase();
+      sessionStorage.setItem(REF_KEY, normalized);
+      setReferralCode(normalized);
+    }
+  }, []);
+
+  const signupHref = referralCode ? `/signup?ref=${encodeURIComponent(referralCode)}` : "/signup";
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +120,11 @@ export default function LoginPage() {
           <p className="text-text-secondary text-sm mb-8">
             Sign in to access your fitness ecosystem
           </p>
+          {referralCode && (
+            <p className="text-brand text-xs font-bold uppercase tracking-widest mb-4 -mt-4">
+              Referred by a friend — sign in, follow @rahulfitzz, and claim points
+            </p>
+          )}
 
           {/* Google Sign-In — PRIMARY */}
           <button
@@ -178,7 +197,7 @@ export default function LoginPage() {
 
           <p className="text-text-secondary text-sm text-center mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-brand font-bold hover:text-brand-light transition-colors">Sign Up</Link>
+            <Link href={signupHref} className="text-brand font-bold hover:text-brand-light transition-colors">Sign Up</Link>
           </p>
           <Link href="/" className="block text-center text-text-muted text-xs mt-4 hover:text-text-secondary transition-colors no-underline">
             ← Back to RahulFitzz.com

@@ -34,7 +34,6 @@ export async function POST(req: NextRequest) {
         email: emailNorm,
         avatar_url: "",
         referral_code: code,
-        referred_by: referralCode?.trim() || null,
       })
       .select()
       .single();
