@@ -18,6 +18,7 @@ import {
   Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BravooCredit } from "@/components/bravoo-credit";
 
 const nav = [
   { id: "overview", label: "Overview", shortLabel: "Home", icon: LayoutDashboard },
@@ -103,6 +104,7 @@ export default function AdminShell({
           >
             <LogOut className="w-3.5 h-3.5" /> Sign out
           </button>
+          <BravooCredit variant="sidebar" className="px-2 pt-3" />
         </div>
       </aside>
 
@@ -185,6 +187,7 @@ export default function AdminShell({
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {children}
+          <BravooCredit variant="app" className="text-center mt-8" />
         </main>
       </div>
     </div>

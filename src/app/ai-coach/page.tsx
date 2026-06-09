@@ -580,7 +580,7 @@ export default function AICoachPage() {
     ${extrasHtml}
   </section>
   ${tipsHtml}
-  <footer class="footer">RahulFitzz AI Coach · <a href="https://rahulfitzz.com">rahulfitzz.com</a> · Train like it’s personal.</footer>
+  <footer class="footer"><a href="https://bravoo.in">BRAVOO</a></footer>
 </div>
 </body></html>`;
 

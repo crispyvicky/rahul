@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/store/use-user-store";
 import { cn } from "@/lib/utils";
+import { BravooCredit } from "@/components/bravoo-credit";
 import {
   TOUR_CLOSE_MENU_EVENT,
   TOUR_OPEN_MENU_EVENT,
@@ -187,6 +188,7 @@ export default function Sidebar() {
             <span className="text-sm font-medium">Logout</span>
           )}
         </button>
+        {!collapsed && <BravooCredit variant="sidebar" className="px-1 pt-3" />}
       </div>
     </>
   );

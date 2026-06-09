@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Shield, Flame, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { BravooCredit } from "@/components/bravoo-credit";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -36,8 +37,8 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-[100dvh] bg-[#050505] flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md flex-1 flex flex-col justify-center">
         <div className="text-center mb-10">
           <div className="w-16 h-16 rounded-2xl bg-brand mx-auto flex items-center justify-center mb-6">
             <Shield className="w-8 h-8 text-white" />
@@ -109,6 +110,7 @@ export default function AdminLoginPage() {
           <Flame className="w-3.5 h-3.5" /> Back to athlete app
         </Link>
       </div>
+      <BravooCredit variant="minimal" className="text-center py-6 shrink-0" />
     </div>
   );
 }

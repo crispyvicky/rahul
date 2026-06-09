@@ -9,6 +9,7 @@ import {
   faFacebook,
 } from "@fortawesome/free-brands-svg-icons";
 import logo from "../assets/img/RF.png";
+import { BravooCredit } from "./bravoo-credit";
 
 export default function Footer() {
   return (
@@ -74,13 +75,14 @@ const SocialLinks = () => {
 
 const F_bottom = () => {
   return (
-    <footer className="mt-auto py-6 border-t border-[#18181a] md:w-[90%] ">
+    <footer className="mt-auto py-6 border-t border-[#18181a] md:w-[90%] w-full">
       <div className="container mx-auto px-4 flex flex-col-reverse md:flex-row justify-between items-center">
         <p className="text-[#bdbdbd] text-sm md:text-base text-center md:text-left mt-4 md:mt-0">
           © 2025 RAHULFITZZ. All rights reserved.
         </p>
         <SocialLinks />
       </div>
+      <BravooCredit variant="footer" className="text-center mt-6" />
     </footer>
   );
 };

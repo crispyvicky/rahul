@@ -14,6 +14,7 @@ import PushSubscriptionHost from "@/components/platform/push-subscription-host";
 import ServiceWorkerRegister from "@/components/platform/service-worker-register";
 import NotificationPermissionPrompt from "@/components/platform/notification-permission-prompt";
 import AppSessionResumeHost from "@/components/app-session-resume-host";
+import { BravooCredit } from "@/components/bravoo-credit";
 
 const platformRoutes = [
   "/book-gym",
@@ -61,6 +62,7 @@ export default function LayoutRouter({
             className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[max(0px,env(safe-area-inset-bottom))]"
           >
             {children}
+            <BravooCredit variant="app" className="text-center px-4" />
           </main>
         </div>
         <AppSessionResumeHost scrollRootId="rf-platform-main" />
@@ -78,8 +80,9 @@ export default function LayoutRouter({
   // Auth layout — clean centered
   if (isAuth) {
     return (
-      <div className="min-h-[100dvh] bg-surface flex items-center justify-center px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
-        {children}
+      <div className="min-h-[100dvh] bg-surface flex flex-col px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="flex-1 flex items-center justify-center w-full">{children}</div>
+        <BravooCredit variant="minimal" className="text-center pb-2 shrink-0" />
       </div>
     );
   }
@@ -87,8 +90,9 @@ export default function LayoutRouter({
   // Onboarding — full screen
   if (isOnboarding) {
     return (
-      <div className="min-h-[100dvh] bg-surface pb-[max(0px,env(safe-area-inset-bottom))]">
-        {children}
+      <div className="min-h-[100dvh] bg-surface flex flex-col pb-[max(0px,env(safe-area-inset-bottom))]">
+        <div className="flex-1">{children}</div>
+        <BravooCredit variant="minimal" className="text-center py-4 shrink-0" />
       </div>
     );
   }
