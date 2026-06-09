@@ -1404,7 +1404,7 @@ export default function AICoachPage() {
               <Camera className="w-12 h-12 text-text-muted mx-auto mb-4" />
               <h3 className="text-white font-bold text-lg mb-2">Upload Your Physique Photo</h3>
               <p className="text-text-secondary text-sm mb-6 max-w-sm mx-auto">
-                Our AI will estimate body fat %, muscle distribution, and give actionable suggestions
+                Upload a clear front or side photo. Analysis uses Gemini vision (requires GEMINI_API_KEY on the server).
               </p>
               <label className="inline-flex items-center justify-center gap-2 min-h-12 px-6 py-3 bg-brand hover:bg-brand-dark text-white font-bold text-xs uppercase tracking-widest rounded-xl cursor-pointer transition-all hover:shadow-[0_0_20px_rgba(235,0,0,0.3)] touch-manipulation w-full max-w-xs mx-auto sm:w-auto sm:max-w-none">
                 <Camera className="w-4 h-4" />
@@ -1454,7 +1454,7 @@ export default function AICoachPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-surface-card border border-white/5 rounded-2xl p-5 text-center">
-                  <p className="text-brand text-3xl font-black font-heading">{physiqueAnalysis.bodyFat}%</p>
+                  <p className="text-brand text-3xl font-black font-heading">{physiqueAnalysis.bodyFat}</p>
                   <p className="text-text-muted text-xs uppercase tracking-widest mt-1">Body Fat</p>
                 </div>
                 <div className="bg-surface-card border border-white/5 rounded-2xl p-5 text-center">

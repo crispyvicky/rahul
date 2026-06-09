@@ -1,8 +1,8 @@
 /** Public follower/subscriber counts (thousands) — update here only. */
 export const SOCIAL_REACH = {
-  instagramK: 152,
-  youtubeK: 100,
-  facebookK: 81,
+  instagramK: 162,
+  youtubeK: 101,
+  facebookK: 87,
 } as const;
 
 export const SOCIAL_REACH_TOTAL_K =
@@ -12,7 +12,7 @@ export function formatReachK(k: number): string {
   return `${k}K+`;
 }
 
-/** Short labels for hero / banners (e.g. "152K+"). */
+/** Short labels for hero / banners (e.g. "162K+"). */
 export const SOCIAL_REACH_DISPLAY = {
   instagram: formatReachK(SOCIAL_REACH.instagramK),
   youtube: formatReachK(SOCIAL_REACH.youtubeK),
@@ -20,7 +20,7 @@ export const SOCIAL_REACH_DISPLAY = {
   total: formatReachK(SOCIAL_REACH_TOTAL_K),
 } as const;
 
-/** Full number for copy (e.g. "333,000+"). */
+/** Full number for copy (e.g. "350,000+"). */
 export function formatReachFull(kThousands: number): string {
   return `${(kThousands * 1000).toLocaleString("en-US")}+`;
 }

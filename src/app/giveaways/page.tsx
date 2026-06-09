@@ -66,7 +66,7 @@ const POINT_ACTIONS = [
     points: GIVEAWAY_POINT_ACTIONS.checkin.points,
     oneTime: false,
     action: "checkin",
-    cta: "Challenges",
+    cta: "View",
   },
   {
     icon: Share2,
@@ -381,9 +381,6 @@ export default function GiveawayPage() {
       copyReferralLink();
       return;
     }
-    if (action === "checkin") {
-      await claim("checkin");
-    }
   };
 
   const claimStatus = (action: string) => data?.claimStatuses?.[action];
@@ -670,6 +667,13 @@ export default function GiveawayPage() {
                   </Link>
                 ) : action.action === "streak" ? (
                   <span className="text-text-muted text-[10px] font-bold uppercase shrink-0">On login</span>
+                ) : action.action === "checkin" ? (
+                  <Link
+                    href="/challenges"
+                    className="px-4 py-2 bg-brand/10 border border-brand/20 text-brand font-bold text-[10px] uppercase rounded-lg shrink-0 no-underline"
+                  >
+                    Challenges
+                  </Link>
                 ) : action.action === "follow" || action.action === "share_story" ? (
                   <div className="flex flex-col gap-1.5 shrink-0 relative z-10">
                     <button

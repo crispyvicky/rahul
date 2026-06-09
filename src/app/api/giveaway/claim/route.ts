@@ -34,12 +34,15 @@ export async function POST(request: Request) {
     const actionKey = action as PointActionKey;
 
     if (AUTO_ONLY_ACTIONS.has(actionKey)) {
+      const autoMessages: Partial<Record<PointActionKey, string>> = {
+        streak: "Login points are added automatically when you sign in.",
+        refer: "Referral points are applied automatically when someone signs up with your link.",
+        checkin:
+          "Challenge check-in points are awarded when you complete a daily challenge (Challenges — coming soon).",
+      };
       return NextResponse.json(
         {
-          error:
-            actionKey === "streak"
-              ? "Login points are added automatically when you sign in."
-              : "This reward is applied automatically.",
+          error: autoMessages[actionKey] || "This reward is applied automatically.",
         },
         { status: 400 }
       );

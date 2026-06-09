@@ -4,6 +4,7 @@ import {
   formatAiError,
   generateAiText,
   generateAiVision,
+  parseAiJsonResponse,
 } from "@/lib/ai-provider";
 import {
   buildDietPrompt,
@@ -22,14 +23,6 @@ function clampCustomInstructions(raw: unknown): string {
   const s = String(raw);
   if (s.length <= MAX_CUSTOM_INSTRUCTIONS) return s;
   return s.slice(0, MAX_CUSTOM_INSTRUCTIONS);
-}
-
-function parseJsonResponse(text: string) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
 }
 
 export async function POST(req: Request) {
@@ -60,7 +53,7 @@ export async function POST(req: Request) {
       }
 
       const { text } = await generateAiText(prompt, { jsonMode: true });
-      const parsed = parseJsonResponse(text);
+      const parsed = parseAiJsonResponse(text);
       if (!parsed) {
         return NextResponse.json(
           { error: "Model did not return valid JSON. Try again or shorten special instructions." },
@@ -75,13 +68,14 @@ export async function POST(req: Request) {
           { status: 502 }
         );
       }
+      let planDays = days;
       if (expected > 0 && days.length !== expected) {
-        parsed.days = days.slice(0, expected);
-        while (parsed.days.length < expected) {
-          parsed.days.push(days[parsed.days.length % days.length]);
+        planDays = days.slice(0, expected);
+        while (planDays.length < expected) {
+          planDays.push(days[planDays.length % days.length]);
         }
       }
-      return NextResponse.json(parsed);
+      return NextResponse.json({ ...parsed, days: planDays });
     }
 
     if (type === "diet") {
@@ -98,7 +92,7 @@ export async function POST(req: Request) {
       }
 
       const { text } = await generateAiText(prompt, { jsonMode: true });
-      const parsed = parseJsonResponse(text);
+      const parsed = parseAiJsonResponse(text);
       if (!parsed) {
         return NextResponse.json(
           { error: "Model did not return valid JSON. Try again or shorten special instructions." },
@@ -163,7 +157,7 @@ export async function POST(req: Request) {
       }
 
       const { text } = await generateAiVision(prompt, photoData);
-      const parsed = parseJsonResponse(text);
+      const parsed = parseAiJsonResponse(text);
       if (!parsed) {
         return NextResponse.json(
           { error: "Model did not return valid JSON for image analysis. Try another photo." },

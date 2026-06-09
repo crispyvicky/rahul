@@ -15,7 +15,8 @@ export { startOfTodayUtc, startOfUtcDay, utcDayDiff };
 export { POINT_ACTIONS, type PointActionKey, type PointPolicy };
 
 /** Cannot be claimed via /api/giveaway/claim — server-only */
-export const AUTO_ONLY_ACTIONS = new Set<PointActionKey>(["streak", "refer"]);
+/** Awarded server-side only — not via giveaways “Claim” button */
+export const AUTO_ONLY_ACTIONS = new Set<PointActionKey>(["streak", "refer", "checkin"]);
 
 export async function hasPointAwardToday(
   userId: string,

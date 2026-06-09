@@ -68,7 +68,7 @@ export const DASHBOARD_TOUR_STEPS: TourStep[] = [
     id: "nav-challenges",
     target: '[data-tour="nav-challenges"]',
     title: "Challenges",
-    body: "Squad challenges and daily check-ins (+15 pts). Coming soon — earn points here when it launches.",
+    body: "Squad challenges and daily check-ins (+12 pts when you complete a challenge). Coming soon — no free points for just opening this page.",
     placement: "right",
     pathPrefix: "/dashboard",
     openMobileMenu: true,

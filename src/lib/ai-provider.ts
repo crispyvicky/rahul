@@ -26,16 +26,78 @@ function stripJsonFences(text: string) {
   return text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
 
-/** MiMo sometimes puts output in reasoning_content; extract first JSON object if needed. */
-function normalizeModelText(raw: string): string {
-  const trimmed = stripJsonFences(raw);
-  if (trimmed.startsWith("{") || trimmed.startsWith("[")) return trimmed;
-  const start = trimmed.indexOf("{");
-  const end = trimmed.lastIndexOf("}");
-  if (start >= 0 && end > start) {
-    return trimmed.slice(start, end + 1);
+/** Brace-balanced slice — avoids trailing model chatter after JSON. */
+function sliceBalancedJson(text: string, start: number): string | null {
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < text.length; i++) {
+    const c = text[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (c === "\\" && inString) {
+      escape = true;
+      continue;
+    }
+    if (c === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (c === "{") depth++;
+    if (c === "}") {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
   }
-  return trimmed;
+  return null;
+}
+
+/** Pull the best JSON object from model output (reasoning + JSON mixed). */
+export function parseAiJsonResponse(raw: string): Record<string, unknown> | null {
+  const trimmed = stripJsonFences(raw);
+  try {
+    const direct = JSON.parse(trimmed);
+    if (direct && typeof direct === "object" && !Array.isArray(direct)) {
+      return direct as Record<string, unknown>;
+    }
+  } catch {
+    /* continue */
+  }
+
+  const candidates: Record<string, unknown>[] = [];
+  for (let i = 0; i < trimmed.length; i++) {
+    if (trimmed[i] !== "{") continue;
+    const slice = sliceBalancedJson(trimmed, i);
+    if (!slice) continue;
+    try {
+      const parsed = JSON.parse(slice);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        candidates.push(parsed as Record<string, unknown>);
+      }
+    } catch {
+      /* skip invalid slice */
+    }
+  }
+
+  if (candidates.length === 0) return null;
+
+  const withPlan = candidates.find(
+    (c) => Array.isArray(c.days) || Array.isArray(c.meals) || c.estimatedBodyFat
+  );
+  return withPlan ?? candidates[candidates.length - 1];
+}
+
+/** MiMo / MiniMax often prepends chain-of-thought before JSON. */
+function normalizeModelText(raw: string): string {
+  const parsed = parseAiJsonResponse(raw);
+  if (parsed) return JSON.stringify(parsed);
+  const trimmed = stripJsonFences(raw);
+  const start = trimmed.indexOf("{");
+  const slice = start >= 0 ? sliceBalancedJson(trimmed, start) : null;
+  return slice ?? trimmed;
 }
 
 export function isMimoConfigured(): boolean {
@@ -81,6 +143,11 @@ function getGeminiModelId(): string {
   return process.env.GEMINI_MODEL_ID?.trim() || DEFAULT_GEMINI_MODEL;
 }
 
+/** AI Studio key — best for physique scan (vision); free tier supports images. */
+function getGeminiStudioKey(): string | undefined {
+  return process.env.GEMINI_API_KEY?.trim() || undefined;
+}
+
 function createGenAI(): GoogleGenAI {
   const useVertex =
     process.env.GOOGLE_GENAI_USE_VERTEXAI === "true" ||
@@ -120,37 +187,62 @@ function createGenAI(): GoogleGenAI {
   return new GoogleGenAI({ apiKey });
 }
 
+/** Vision prefers Gemini AI Studio (not Vertex) when GEMINI_API_KEY is set. */
+function createGenAIForVision(): GoogleGenAI {
+  const studioKey = getGeminiStudioKey();
+  if (studioKey) return new GoogleGenAI({ apiKey: studioKey });
+  return createGenAI();
+}
+
+export function isVisionConfigured(): boolean {
+  if (getGeminiStudioKey()) return true;
+  return isGoogleConfigured();
+}
+
 async function mimoChatCompletion(
   messages: MimoMessage[],
-  options?: { maxTokens?: number }
+  options?: { maxTokens?: number; jsonMode?: boolean }
 ): Promise<string> {
   const apiKey = process.env.MIMO_API_KEY?.trim();
   if (!apiKey) throw new Error("MIMO_API_KEY is not set");
 
   const url = `${getMimoBaseUrl()}/chat/completions`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: getMimoModelId(),
-      messages,
-      max_tokens: options?.maxTokens ?? 8192,
-      temperature: 0.7,
-    }),
-  });
-
-  const data = (await res.json()) as {
-    error?: { message?: string; code?: string };
-    choices?: Array<{
-      message?: {
-        content?: string | null;
-        reasoning_content?: string | null;
-      };
-    }>;
+  const basePayload = {
+    model: getMimoModelId(),
+    messages,
+    max_tokens: options?.maxTokens ?? 8192,
+    temperature: options?.jsonMode ? 0.35 : 0.7,
   };
+
+  const tryRequest = async (withJsonFormat: boolean) => {
+    const body: Record<string, unknown> = { ...basePayload };
+    if (withJsonFormat && options?.jsonMode) {
+      body.response_format = { type: "json_object" };
+    }
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const data = (await res.json()) as {
+      error?: { message?: string; code?: string };
+      choices?: Array<{
+        message?: {
+          content?: string | null;
+          reasoning_content?: string | null;
+        };
+      }>;
+    };
+    return { res, data };
+  };
+
+  let { res, data } = await tryRequest(Boolean(options?.jsonMode));
+  if (!res.ok && options?.jsonMode && res.status === 400) {
+    ({ res, data } = await tryRequest(false));
+  }
 
   if (!res.ok) {
     const msg = data.error?.message || res.statusText;
@@ -159,10 +251,11 @@ async function mimoChatCompletion(
   }
 
   const message = data.choices?.[0]?.message;
-  const text =
-    (message?.content && String(message.content).trim()) ||
-    (message?.reasoning_content && String(message.reasoning_content).trim()) ||
-    "";
+  const parts = [
+    message?.content && String(message.content).trim(),
+    message?.reasoning_content && String(message.reasoning_content).trim(),
+  ].filter(Boolean) as string[];
+  const text = parts.join("\n\n");
 
   if (!text) {
     throw new Error("MiMo returned an empty response. Try again or increase max_tokens.");
@@ -190,7 +283,7 @@ async function googleGenerateVision(
     throw new Error("Invalid image data URL format");
   }
 
-  const genAI = createGenAI();
+  const genAI = createGenAIForVision();
   const imagePart = createPartFromBase64(base64Data, mimeType);
   const result = await genAI.models.generateContent({
     model: getGeminiModelId(),
@@ -234,7 +327,10 @@ export async function generateAiText(
     const messages: MimoMessage[] = [];
     if (system) messages.push({ role: "system", content: system });
     messages.push({ role: "user", content: prompt });
-    const text = await mimoChatCompletion(messages, { maxTokens: 8192 });
+    const text = await mimoChatCompletion(messages, {
+      maxTokens: 8192,
+      jsonMode: options?.jsonMode,
+    });
     return { text: normalizeModelText(text), provider: "mimo" };
   }
 
@@ -242,31 +338,57 @@ export async function generateAiText(
   return { text, provider: "google" };
 }
 
-/** Vision: try MiMo if active provider is mimo; fall back to Google when available. */
+/**
+ * Vision / physique scan — needs an image-capable model.
+ * General Compute minimax-m2.7 is text-only; use GEMINI_API_KEY (AI Studio) for photos.
+ */
 export async function generateAiVision(
   prompt: string,
   photoData: string
 ): Promise<{ text: string; provider: AiProviderName }> {
-  const primary = resolveAiProvider();
+  const mimoKey = process.env.MIMO_API_KEY?.trim() || "";
 
-  if (primary === "mimo") {
+  if (isVisionConfigured()) {
+    try {
+      const text = stripJsonFences(await googleGenerateVision(prompt, photoData));
+      return { text, provider: "google" };
+    } catch (err) {
+      console.warn("[ai-provider] Google vision failed:", err);
+      if (!mimoKey || isGeneralComputeKey(mimoKey)) throw err;
+    }
+  }
+
+  // Legacy Xiaomi MiMo only (not General Compute / minimax-m2.7)
+  if (mimoKey && !isGeneralComputeKey(mimoKey)) {
     try {
       const text = normalizeModelText(await mimoGenerateVision(prompt, photoData));
       return { text, provider: "mimo" };
     } catch (err) {
-      console.warn("[ai-provider] MiMo vision failed, trying Google:", err);
-      if (!isGoogleConfigured()) throw err;
+      console.warn("[ai-provider] MiMo vision failed:", err);
+      throw err;
     }
   }
 
-  const text = stripJsonFences(await googleGenerateVision(prompt, photoData));
-  return { text, provider: "google" };
+  throw new Error(
+    "PHYSIQUE_VISION_UNAVAILABLE: Physique scan needs GEMINI_API_KEY from https://aistudio.google.com/apikey. " +
+      "General Compute (minimax-m2.7) handles workout/diet text only — it cannot read photos."
+  );
 }
 
 export function formatAiError(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error);
+  if (raw.includes("PHYSIQUE_VISION_UNAVAILABLE")) {
+    return (
+      "Physique scan needs a vision AI. Add GEMINI_API_KEY from Google AI Studio (free): " +
+      "https://aistudio.google.com/apikey — then restart dev / redeploy Vercel. " +
+      "Workout & diet plans still use General Compute; only photo analysis needs Gemini."
+    );
+  }
   if (raw.includes("BILLING") || raw.includes("billing")) {
-    return "Google Vertex needs billing, or set MIMO_API_KEY to use Xiaomi MiMo instead.";
+    return (
+      "Physique scan: enable Google Cloud billing, or add a free GEMINI_API_KEY from " +
+      "https://aistudio.google.com/apikey (set GOOGLE_GENAI_USE_VERTEXAI=false for AI Studio)."
+    );
   }
   if (raw.includes("401") && raw.includes("Invalid API Key")) {
     return (
